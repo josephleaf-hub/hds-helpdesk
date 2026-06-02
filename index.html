@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Helpdesk — HDS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+/* ===== HDS shared stylesheet (inlined so each page is self-contained) ===== */
+/* ═══════════════════════════════════════════════
+   HDS IT HELPDESK — SHARED STYLESHEET
+   HDS brand colours & components. Matches ArcTech.
+   ═══════════════════════════════════════════════ */
+
+/* ── CSS VARIABLES ────────────────────────────── */
+:root {
+  --navy:          #060D18;
+  --navy-mid:      #0D1B2E;
+  --blue:          #1C64F2;
+  --blue-hover:    #1648C2;
+  --blue-pale:     #EBF2FF;
+  --bg-app:        #F4F6F8;
+  --bg-surface:    #FFFFFF;
+  --bg-alt:        #F8F9FA;
+  --border:        #E2E8EF;
+  --border-strong: #C8D4DF;
+  --text-1:        #0F1C2E;
+  --text-2:        #4A5568;
+  --caption:       #6B7280;
+  --success:       #2E7D52;
+  --success-bg:    #E8F5EE;
+  --warning:       #B45309;
+  --warning-bg:    #FEF3C7;
+  --error:         #C0392B;
+  --error-bg:      #FDECEA;
+  --navy-light:    #1A2B4A;
+  --text-3:        #8A97A8;
+  --text-link:     #1C64F2;
+  --shadow-card:   0 1px 2px -1px rgba(0,0,0,0.10), 0 1px 3px 0 rgba(0,0,0,0.10);
+  --shadow-hover:  0 4px 16px rgba(0,0,0,0.10);
+  --client:        #FF6B43;
+  --client-bg:     #FFF3EF;
+  --client-hover:  #E2552F;
+}
+
+/* ── RESET & BASE ─────────────────────────────── */
+html { overflow-y: scroll; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F4F6F8;
+  color: #0F1C2E;
+  min-height: 100vh;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ───────────────────────────────────── */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── TOPBAR ───────────────────────────────────── */
+.topbar {
+  background: transparent;
+  padding: 40px 32px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.topbar-left { display: flex; flex-direction: column; gap: 5px; padding-bottom: 10px; }
+.topbar-title { font-size: 24px; font-weight: 600; color: #0F1C2E; letter-spacing: -0.02em; line-height: normal; }
+.topbar-meta  { font-size: 13px; color: #6B7280; font-weight: 400; line-height: normal; }
+.topbar-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.topbar-hds-logo { height: 32px; display: block; }
+.logo-divider-line { width: 1px; height: 24px; background: #C8D4DF; flex-shrink: 0; }
+
+/* ── TAB BAR ──────────────────────────────────── */
+.tab-bar-wrap { padding: 4px 32px 8px; flex-shrink: 0; }
+.tab-bar {
+  display: inline-flex;
+  background: #E5E7EB; border-radius: 10px;
+  padding: 7px; gap: 7px;
+}
+.tab-btn {
+  padding: 7px 16px; font-size: 13px; font-weight: 500;
+  color: #6B7280; background: transparent; border: none;
+  border-radius: 5px; cursor: pointer; white-space: nowrap;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.tab-btn:hover { color: #0F1C2E; }
+.tab-btn.active {
+  background: #fff; color: #1C64F2; font-weight: 500;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(125,135,135,0.20);
+}
+
+/* ── PAGE CONTENT ─────────────────────────────── */
+.page-content {
+  flex: 1; padding: 20px 32px 32px;
+  overflow-y: auto; min-height: 0;
+}
+.tab-pane { display: none; min-height: 800px; }
+.tab-pane.active { display: block; }
+
+/* ── SECTION TITLES ───────────────────────────── */
+.section-title {
+  font-size: 14px; font-weight: 600; color: #0F1C2E;
+  padding-bottom: 12px; border-bottom: 1px solid #E2E8EF;
+  margin-bottom: 16px; margin-top: 32px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title:first-child { margin-top: 0; }
+.section-badge {
+  font-size: 12px; font-weight: 600; padding: 2px 9px;
+  border-radius: 10px; background: #EBF2FF; color: #1C64F2;
+}
+
+/* ── CARDS ────────────────────────────────────── */
+.card {
+  background: #fff; border-radius: 20px;
+  padding: 15px; box-shadow: var(--shadow-card);
+  margin-bottom: 20px;
+}
+
+/* ── KPI CARDS ────────────────────────────────── */
+.kpi-wrap {
+  background: #fff; border-radius: 20px; padding: 15px;
+  box-shadow: var(--shadow-card); margin-bottom: 20px;
+}
+.kpi-wrap .kpi-card { box-shadow: none; }
+.kpi-wrap .kpi-grid { margin-bottom: 0; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: #F3F4F6; border-radius: 10px;
+  padding: 14px 15px 14px 18px;
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 4px;
+  background: #D1D5DB; border-radius: 10px 0 0 10px;
+}
+.kpi-card.hds  { background: #EEF4FF; }
+.kpi-card.hds::before  { background: #1C64F2; }
+.kpi-card.hds .kpi-val { color: #1C64F2; }
+.kpi-card.grn  { background: #EEF9F3; }
+.kpi-card.grn::before  { background: #2E7D52; }
+.kpi-card.grn .kpi-val { color: #2E7D52; }
+.kpi-card.wrn  { background: #FEF3C7; }
+.kpi-card.wrn::before  { background: #B45309; }
+.kpi-card.wrn .kpi-val { color: #B45309; }
+.kpi-card.err  { background: #FDECEA; }
+.kpi-card.err::before  { background: #C0392B; }
+.kpi-card.err .kpi-val { color: #C0392B; }
+.kpi-lbl { font-size: 12px; font-weight: 500; color: #6B7280; margin-bottom: 6px; line-height: 1.5; }
+.kpi-val { font-size: 24px; font-weight: 700; color: #0F1C2E; line-height: 1.2; letter-spacing: -0.03em; }
+.kpi-sub { font-size: 12px; font-weight: 500; color: #6B7280; margin-top: 6px; line-height: 1.5; }
+
+/* ── BUTTONS ──────────────────────────────────── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #1C64F2; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: 14px; font-weight: 500;
+  font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.btn-primary:hover { background: #1648C2; }
+.btn-block { width: 100%; justify-content: center; padding: 12px; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fff; color: #0F1C2E;
+  border: 1px solid #C8D4DF; border-radius: 8px;
+  padding: 8px 18px; font-size: 13px; font-weight: 500;
+  font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.btn-secondary:hover { background: #F4F6F8; }
+.btn-ghost {
+  background: none; border: none; color: #6B7280;
+  padding: 6px 10px; font-size: 13px; font-family: inherit;
+  cursor: pointer; border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.btn-ghost:hover { color: #0F1C2E; background: #F4F6F8; }
+
+/* ── FORM CONTROLS ────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: #0F1C2E; margin-bottom: 6px;
+}
+.form-label .req { color: #C0392B; }
+.form-hint { font-size: 11px; color: #6B7280; margin-top: 4px; }
+.input, select.input, textarea.input {
+  width: 100%; height: 40px;
+  background: #F9FAFB; border: 1px solid #C8D4DF;
+  border-radius: 10px; padding: 0 12px;
+  font-size: 13px; font-family: inherit;
+  color: #0F1C2E; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+textarea.input {
+  height: auto; min-height: 100px;
+  padding: 10px 12px; resize: vertical; line-height: 1.5;
+}
+.input:focus { border-color: #1C64F2; box-shadow: 0 0 0 3px rgba(28,100,242,0.12); }
+select.input {
+  appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%236B7280' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  padding-right: 34px;
+}
+.input-error { border-color: #C0392B !important; }
+.form-error { font-size: 11px; color: #C0392B; margin-top: 4px; }
+
+/* ── FORM SECTIONS ────────────────────────────── */
+.form-card {
+  background: #fff; border-radius: 20px; padding: 24px;
+  box-shadow: var(--shadow-card); margin-bottom: 20px;
+}
+.form-card-title {
+  font-size: 14px; font-weight: 600; color: #0F1C2E;
+  margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8EF;
+}
+.form-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ── TABLES ───────────────────────────────────── */
+.table-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: var(--shadow-card); overflow: hidden; margin-bottom: 20px;
+}
+.table-scroll { overflow-x: auto; border-radius: 20px; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; }
+thead th {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #6B7280; background: #F8F9FA;
+  border-bottom: 1px solid #E2E8EF; padding: 12px 16px;
+  text-align: left; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #E2E8EF; transition: background 0.1s; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #F0F7FF; }
+tbody td { padding: 12px 16px; color: #6B7280; font-size: 12px; font-weight: 500; vertical-align: middle; }
+tbody td:first-child { color: #0F1C2E; font-weight: 600; }
+.tbl-action {
+  background: none; border: 1px solid #C8D4DF; border-radius: 6px;
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: inherit; color: #0F1C2E;
+}
+.tbl-action:hover { background: #F4F6F8; }
+
+/* ── BADGES ───────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 10px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.b-open     { background: #EBF2FF; color: #1C64F2; }
+.b-progress { background: #FEF3C7; color: #B45309; }
+.b-hold     { background: #F3F4F6; color: #4A5568; }
+.b-resolved { background: #E8F5EE; color: #2E7D52; }
+.b-closed   { background: #F3F4F6; color: #6B7280; }
+.b-low      { background: #F3F4F6; color: #4A5568; }
+.b-medium   { background: #EBF2FF; color: #1C64F2; }
+.b-high     { background: #FEF3C7; color: #B45309; }
+.b-urgent   { background: #FDECEA; color: #C0392B; }
+.pri-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; }
+
+/* ── FILTER BAR ───────────────────────────────── */
+.filter-bar {
+  background: #fff; border-radius: 20px; padding: 12px 16px;
+  box-shadow: var(--shadow-card); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.filter-bar .input { height: 34px; font-size: 12px; width: auto; }
+.filter-lbl { font-size: 12px; font-weight: 600; color: #6B7280; white-space: nowrap; }
+
+/* ── MODAL ────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed;
+  inset: 0; background: rgba(6,13,24,0.55); z-index: 1000;
+  align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 20px;
+  width: 680px; max-width: 100%; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  position: relative;
+}
+.modal-header {
+  padding: 20px 24px 14px; border-bottom: 1px solid #E2E8EF;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  position: sticky; top: 0; background: #fff;
+  border-radius: 20px 20px 0 0; z-index: 1;
+}
+.modal-title     { font-size: 15px; font-weight: 600; color: #0F1C2E; line-height: 1.35; }
+.modal-ticket-id { font-size: 12px; color: #6B7280; margin-top: 4px; }
+.modal-close {
+  flex-shrink: 0; margin-left: 12px;
+  background: #F4F6F8; border: none; border-radius: 8px;
+  width: 28px; height: 28px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: 14px; color: #6B7280;
+}
+.modal-close:hover { background: #E2E8EF; }
+.modal-body   { padding: 20px 24px; }
+.modal-footer {
+  padding: 14px 24px; border-top: 1px solid #E2E8EF;
+  display: flex; gap: 8px; justify-content: flex-end;
+  position: sticky; bottom: 0; background: #fff;
+  border-radius: 0 0 20px 20px;
+}
+
+/* ── DETAIL GRID (in modal) ───────────────────── */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.detail-lbl  { font-size: 10px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.detail-val  { font-size: 13px; font-weight: 500; color: #0F1C2E; }
+
+/* ── ACTIVITY NOTES ───────────────────────────── */
+.note-item {
+  background: #F8F9FA; border-radius: 10px;
+  padding: 11px 14px; margin-bottom: 8px;
+}
+.note-meta { font-size: 11px; color: #6B7280; margin-bottom: 4px; }
+.note-text { font-size: 12px; color: #0F1C2E; line-height: 1.5; }
+
+/* ── TOAST ────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 20px; right: 20px;
+  background: #0F1C2E; color: #fff;
+  padding: 11px 18px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  z-index: 2000; display: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 320px;
+}
+.toast.show { display: block; animation: fadeInUp 0.2s ease; }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── EMPTY STATE ──────────────────────────────── */
+.empty-state { text-align: center; padding: 48px 24px; }
+.empty-icon  { font-size: 36px; margin-bottom: 12px; }
+.empty-text  { font-size: 13px; color: #6B7280; }
+
+/* ── LOADING SPINNER ──────────────────────────── */
+.spinner {
+  width: 32px; height: 32px; border: 3px solid #E2E8EF;
+  border-top-color: #1C64F2; border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 40px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SUCCESS PANEL ────────────────────────────── */
+.success-panel {
+  background: #E8F5EE; border-radius: 20px;
+  padding: 48px 32px; text-align: center; display: none;
+}
+.success-panel.show { display: block; }
+.success-icon  { font-size: 48px; margin-bottom: 14px; }
+.success-title { font-size: 20px; font-weight: 700; color: #2E7D52; margin-bottom: 8px; }
+.success-msg   { font-size: 14px; color: #4A5568; margin-bottom: 24px; line-height: 1.6; }
+
+/* ── SCROLLBAR ────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C8D4DF; border-radius: 3px; }
+
+/* ── UTILITY ──────────────────────────────────── */
+.text-right  { text-align: right; }
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+.subsection-title {
+  font-size: 11px; font-weight: 700; color: #4A5568;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin: 24px 0 10px;
+}
+.subsection-title:first-child { margin-top: 0; }
+.divider { border: none; border-top: 1px solid #E2E8EF; margin: 20px 0; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — MOBILE FIRST
+   ══════════════════════════════════════════════ */
+
+/* Tablet: ≤ 1024px */
+@media (max-width: 1024px) {
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* Mobile: ≤ 768px */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 20px 16px 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .topbar-right { order: -1; width: 100%; justify-content: space-between; }
+  .topbar-left { width: 100%; }
+
+  .tab-bar-wrap { padding: 0 16px 8px; overflow-x: auto; }
+  .tab-bar { width: max-content; }
+  .tab-btn { padding: 7px 14px; font-size: 12px; }
+
+  .page-content { padding: 12px 16px 32px; }
+
+  .form-grid,
+  .form-grid-3 { grid-template-columns: 1fr; }
+
+  .filter-bar {
+    padding: 10px 12px; gap: 8px;
+  }
+  .filter-bar .input { flex: 1; min-width: 120px; }
+
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  .detail-grid { grid-template-columns: 1fr; }
+
+  .modal { border-radius: 16px 16px 0 0; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-height: 92vh; margin: 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+
+  .form-card { padding: 18px; border-radius: 16px; }
+  .card { border-radius: 16px; }
+  .kpi-wrap { border-radius: 16px; }
+  .table-card { border-radius: 16px; }
+}
+
+/* Small mobile: ≤ 480px */
+@media (max-width: 480px) {
+  .topbar-title { font-size: 20px; }
+  .kpi-val { font-size: 24px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
+  .kpi-card { padding: 14px 12px 14px 18px; }
+
+  /* Hide less important table columns on very small screens */
+  table th:nth-child(5),
+  table td:nth-child(5),
+  table th:nth-child(8),
+  table td:nth-child(8),
+  table th:nth-child(9),
+  table td:nth-child(9) { display: none; }
+}
+
+  </style>
+  <style>
+    /* Staff-portal specific styles */
+    .portal-hero {
+      background: #EEF4FF;
+      border-radius: 20px;
+      padding: 20px 24px 20px 28px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .portal-hero::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 4px;
+      background: #1C64F2; border-radius: 10px 0 0 10px;
+    }
+    .portal-hero-title { font-size: 17px; font-weight: 700; color: #0F1C2E; letter-spacing: -0.02em; }
+    .portal-hero-sub   { font-size: 13px; color: #6B7280; margin-top: 4px; }
+
+    /* Category select cards (touch friendly) */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .cat-card {
+      background: #fff; border: 2px solid #E2E8EF;
+      border-radius: 14px; padding: 16px 12px;
+      text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .cat-card:hover { border-color: #1C64F2; background: #F7FAFF; }
+    .cat-card.selected { border-color: #1C64F2; background: #EBF2FF; }
+    .cat-icon  { font-size: 24px; margin-bottom: 8px; }
+    .cat-label { font-size: 12px; font-weight: 600; color: #0F1C2E; line-height: 1.3; }
+
+    /* My tickets view */
+    .lookup-card {
+      background: #fff; border-radius: 20px;
+      padding: 24px; box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+    }
+    .lookup-row {
+      display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+    }
+    .lookup-row .form-group { flex: 1; min-width: 220px; margin-bottom: 0; }
+    .lookup-row .btn-secondary { flex-shrink: 0; height: 40px; }
+
+    /* Ticket status card (for "my tickets" list) */
+    .ticket-row-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: var(--shadow-card); padding: 16px 20px;
+      margin-bottom: 10px; cursor: pointer;
+      transition: box-shadow 0.15s;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .ticket-row-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+    .trc-left { flex: 1; min-width: 0; }
+    .trc-id   { font-size: 11px; font-weight: 700; color: #1C64F2; margin-bottom: 4px; }
+    .trc-sub  { font-size: 13px; font-weight: 600; color: #0F1C2E; margin-bottom: 6px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trc-meta { font-size: 11px; color: #6B7280; }
+    .trc-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+    /* View modal (read-only for staff) */
+    .view-modal-notes { margin-top: 12px; }
+
+    @media (max-width: 768px) {
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .portal-hero { padding: 20px; }
+      .portal-hero-title { font-size: 18px; }
+    }
+    @media (max-width: 400px) {
+      .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+<main class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">IT Helpdesk</div>
+      <div class="topbar-meta">Home Delivery Service — Staff Support Portal</div>
+    </div>
+    <div class="topbar-right">
+      <a href="/login.html" class="btn-secondary" style="font-size:12px;">IT Staff Login →</a>
+      <img src="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/69dc2749d52c90cf97e32309_Secondary-positive.png" alt="HDS" class="topbar-hds-logo" />
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tab-bar-wrap">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="openTab('submit', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg> Submit a Ticket</button>
+      <button class="tab-btn" onclick="openTab('mytickets', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> My Tickets</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="page-content">
+
+    <!-- ══════════════════════════════
+         TAB: SUBMIT A TICKET
+    ══════════════════════════════ -->
+    <div id="tab-submit" class="tab-pane active">
+
+      <!-- Success panel -->
+      <div class="success-panel" id="successPanel">
+        <div class="success-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#2E7D52;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="success-title">Ticket Submitted!</div>
+        <div class="success-msg" id="successMsg">Your ticket has been submitted and the IT team has been notified.</div>
+        <button class="btn-primary" onclick="resetForm()" style="margin: 0 auto;">Submit Another Ticket</button>
+      </div>
+
+      <!-- Form -->
+      <div id="submitForm">
+
+        <!-- Hero -->
+        <div class="portal-hero">
+          <div>
+            <div class="portal-hero-title">Raise an IT Request</div>
+            <div class="portal-hero-sub">We aim to respond within 2 business hours for high/urgent tickets</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Your Details -->
+        <div class="form-card">
+          <div class="form-card-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:8px;color:#1C64F2;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Step 1 — Your Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Full Name <span class="req">*</span></label>
+              <input class="input" type="text" id="reqName" placeholder="e.g. Sarah Johnson" autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Work Email <span class="req">*</span></label>
+              <input class="input" type="email" id="reqEmail" placeholder="name@homedelivery.com.au" autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department <span class="req">*</span></label>
+              <select class="input" id="reqDept">
+                <option value="">Select department...</option>
+                <option>Operations</option>
+                <option>Technology</option>
+                <option>Finance</option>
+                <option>Sales</option>
+                <option>Customer Service</option>
+                <option>HR &amp; People</option>
+                <option>Leadership</option>
+                <option>Marketing</option>
+                <option>Warehouse</option>
+                <option>Driver / Field</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label>
+              <select class="input" id="reqLocation">
+                <option value="">Select location...</option>
+                <option>Melbourne HQ</option>
+                <option>Sydney</option>
+                <option>Brisbane</option>
+                <option>Adelaide</option>
+                <option>Perth</option>
+                <option>Remote</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Category -->
+        <div class="form-card">
+          <div class="form-card-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:8px;color:#1C64F2;"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> Step 2 — What Do You Need? <span class="req">*</span></div>
+          <div class="cat-grid" id="catGrid">
+            <div class="cat-card" onclick="selectCat('access', this)">
+              <div class="cat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#1C64F2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+              <div class="cat-label">Access Request</div>
+            </div>
+            <div class="cat-card" onclick="selectCat('hardware', this)">
+              <div class="cat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#1C64F2;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div class="cat-label">Hardware Request</div>
+            </div>
+            <div class="cat-card" onclick="selectCat('account', this)">
+              <div class="cat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#1C64F2;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+              <div class="cat-label">Account Setup / Offboarding</div>
+            </div>
+            <div class="cat-card" onclick="selectCat('support', this)">
+              <div class="cat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#1C64F2;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+              <div class="cat-label">General IT Support</div>
+            </div>
+          </div>
+
+          <div class="form-grid" id="requestDetails" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">Request Type <span class="req">*</span></label>
+              <select class="input" id="ticketSubType">
+                <option value="">Select type...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority <span class="req">*</span></label>
+              <select class="input" id="ticketPriority">
+                <option value="low">Low — Not time-sensitive</option>
+                <option value="medium" selected>Medium — Needed within a few days</option>
+                <option value="high">High — Urgently impacting my work</option>
+                <option value="urgent">Urgent — I cannot work at all</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Affected User</label>
+              <input class="input" type="text" id="affectedUser" placeholder="Only if raising on behalf of someone else" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Details (shown after category selected) -->
+        <div class="form-card" id="descCard" style="display:none;">
+          <div class="form-card-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:8px;color:#1C64F2;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Step 3 — Tell Us More</div>
+          <div class="form-group">
+            <label class="form-label">Subject <span class="req">*</span></label>
+            <input class="input" type="text" id="ticketSubject" placeholder="One-line summary of your request" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Description <span class="req">*</span></label>
+            <textarea class="input" id="ticketDesc" placeholder="Provide as much detail as possible — what you need, when, and any relevant context..." style="min-height:120px;"></textarea>
+          </div>
+        </div>
+
+        <!-- Submit button -->
+        <div id="submitBtn" style="display:none; display:flex; justify-content:flex-end; margin-bottom:32px;">
+          <button class="btn-primary" onclick="submitTicket()" id="submitBtnEl" style="padding:11px 28px; font-size:14px;">
+            Submit Ticket →
+          </button>
+        </div>
+
+      </div><!-- /submitForm -->
+    </div><!-- /tab-submit -->
+
+    <!-- ══════════════════════════════
+         TAB: MY TICKETS
+    ══════════════════════════════ -->
+    <div id="tab-mytickets" class="tab-pane">
+      <div class="lookup-card">
+        <div class="form-card-title" style="margin-bottom:16px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:8px;color:#1C64F2;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Look Up Your Tickets</div>
+        <div class="lookup-row">
+          <div class="form-group">
+            <label class="form-label">Your work email address</label>
+            <input class="input" type="email" id="lookupEmail" placeholder="name@homedelivery.com.au" />
+          </div>
+          <button class="btn-secondary" onclick="loadMyTickets()">Find Tickets</button>
+        </div>
+      </div>
+
+      <div id="myTicketsResult"></div>
+    </div>
+
+  </div><!-- /page-content -->
+</main>
+
+<!-- ══════════════════════════════
+     TICKET VIEW MODAL (read-only)
+══════════════════════════════ -->
+<div class="modal-overlay" id="viewModal" onclick="closeViewIfOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="vmTitle"></div>
+        <div class="modal-ticket-id" id="vmMeta"></div>
+      </div>
+      <button class="modal-close" onclick="closeView()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" id="vmBody"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeView()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const SUB_TYPES = {
+  access:   ['New System Access', 'Modify Existing Access', 'VPN / Remote Access', 'Application License', 'Remove / Revoke Access'],
+  hardware: ['New Laptop', 'Laptop Replacement', 'Monitor / Peripheral', 'Mobile Device', 'Headset / Audio', 'Other Hardware'],
+  account:  ['New Starter Setup', 'Leaver Account Deactivation', 'Password Reset', 'Email & Signature Setup', 'Profile / Name Change'],
+  support:  ['Software Not Working', 'Hardware Fault', 'Network / Connectivity', 'Email Problem', 'Printing / Scanning', 'Other']
+};
+const CAT_LABEL = { access: 'Access Request', hardware: 'Hardware Request', account: 'Account Setup', support: 'IT Support' };
+const STATUS_LABEL = { open: 'Open', 'in-progress': 'In Progress', 'on-hold': 'On Hold', resolved: 'Resolved', closed: 'Closed' };
+const PRI_LABEL = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
+
+let selectedCategory = '';
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function openTab(name, el) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────────
+// CATEGORY SELECTION
+// ─────────────────────────────────────────────
+function selectCat(cat, el) {
+  selectedCategory = cat;
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const sel = document.getElementById('ticketSubType');
+  sel.innerHTML = '<option value="">Select type...</option>' +
+    SUB_TYPES[cat].map(t => `<option>${t}</option>`).join('');
+
+  document.getElementById('requestDetails').style.display = 'grid';
+  document.getElementById('descCard').style.display = 'block';
+  document.getElementById('submitBtn').style.display = 'flex';
+}
+
+// ─────────────────────────────────────────────
+// FORM SUBMISSION
+// ─────────────────────────────────────────────
+async function submitTicket() {
+  const name       = document.getElementById('reqName').value.trim();
+  const email      = document.getElementById('reqEmail').value.trim();
+  const dept       = document.getElementById('reqDept').value;
+  const subType    = document.getElementById('ticketSubType').value;
+  const priority   = document.getElementById('ticketPriority').value;
+  const subject    = document.getElementById('ticketSubject').value.trim();
+  const desc       = document.getElementById('ticketDesc').value.trim();
+  const location   = document.getElementById('reqLocation').value;
+  const affected   = document.getElementById('affectedUser').value.trim();
+
+  if (!name || !email || !dept || !selectedCategory || !subType || !subject || !desc) {
+    showToast('Please fill in all required fields.'); return;
+  }
+  if (!email.includes('@')) {
+    showToast('Enter a valid email address.'); return;
+  }
+
+  const btn = document.getElementById('submitBtnEl');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    const res = await fetch('/api/submit-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category:       selectedCategory,
+        subType,
+        priority,
+        subject,
+        description:    desc,
+        requesterName:  name,
+        requesterEmail: email,
+        department:     dept,
+        location,
+        affectedUser:   affected,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Submission failed');
+    }
+
+    document.getElementById('successMsg').textContent =
+      `Ticket ${data.ticketId} submitted successfully. The IT team has been notified at itsupporttickets@hdsau.com.au.`;
+    document.getElementById('submitForm').style.display = 'none';
+    document.getElementById('successPanel').classList.add('show');
+
+    // Pre-fill lookup email for convenience
+    document.getElementById('lookupEmail').value = email;
+
+  } catch (err) {
+    showToast('' + (err.message || 'Submission failed. Please try again.'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Ticket →';
+  }
+}
+
+function resetForm() {
+  document.getElementById('submitForm').style.display = 'block';
+  document.getElementById('successPanel').classList.remove('show');
+  selectedCategory = '';
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('requestDetails').style.display = 'none';
+  document.getElementById('descCard').style.display = 'none';
+  document.getElementById('submitBtn').style.display = 'none';
+  ['reqName','reqEmail','reqDept','reqLocation','ticketSubType','ticketPriority',
+   'ticketSubject','ticketDesc','affectedUser'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.tagName === 'SELECT' ? (el.options[0]?.value || '') : '';
+  });
+}
+
+// ─────────────────────────────────────────────
+// MY TICKETS LOOKUP
+// ─────────────────────────────────────────────
+async function loadMyTickets() {
+  const email = document.getElementById('lookupEmail').value.trim().toLowerCase();
+  if (!email || !email.includes('@')) {
+    showToast('Please enter a valid email address.'); return;
+  }
+
+  const area = document.getElementById('myTicketsResult');
+  area.innerHTML = '<div class="spinner"></div>';
+
+  try {
+    const res = await fetch(`/api/my-tickets?email=${encodeURIComponent(email)}`);
+    const tickets = await res.json();
+
+    if (!res.ok) throw new Error(tickets.error || 'Failed to fetch tickets');
+
+    if (!tickets.length) {
+      area.innerHTML = `<div class="empty-state">
+        <div class="empty-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#8A97A8;"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+        <div class="empty-text">No tickets found for <strong>${email}</strong></div>
+      </div>`;
+      return;
+    }
+
+    area.innerHTML = tickets.map(t => `
+      <div class="ticket-row-card" onclick="viewTicket(${JSON.stringify(JSON.stringify(t))})">
+        <div class="trc-left">
+          <div class="trc-id">${t.id}</div>
+          <div class="trc-sub">${esc(t.subject)}</div>
+          <div class="trc-meta">${CAT_LABEL[t.category] || t.category} — ${esc(t.sub_type)} · ${fmtShort(t.created_at)}</div>
+        </div>
+        <div class="trc-right">
+          ${statusBadge(t.status)}
+          ${priBadge(t.priority)}
+        </div>
+      </div>`).join('');
+
+  } catch (err) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;flex-shrink:0;color:#C0392B;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="empty-text">${err.message}</div></div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// TICKET VIEW MODAL
+// ─────────────────────────────────────────────
+function viewTicket(jsonStr) {
+  const t = JSON.parse(jsonStr);
+  document.getElementById('vmTitle').textContent = t.subject;
+  document.getElementById('vmMeta').textContent =
+    `${t.id} · ${CAT_LABEL[t.category] || t.category} · Submitted ${fmtDate(t.created_at)}`;
+
+  const notes = (t.ticket_notes || []);
+  const notesHtml = notes.length
+    ? notes.map(n => `
+        <div class="note-item">
+          <div class="note-meta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;margin-right:4px;color:#8A97A8;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <strong>${esc(n.added_by)}</strong> · ${fmtDate(n.created_at)}</div>
+          <div class="note-text">${esc(n.note_text)}</div>
+        </div>`).join('')
+    : '<div style="color:#9CA3AF;font-size:12px;font-style:italic;">No updates yet — the IT team will be in touch soon.</div>';
+
+  document.getElementById('vmBody').innerHTML = `
+    <div class="detail-grid">
+      <div>
+        <div class="detail-lbl">Status</div>
+        <div class="detail-val">${statusBadge(t.status)}</div>
+      </div>
+      <div>
+        <div class="detail-lbl">Priority</div>
+        <div class="detail-val">${priBadge(t.priority)}</div>
+      </div>
+      <div>
+        <div class="detail-lbl">Type</div>
+        <div class="detail-val">${esc(t.sub_type)}</div>
+      </div>
+      <div>
+        <div class="detail-lbl">Assigned To</div>
+        <div class="detail-val">${t.assigned_to || '<span style="color:#9CA3AF;font-style:italic;">Pending assignment</span>'}</div>
+      </div>
+      ${t.resolved_at ? `<div><div class="detail-lbl">Resolved At</div><div class="detail-val">${fmtDate(t.resolved_at)}</div></div>` : ''}
+    </div>
+    <div style="background:#F8F9FA;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div class="detail-lbl" style="margin-bottom:6px;">Description</div>
+      <div style="font-size:13px;color:#0F1C2E;line-height:1.65;white-space:pre-wrap;">${esc(t.description)}</div>
+    </div>
+    <div>
+      <div class="detail-lbl" style="margin-bottom:8px;">Updates from IT Team</div>
+      ${notesHtml}
+    </div>`;
+
+  document.getElementById('viewModal').classList.add('open');
+}
+function closeView() { document.getElementById('viewModal').classList.remove('open'); }
+function closeViewIfOutside(e) { if (e.target.id === 'viewModal') closeView(); }
+
+// ─────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function fmtShort(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric' });
+}
+function statusBadge(s) {
+  const cls = { open:'b-open','in-progress':'b-progress','on-hold':'b-hold',resolved:'b-resolved',closed:'b-closed' };
+  return `<span class="badge ${cls[s]||'b-hold'}">${STATUS_LABEL[s]||s}</span>`;
+}
+function priBadge(p) {
+  const cls  = { low:'b-low',medium:'b-medium',high:'b-high',urgent:'b-urgent' };
+  const cols = { low:'#9CA3AF',medium:'#1C64F2',high:'#B45309',urgent:'#C0392B' };
+  return `<span class="badge ${cls[p]||'b-low'}"><span class="pri-dot" style="background:${cols[p]||'#9CA3AF'};"></span>${PRI_LABEL[p]||p}</span>`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeView(); });
+</script>
+</body>
+</html>

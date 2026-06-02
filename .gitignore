@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Local env files
+.env
+.env.local
+
+# Netlify local state
+.netlify/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.claude/
+
+# Credentials — config.js is regenerated at build time from env vars
+config.js
