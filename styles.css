@@ -82,7 +82,7 @@ body {
 .logo-divider-line { width: 1px; height: 24px; background: #C8D4DF; flex-shrink: 0; }
 
 /* ── TAB BAR ──────────────────────────────────── */
-.tab-bar-wrap { padding: 4px 32px 8px; flex-shrink: 0; }
+.tab-bar-wrap { padding: 28px 32px 8px; flex-shrink: 0; }
 .tab-bar {
   display: inline-flex;
   background: #E5E7EB; border-radius: 10px;
@@ -103,7 +103,7 @@ body {
 
 /* ── PAGE CONTENT ─────────────────────────────── */
 .page-content {
-  flex: 1; padding: 48px 32px 32px;
+  flex: 1; padding: 20px 32px 32px;
   overflow-y: auto; min-height: 0;
 }
 .tab-pane { display: none; min-height: 800px; }
