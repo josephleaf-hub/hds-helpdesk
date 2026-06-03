@@ -116,8 +116,8 @@ exports.handler = async (event) => {
     const token   = await resolveToken(admin, ticket);
     const link    = token ? `${SITE_URL}/p/${token}/t/${ticket.id}` : `${SITE_URL}/t/${ticket.id}`;
     const allLink = token ? `${SITE_URL}/p/${token}` : SITE_URL;
-    const html = buildReplyHtml({ ticket, message, addedBy, link, allLink });
-    const text = buildReplyText({ ticket, message, addedBy, link, allLink });
+    const html = buildReplyHtml({ ticket, message, addedBy, link, allLink, attachCount: atts.length });
+    const text = buildReplyText({ ticket, message, addedBy, link, allLink, attachCount: atts.length });
 
     try {
       const sgRes = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -204,10 +204,13 @@ function esc(s) {
   }[c]));
 }
 
-function buildReplyHtml({ ticket, message, addedBy, link, allLink }) {
+function buildReplyHtml({ ticket, message, addedBy, link, allLink, attachCount }) {
   const bodyHtml = (message && message.trim())
     ? esc(message).replace(/\n/g, '<br>')
     : '<em style="color:#6B7280;">A screenshot was attached — open the portal to view it.</em>';
+  const attachBadge = attachCount > 0
+    ? `<div style="margin:0 0 18px;"><span style="display:inline-flex;align-items:center;gap:6px;background:#EBF2FF;color:#1C64F2;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${attachCount} image${attachCount > 1 ? 's' : ''} attached — view in the portal</span></div>`
+    : '';
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>
 <body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
@@ -221,6 +224,7 @@ function buildReplyHtml({ ticket, message, addedBy, link, allLink }) {
       <tr><td style="padding:24px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">
         <div style="margin-bottom:16px;">Hi ${esc(ticket.requester_name.split(' ')[0])},</div>
         <div style="margin-bottom:20px;">${bodyHtml}</div>
+        ${attachBadge}
         <div style="margin:24px 0;">
           <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
           <a href="${allLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">All my tickets</a>
@@ -237,11 +241,16 @@ function buildReplyHtml({ ticket, message, addedBy, link, allLink }) {
 </body></html>`;
 }
 
-function buildReplyText({ ticket, message, addedBy, link, allLink }) {
-  return [
+function buildReplyText({ ticket, message, addedBy, link, allLink, attachCount }) {
+  const lines = [
     `Hi ${ticket.requester_name.split(' ')[0]},`,
     '',
     (message && message.trim()) ? message.trim() : 'A screenshot was attached — open the portal to view it.',
+  ];
+  if (attachCount > 0 && message && message.trim()) {
+    lines.push('', `(${attachCount} image${attachCount > 1 ? 's' : ''} attached — view in the portal)`);
+  }
+  lines.push(
     '',
     `— ${addedBy}`,
     `HDS IT Helpdesk`,
@@ -250,7 +259,8 @@ function buildReplyText({ ticket, message, addedBy, link, allLink }) {
     `Reply to this conversation (signs you in automatically): ${link}`,
     `All your tickets: ${allLink}`,
     `Reference: ${ticket.id}`,
-  ].join('\n');
+  );
+  return lines.join('\n');
 }
 
 // ─────────────────────────────────────────────
