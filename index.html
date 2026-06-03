@@ -75,9 +75,12 @@
     .pt-right  { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .pt-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
     .pt-logo   { height: 32px; width: auto; display: block; }
+    /* Breathing room between the fixed nav and the page content (portal only) */
+    .page-content { padding-top: 36px; }
     @media (max-width: 768px) {
       .portal-topbar { padding: 12px 16px; gap: 10px; }
       .pt-right { gap: 10px; }
+      .page-content { padding-top: 24px; }
     }
 
     /* Ticket detail (full-page) */
