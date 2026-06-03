@@ -70,6 +70,7 @@
     .detail-header { margin-bottom: 22px; }
     .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
     .dh-meta  { font-size: 12px; color: var(--caption); margin-top: 4px; }
+    .detail-statusrow { display: flex; gap: 40px; flex-wrap: wrap; }
     .detail-grid2 { display: grid; grid-template-columns: 36% 64%; gap: 24px; align-items: start; }
     .detail-left, .detail-right { min-width: 0; }
     .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
@@ -608,14 +609,15 @@ function renderDetail(t, notes) {
        </div>`;
   document.getElementById('detailView').innerHTML = `
     <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
-    <div class="detail-header">
-      <div class="dh-title">${esc(t.subject)}</div>
-      <div class="dh-meta">${esc(t.id)} · ${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Submitted ${fmtDate(t.created_at)}</div>
-    </div>
     <div class="detail-grid2">
       <div class="detail-left"><div class="detail-card">
-        <div class="field"><div class="field-label">Status</div><div class="field-val">${statusBadge(t.status, PORTAL_STATUS)}</div></div>
-        <div class="field"><div class="field-label">Priority</div><div class="field-val">${priBadge(t.priority)}</div></div>
+        <div class="dh-title">${esc(t.subject)}</div>
+        <div class="dh-meta">${esc(t.id)} · ${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Submitted ${fmtDate(t.created_at)}</div>
+        <hr class="divider-line">
+        <div class="detail-statusrow">
+          <div class="field" style="margin-bottom:0;"><div class="field-label">Status</div><div class="field-val">${statusBadge(t.status, PORTAL_STATUS)}</div></div>
+          <div class="field" style="margin-bottom:0;"><div class="field-label">Priority</div><div class="field-val">${priBadge(t.priority)}</div></div>
+        </div>
         <hr class="divider-line">
         <div class="field"><div class="field-label">Description</div><div class="desc-block">${esc(t.description)}</div></div>
         <hr class="divider-line">
