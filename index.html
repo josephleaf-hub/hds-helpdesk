@@ -73,6 +73,10 @@
     .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
     @media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
+    /* Keep all portal ticket-table columns visible on mobile (override admin's ≤480 column hiding); the table scrolls horizontally instead */
+    @media (max-width: 480px) {
+      #ticketList table th:nth-child(n), #ticketList table td:nth-child(n) { display: table-cell; }
+    }
 
     @media (max-width: 768px) {
       .cat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -436,18 +440,25 @@ async function loadMyTickets() {
       return;
     }
 
-    area.innerHTML = tickets.map(t => `
-      <div class="ticket-row-card" onclick="openTicket('${esc(t.id)}')">
-        <div class="trc-left">
-          <div class="trc-id">${esc(t.id)}</div>
-          <div class="trc-sub">${esc(t.subject)}</div>
-          <div class="trc-meta">${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Updated ${fmtShort(t.updated_at || t.created_at)}</div>
-        </div>
-        <div class="trc-right">
-          ${statusBadge(t.status, PORTAL_STATUS)}
-          ${priBadge(t.priority)}
-        </div>
-      </div>`).join('');
+    area.innerHTML = `
+      <div class="table-card"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Ticket</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Updated</th>
+          </tr></thead>
+          <tbody>
+            ${tickets.map(t => `
+              <tr onclick="openTicket('${esc(t.id)}')">
+                <td>${esc(t.id)}</td>
+                <td>${esc(t.subject)}</td>
+                <td>${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)}</td>
+                <td>${priBadge(t.priority)}</td>
+                <td>${statusBadge(t.status, PORTAL_STATUS)}</td>
+                <td>${fmtShort(t.updated_at || t.created_at)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div></div>`;
   } catch (err) {
     area.innerHTML = `<div class="empty-state"><div class="empty-text" style="color:#C0392B;">${esc(err.message)}</div></div>`;
   }
