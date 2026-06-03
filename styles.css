@@ -408,23 +408,24 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .compose-meta { font-size: 11px; color: var(--caption); margin-bottom: 12px; }
 .compose-meta strong { color: var(--text-1); font-weight: 600; }
 .composer textarea {
-  width: 100%; min-height: 122px; padding: 10px 12px; font-size: 13px; font-family: inherit;
+  width: 100%; min-height: 72px; padding: 10px 12px; font-size: 13px; font-family: inherit;
   background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px;
   resize: vertical; color: var(--text-1);
 }
 .compose-actions {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 12px; flex-wrap: wrap; gap: 10px;
+  display: flex; align-items: center; gap: 12px; margin-top: 12px;
 }
+.compose-actions .status-radio-row { flex: 1; min-width: 0; }
+.compose-actions .attach-btn, .compose-actions .btn { flex-shrink: 0; }
 .status-radio-row {
-  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
   font-size: 12px; color: var(--caption);
 }
 .status-radio-row > .label-strong { font-weight: 600; margin-right: 2px; }
 .status-radio-row input { display: none; }
 .status-radio-row label {
-  font-size: 12px; cursor: pointer; color: var(--text-2); white-space: nowrap;
-  padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border-strong); background: #fff;
+  font-size: 11px; cursor: pointer; color: var(--text-2); white-space: nowrap;
+  padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border-strong); background: #fff;
   transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 .status-radio-row label:hover { border-color: var(--blue); color: var(--text-1); }

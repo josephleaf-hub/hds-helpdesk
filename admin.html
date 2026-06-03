@@ -539,11 +539,9 @@ async function openEdit(id) {
             Email sent from <strong>helpdesk@homedelivery.com.au</strong> to <strong>${esc(t.requester_email)}</strong> · they can reply directly to it
           </div>
           <textarea id="emComposeText" placeholder="Type your reply to ${firstName}…"></textarea>
-          <div style="margin-top:8px;">
-            <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('emFileInput').click()">${ADMIN_PAPERCLIP} Attach</button>
-          </div>
           <div id="emAttachPreview" class="attach-preview"></div>
           <div class="compose-actions">
+            <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('emFileInput').click()">${ADMIN_PAPERCLIP} Attach</button>
             <div class="status-radio-row">
               <span class="label-strong">Status:</span>
               <label><input type="radio" name="emComposeStatus" value="" checked> No change</label>
