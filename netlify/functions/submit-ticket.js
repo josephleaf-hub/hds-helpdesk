@@ -15,6 +15,11 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
+const SITE_URL = 'https://it-helpdesk.hdsaus.com.au';
+// Keep in sync with ALLOWED_DOMAINS in index.html — the no-build setup can't
+// share a constant between the browser file and this Lambda bundle.
+const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];
+
 exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -49,6 +54,11 @@ exports.handler = async (event) => {
   if (!requesterEmail.includes('@')) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid email address' }) };
   }
+  // Server-side domain allow-list (security boundary — client validates too).
+  const emailNorm = requesterEmail.toLowerCase().trim();
+  if (!ALLOWED_DOMAINS.includes(emailNorm.split('@')[1])) {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Please use your HDS work email' }) };
+  }
 
   // ── Supabase client (service role — bypasses RLS) ──
   const supabase = createClient(
@@ -73,7 +83,7 @@ exports.handler = async (event) => {
     subject,
     description,
     requester_name:  requesterName,
-    requester_email: requesterEmail.toLowerCase().trim(),
+    requester_email: emailNorm,
     department,
     location:        location   || null,
     affected_user:   affectedUser || null,
@@ -85,18 +95,38 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to create ticket' }) };
   }
 
-  // ── Send email notification (non-blocking failure) ──
+  // ── Send IT notification (non-blocking failure) ──
   try {
-    await sendEmail(ticketId, { category, subType, priority, subject, description, requesterName, requesterEmail, department, location, affectedUser });
+    await sendEmail(ticketId, { category, subType, priority, subject, description, requesterName, requesterEmail: emailNorm, department, location, affectedUser });
   } catch (emailErr) {
     // Log but don't fail — ticket is already created
-    console.error('Email send failed:', emailErr.message);
+    console.error('IT notification failed:', emailErr.message);
+  }
+
+  // ── Send the requester a confirmation + magic link (best-effort) ──
+  let confirmationSent = false;
+  try {
+    // magiclink links require the auth user to exist — create it first
+    // (no-op if already registered), then mint the link.
+    await supabase.auth.admin.createUser({ email: emailNorm, email_confirm: true }).catch(() => {});
+    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: emailNorm,
+      options: { redirectTo: `${SITE_URL}/t/${ticketId}` },
+    });
+    if (linkErr) throw linkErr;
+    const actionLink = linkData && linkData.properties && linkData.properties.action_link;
+    if (!actionLink) throw new Error('No action_link returned');
+    await sendConfirmationEmail(ticketId, { subject, requesterName, requesterEmail: emailNorm }, actionLink);
+    confirmationSent = true;
+  } catch (confErr) {
+    console.error('Confirmation email failed:', confErr.message);
   }
 
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ success: true, ticketId }),
+    body: JSON.stringify({ success: true, ticketId, confirmationSent }),
   };
 };
 
@@ -247,6 +277,86 @@ async function sendEmail(ticketId, ticket) {
   });
 
   // SendGrid returns 202 Accepted on success (no response body)
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`SendGrid API ${res.status}: ${txt}`);
+  }
+}
+
+// ─────────────────────────────────────────────
+// CONFIRMATION EMAIL — to the requester, with a magic link
+// ─────────────────────────────────────────────
+function escEmail(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+async function sendConfirmationEmail(ticketId, ticket, magicLink) {
+  const firstName = (ticket.requesterName || '').split(' ')[0] || 'there';
+  const fromAddr  = process.env.EMAIL_FROM || 'helpdesk@homedelivery.com.au';
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:32px 16px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+      <tr><td style="padding:24px 28px 16px;border-bottom:1px solid #E2E8EF;">
+        <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">HDS IT Helpdesk · Ticket ${escEmail(ticketId)}</div>
+        <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">We received your ticket</div>
+      </td></tr>
+      <tr><td style="padding:24px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">
+        <div style="margin-bottom:16px;">Hi ${escEmail(firstName)},</div>
+        <div style="margin-bottom:16px;">We've received your IT ticket and the team has been notified.</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F9FA;border:1px solid #E2E8EF;border-radius:8px;margin-bottom:20px;">
+          <tr><td style="padding:12px 16px;font-size:13px;">
+            <div><strong>Title:</strong> ${escEmail(ticket.subject)}</div>
+            <div style="margin-top:4px;"><strong>Reference:</strong> ${escEmail(ticketId)}</div>
+          </td></tr>
+        </table>
+        <div style="margin-bottom:20px;">We'll be in touch soon. You can view this ticket and any replies at any time using the button below.</div>
+        <div style="margin:0 0 20px;"><a href="${magicLink}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View ticket</a></div>
+        <div style="font-size:12px;color:#6B7280;line-height:1.5;">This link signs you in automatically. After signing in once, you'll stay logged in for 30 days and can use the portal at <a href="${SITE_URL}" style="color:#1C64F2;">it-helpdesk.hdsaus.com.au</a>.</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— HDS IT Helpdesk</div>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = [
+    `Hi ${firstName},`,
+    '',
+    `We've received your IT ticket and the team has been notified.`,
+    '',
+    `Title: ${ticket.subject}`,
+    `Reference: ${ticketId}`,
+    '',
+    `View your ticket (this link signs you in automatically):`,
+    magicLink,
+    '',
+    `After signing in once, you'll stay logged in for 30 days at ${SITE_URL}`,
+    '',
+    `— HDS IT Helpdesk`,
+  ].join('\n');
+
+  const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: ticket.requesterEmail, name: ticket.requesterName }] }],
+      from: { email: fromAddr, name: 'HDS IT Helpdesk' },
+      subject: `We received your IT ticket [${ticketId}]`,
+      content: [
+        { type: 'text/plain', value: text },
+        { type: 'text/html',  value: html },
+      ],
+    }),
+  });
   if (!res.ok) {
     const txt = await res.text();
     throw new Error(`SendGrid API ${res.status}: ${txt}`);
