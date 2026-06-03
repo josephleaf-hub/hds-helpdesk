@@ -21,6 +21,12 @@
   to     = "/admin.html"
   status = 200
 
+# Direct ticket links (/t/HDS-NNNN) are handled client-side by the portal
+[[redirects]]
+  from   = "/t/*"
+  to     = "/index.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

@@ -52,14 +52,27 @@
     /* Ticket list rows */
     .ticket-row-card {
       background: #fff; border-radius: 14px; box-shadow: var(--shadow-card);
-      padding: 16px 20px; margin-bottom: 10px;
+      padding: 16px 20px; margin-bottom: 10px; cursor: pointer;
       display: flex; align-items: flex-start; gap: 14px;
+      transition: box-shadow 0.15s;
     }
+    .ticket-row-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
     .trc-left { flex: 1; min-width: 0; }
     .trc-id   { font-size: 11px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
     .trc-sub  { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .trc-meta { font-size: 11px; color: var(--caption); }
     .trc-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+    /* Ticket detail (full-page) */
+    .detail-grid2 { display: grid; grid-template-columns: 36% 64%; gap: 24px; align-items: start; }
+    .detail-left, .detail-right { min-width: 0; }
+    .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 20px 22px; }
+    .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 18px 22px; }
+    .portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 16px 22px; }
+    .portal-composer textarea { width: 100%; min-height: 90px; padding: 10px 12px; font-size: 13px; font-family: inherit; background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px; resize: vertical; color: var(--text-1); }
+    .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
+    @media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
 
     @media (max-width: 768px) {
       .cat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -221,6 +234,9 @@
       </div><!-- /submitForm -->
     </div><!-- /submitView -->
 
+    <!-- ── DETAIL VIEW (JS-rendered) ── -->
+    <div id="detailView" style="display:none;"></div>
+
   </div><!-- /page-content -->
 </main>
 </div><!-- /appView -->
@@ -245,6 +261,9 @@ const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];
 const sb = createHdsClient();
 let currentUser = null;
 let selectedCategory = '';
+let activeTicket = null;
+const _pm = location.pathname.match(/^\/t\/(HDS-\d+)/i);
+let pendingTicketId = _pm ? _pm[1].toUpperCase() : null;
 
 // ─────────────────────────────────────────────
 // AUTH
@@ -272,8 +291,9 @@ function applySession(session) {
     document.getElementById('appView').style.display = 'block';
     document.getElementById('userEmail').textContent = currentUser.email;
     document.getElementById('reqEmail').value = currentUser.email;
-    showList();
     loadMyTickets();
+    if (pendingTicketId) { const id = pendingTicketId; pendingTicketId = null; openTicket(id); }
+    else showList();
   } else {
     document.getElementById('appView').style.display = 'none';
     document.getElementById('authView').style.display = 'flex';
@@ -298,7 +318,7 @@ async function requestMagicLink() {
   try {
     const { error } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin + '/' },
+      options: { emailRedirectTo: window.location.href },
     });
     if (error) throw error;
     document.getElementById('authSentTo').textContent = email;
@@ -327,12 +347,21 @@ async function signOut() {
 // ─────────────────────────────────────────────
 function showList() {
   document.getElementById('submitView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'none';
   document.getElementById('listView').style.display = 'block';
+  if (location.pathname !== '/') history.replaceState(null, '', '/');
 }
 function showSubmit() {
   resetForm();
   document.getElementById('listView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'none';
   document.getElementById('submitView').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function showDetail() {
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('submitView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'block';
   window.scrollTo(0, 0);
 }
 
@@ -355,7 +384,7 @@ async function loadMyTickets() {
     }
 
     area.innerHTML = tickets.map(t => `
-      <div class="ticket-row-card">
+      <div class="ticket-row-card" onclick="openTicket('${esc(t.id)}')">
         <div class="trc-left">
           <div class="trc-id">${esc(t.id)}</div>
           <div class="trc-sub">${esc(t.subject)}</div>
@@ -439,6 +468,117 @@ function resetForm() {
     const el = document.getElementById(id);
     if (el) el.value = el.tagName === 'SELECT' ? (el.options[0]?.value || '') : '';
   });
+}
+
+// ─────────────────────────────────────────────
+// TICKET DETAIL + REPLY
+// ─────────────────────────────────────────────
+async function openTicket(id) {
+  showDetail();
+  const view = document.getElementById('detailView');
+  view.innerHTML = '<div class="spinner"></div>';
+  try {
+    const { data: ticket, error } = await sb.from('tickets').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    if (!ticket) {
+      view.innerHTML = `<button class="btn-ghost" style="margin-bottom:8px;" onclick="showList()">← Back to my tickets</button>
+        <div class="empty-state"><div class="empty-text">Ticket not found, or you don't have access to it.</div></div>`;
+      return;
+    }
+    const { data: notes, error: nErr } = await sb
+      .from('ticket_notes').select('*').eq('ticket_id', id).order('created_at', { ascending: true });
+    if (nErr) throw nErr;
+    activeTicket = ticket;
+    history.replaceState(null, '', '/t/' + ticket.id);
+    renderDetail(ticket, notes || []);
+  } catch (err) {
+    view.innerHTML = `<button class="btn-ghost" style="margin-bottom:8px;" onclick="showList()">← Back to my tickets</button>
+      <div class="empty-state"><div class="empty-text" style="color:#C0392B;">${esc(err.message)}</div></div>`;
+  }
+}
+
+function renderDetail(t, notes) {
+  const reqFirst = esc((t.requester_name || '').split(' ')[0] || 'there');
+  const isClosed = ['resolved', 'closed'].includes(t.status);
+  const composer = isClosed
+    ? `<div class="resolved-notice">This ticket is ${esc((STATUS_LABEL[t.status] || t.status).toLowerCase())}. If your issue isn't fixed, please submit a new ticket.</div>`
+    : `<div class="portal-composer">
+         <textarea id="portalReplyText" placeholder="Type your reply to the IT team…"></textarea>
+         <div class="composer-actions">
+           ${t.status === 'waiting-on-requester' ? `<button class="btn-secondary" id="portalResolveBtn" onclick="markResolved()">Mark as resolved</button>` : ''}
+           <button class="btn-primary" id="portalReplyBtn" onclick="sendPortalReply()">Send reply</button>
+         </div>
+       </div>`;
+  document.getElementById('detailView').innerHTML = `
+    <button class="btn-ghost" style="margin-bottom:8px;" onclick="showList()">← Back to my tickets</button>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-1);letter-spacing:-0.02em;">${esc(t.subject)}</div>
+      <div style="font-size:12px;color:var(--caption);margin-top:3px;">${esc(t.id)} · ${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Submitted ${fmtDate(t.created_at)}</div>
+    </div>
+    <div class="detail-grid2">
+      <div class="detail-left"><div class="detail-card">
+        <div class="field"><div class="field-label">Status</div><div class="field-val">${statusBadge(t.status)}</div></div>
+        <div class="field"><div class="field-label">Priority</div><div class="field-val">${priBadge(t.priority)}</div></div>
+        <hr class="divider-line">
+        <div class="field"><div class="field-label">Description</div><div class="desc-block">${esc(t.description)}</div></div>
+        <hr class="divider-line">
+        <div class="field"><div class="field-label">Department / Location</div><div class="field-val">${esc(t.department)}${t.location ? ' · ' + esc(t.location) : ''}</div></div>
+        <div class="field" style="margin-bottom:0;"><div class="field-label">Assigned to</div><div class="field-val">${t.assigned_to ? esc(t.assigned_to) : '<span style="color:#9CA3AF;font-style:italic;">Pending assignment</span>'}</div></div>
+      </div></div>
+      <div class="detail-right">
+        <div class="detail-conv">
+          <div class="field-label" style="margin-bottom:10px;">Conversation</div>
+          ${renderConversation(notes, reqFirst)}
+        </div>
+        ${composer}
+      </div>
+    </div>`;
+}
+
+async function callRequesterReply(payload) {
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Session expired — please sign in again.');
+  const res = await fetch('/api/requester-reply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+async function sendPortalReply() {
+  const ta = document.getElementById('portalReplyText');
+  const text = ((ta && ta.value) || '').trim();
+  if (!text) { showToast('Type a reply first.'); return; }
+  const btn = document.getElementById('portalReplyBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await callRequesterReply({ ticketId: activeTicket.id, message: text });
+    showToast('Reply sent.');
+    openTicket(activeTicket.id);   // refresh
+  } catch (err) {
+    showToast('Failed: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Send reply';
+  }
+}
+
+async function markResolved() {
+  if (!confirm('Mark this ticket as resolved?')) return;
+  const btn = document.getElementById('portalResolveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Resolving…'; }
+  const ta = document.getElementById('portalReplyText');
+  const text = ((ta && ta.value) || '').trim();
+  try {
+    await callRequesterReply({ ticketId: activeTicket.id, message: text || undefined, resolve: true });
+    showToast('Ticket marked resolved.');
+    openTicket(activeTicket.id);
+  } catch (err) {
+    showToast('Failed: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Mark as resolved'; }
+  }
 }
 
 init();
