@@ -23,6 +23,7 @@ const SUPABASE_URL              = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SENDGRID_API_KEY          = process.env.SENDGRID_API_KEY;
 const EMAIL_FROM                = process.env.EMAIL_FROM;
+const SITE_URL                  = 'https://it-helpdesk.hdsaus.com.au';
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -194,10 +195,13 @@ function buildReplyHtml({ ticket, message, addedBy }) {
       <tr><td style="padding:24px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">
         <div style="margin-bottom:16px;">Hi ${esc(ticket.requester_name.split(' ')[0])},</div>
         <div style="margin-bottom:20px;">${bodyHtml}</div>
+        <div style="margin:24px 0;">
+          <a href="${SITE_URL}/t/${esc(ticket.id)}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
+        </div>
         <div style="margin-top:24px;color:#6B7280;font-size:13px;">— ${esc(addedBy)}<br>HDS IT Helpdesk</div>
       </td></tr>
       <tr><td style="padding:16px 28px;background:#F8F9FA;border-top:1px solid #E2E8EF;font-size:12px;color:#6B7280;line-height:1.5;">
-        Reply to this email to respond — your reply will reach the IT team.<br>
+        Open your ticket to reply: <a href="${SITE_URL}/t/${esc(ticket.id)}" style="color:#1C64F2;">${SITE_URL}/t/${esc(ticket.id)}</a><br>
         Reference: <strong>${esc(ticket.id)}</strong>
       </td></tr>
     </table>
@@ -216,6 +220,7 @@ function buildReplyText({ ticket, message, addedBy }) {
     `HDS IT Helpdesk`,
     '',
     '———',
-    `Reply to this email to respond. Reference: ${ticket.id}`,
+    `Reply to this conversation at ${SITE_URL}/t/${ticket.id}`,
+    `Reference: ${ticket.id}`,
   ].join('\n');
 }
