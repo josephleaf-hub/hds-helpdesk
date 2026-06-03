@@ -65,11 +65,16 @@
     .trc-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 
     /* Ticket detail (full-page) */
+    #detailView { max-width: 1180px; }
+    .detail-back { margin: 0 0 14px -10px; }   /* cancel btn-ghost left padding so it aligns with the title */
+    .detail-header { margin-bottom: 22px; }
+    .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
+    .dh-meta  { font-size: 12px; color: var(--caption); margin-top: 4px; }
     .detail-grid2 { display: grid; grid-template-columns: 36% 64%; gap: 24px; align-items: start; }
     .detail-left, .detail-right { min-width: 0; }
-    .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 20px 22px; }
-    .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 18px 22px; }
-    .portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 16px 22px; }
+    .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
+    .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 20px 24px; }
+    .portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 18px 24px; }
     .portal-composer textarea { width: 100%; min-height: 90px; padding: 10px 12px; font-size: 13px; font-family: inherit; background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px; resize: vertical; color: var(--text-1); }
     .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
@@ -602,10 +607,10 @@ function renderDetail(t, notes) {
          </div>
        </div>`;
   document.getElementById('detailView').innerHTML = `
-    <button class="btn-ghost" style="margin-bottom:8px;" onclick="showList()">← Back to my tickets</button>
-    <div style="margin-bottom:16px;">
-      <div style="font-size:18px;font-weight:700;color:var(--text-1);letter-spacing:-0.02em;">${esc(t.subject)}</div>
-      <div style="font-size:12px;color:var(--caption);margin-top:3px;">${esc(t.id)} · ${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Submitted ${fmtDate(t.created_at)}</div>
+    <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
+    <div class="detail-header">
+      <div class="dh-title">${esc(t.subject)}</div>
+      <div class="dh-meta">${esc(t.id)} · ${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Submitted ${fmtDate(t.created_at)}</div>
     </div>
     <div class="detail-grid2">
       <div class="detail-left"><div class="detail-card">
