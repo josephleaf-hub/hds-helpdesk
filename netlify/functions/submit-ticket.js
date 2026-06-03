@@ -108,8 +108,9 @@ exports.handler = async (event) => {
   let confirmationSent = false;
   try {
     const token = await getOrCreateToken(supabase, emailNorm);
-    const link = `${SITE_URL}/p/${token}/t/${ticketId}`;
-    await sendConfirmationEmail(ticketId, { subject, requesterName, requesterEmail: emailNorm }, link);
+    const ticketLink = `${SITE_URL}/p/${token}/t/${ticketId}`;
+    const portalLink = `${SITE_URL}/p/${token}`;
+    await sendConfirmationEmail(ticketId, { subject, requesterName, requesterEmail: emailNorm }, ticketLink, portalLink);
     confirmationSent = true;
   } catch (confErr) {
     console.error('Confirmation email failed:', confErr.message);
@@ -284,7 +285,7 @@ function escEmail(s) {
   }[c]));
 }
 
-async function sendConfirmationEmail(ticketId, ticket, magicLink) {
+async function sendConfirmationEmail(ticketId, ticket, magicLink, portalLink) {
   const firstName = (ticket.requesterName || '').split(' ')[0] || 'there';
   const fromAddr  = process.env.EMAIL_FROM || 'helpdesk@homedelivery.com.au';
 
@@ -308,7 +309,10 @@ async function sendConfirmationEmail(ticketId, ticket, magicLink) {
           </td></tr>
         </table>
         <div style="margin-bottom:20px;">We'll be in touch soon. You can view this ticket and any replies at any time using the button below.</div>
-        <div style="margin:0 0 20px;"><a href="${magicLink}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View ticket</a></div>
+        <div style="margin:0 0 20px;">
+          <a href="${magicLink}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View ticket</a>
+          <a href="${portalLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">View all my tickets</a>
+        </div>
         <div style="font-size:12px;color:#6B7280;line-height:1.5;">This link signs you in automatically. After signing in once, you'll stay logged in for 30 days and can use the portal at <a href="${SITE_URL}" style="color:#1C64F2;">it-helpdesk.hdsaus.com.au</a>.</div>
         <div style="margin-top:24px;color:#6B7280;font-size:13px;">— HDS IT Helpdesk</div>
       </td></tr>
@@ -327,6 +331,9 @@ async function sendConfirmationEmail(ticketId, ticket, magicLink) {
     '',
     `View your ticket (this link signs you in automatically):`,
     magicLink,
+    '',
+    `View all your tickets:`,
+    portalLink,
     '',
     `After signing in once, you'll stay logged in for 30 days at ${SITE_URL}`,
     '',
