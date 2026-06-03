@@ -394,7 +394,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
   border-top: 1px solid var(--border); background: var(--bg-surface);
   padding: 14px 22px 16px; flex-shrink: 0;
 }
-.compose-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.compose-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
 .compose-tab {
   padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;
   border-radius: 6px; color: var(--caption); border: none; background: transparent;
@@ -405,23 +405,30 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .compose-tab.active.tab-internal { background: #F3F4F6; color: var(--text-1); }
 .compose-tab.active.tab-log      { background: var(--client-bg); color: var(--client-dark); }
 .compose-tab svg { width: 13px; height: 13px; flex-shrink: 0; }
-.compose-meta { font-size: 11px; color: var(--caption); margin-bottom: 8px; }
+.compose-meta { font-size: 11px; color: var(--caption); margin-bottom: 12px; }
 .compose-meta strong { color: var(--text-1); font-weight: 600; }
 .composer textarea {
-  width: 100%; min-height: 72px; padding: 10px 12px; font-size: 13px; font-family: inherit;
+  width: 100%; min-height: 172px; padding: 10px 12px; font-size: 13px; font-family: inherit;
   background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px;
   resize: vertical; color: var(--text-1);
 }
 .compose-actions {
   display: flex; justify-content: space-between; align-items: center;
-  margin-top: 10px; flex-wrap: wrap; gap: 10px;
+  margin-top: 12px; flex-wrap: wrap; gap: 10px;
 }
 .status-radio-row {
-  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
   font-size: 12px; color: var(--caption);
 }
-.status-radio-row > .label-strong { font-weight: 600; }
-.status-radio-row label { font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-1); }
+.status-radio-row > .label-strong { font-weight: 600; margin-right: 2px; }
+.status-radio-row input { display: none; }
+.status-radio-row label {
+  font-size: 12px; cursor: pointer; color: var(--text-2); white-space: nowrap;
+  padding: 5px 12px; border-radius: 14px; border: 1px solid var(--border-strong); background: #fff;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.status-radio-row label:hover { border-color: var(--blue); color: var(--text-1); }
+.status-radio-row label:has(input:checked) { background: var(--blue-pale); border-color: var(--blue); color: var(--blue); font-weight: 600; }
 .btn {
   border: none; font-family: inherit; font-size: 13px; font-weight: 500;
   padding: 8px 16px; border-radius: 8px; cursor: pointer;
@@ -430,7 +437,8 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .btn:disabled { opacity: 0.6; cursor: default; }
 .btn-send     { background: var(--client); color: #fff; }
 .attach-btn { font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
-.attach-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.attach-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.attach-preview:empty { display: none; }
 .attach-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 14px; padding: 3px 5px 3px 10px; font-size: 11px; color: var(--text-1); max-width: 200px; }
 .attach-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attach-chip button { border: none; background: #E2E8EF; color: var(--text-2); border-radius: 50%; width: 16px; height: 16px; cursor: pointer; line-height: 1; font-size: 12px; flex-shrink: 0; }
