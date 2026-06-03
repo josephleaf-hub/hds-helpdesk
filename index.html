@@ -44,8 +44,9 @@
     .portal-hero-sub   { font-size: 13px; color: var(--caption); margin-top: 4px; }
 
     /* Category select cards */
-    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-    .cat-card { background: #fff; border: 2px solid var(--border); border-radius: 14px; padding: 16px 12px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
+    #requestDetails { margin-top: 20px; }
+    .cat-card { background: #F3F4F6; border: 2px solid var(--border); border-radius: 14px; padding: 16px 12px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
     .cat-card:hover { border-color: var(--blue); background: #F7FAFF; }
     .cat-card.selected { border-color: var(--blue); background: var(--blue-pale); }
     .cat-label { font-size: 12px; font-weight: 600; color: var(--text-1); line-height: 1.3; margin-top: 8px; }
@@ -65,7 +66,7 @@
     .trc-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 
     /* Ticket detail (full-page) */
-    #detailView { max-width: 1180px; margin: 0 auto; }
+    #detailView, #submitView { max-width: 1180px; margin: 0 auto; }
     .detail-back { margin: 0 0 14px -10px; }   /* cancel btn-ghost left padding so it aligns with the title */
     .detail-header { margin-bottom: 22px; }
     .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
