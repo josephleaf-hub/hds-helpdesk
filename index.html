@@ -65,6 +65,20 @@
     .trc-meta { font-size: 11px; color: var(--caption); }
     .trc-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 
+    /* Compact portal navbar (~60px) — portal-only, leaves shared .topbar (admin) alone */
+    .portal-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 16px 32px; flex-wrap: wrap;
+    }
+    .pt-title  { font-size: 18px; font-weight: 600; color: var(--text-1); letter-spacing: -0.01em; }
+    .pt-right  { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .pt-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+    .pt-logo   { height: 32px; width: auto; display: block; }
+    @media (max-width: 768px) {
+      .portal-topbar { padding: 12px 16px; gap: 10px; }
+      .pt-right { gap: 10px; }
+    }
+
     /* Ticket detail (full-page) */
     #detailView, #submitView { max-width: 1180px; margin: 0 auto; }
     .detail-back { margin: 0 0 14px -10px; }   /* cancel btn-ghost left padding so it aligns with the title */
@@ -146,19 +160,16 @@
 <div id="appView" style="display:none;">
 <main class="main">
 
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-title" id="topbarTitle">IT Helpdesk</div>
-      <div class="topbar-meta">HDS Staff Support Portal</div>
-    </div>
-    <div class="topbar-right">
+  <header class="portal-topbar">
+    <div class="pt-title" id="topbarTitle">IT Helpdesk</div>
+    <div class="pt-right">
       <!-- Public (not signed in): link to the sign-in screen -->
       <a href="#" id="publicNav" class="btn-secondary" style="font-size:12px;" onclick="showSignIn();return false;">Already have tickets? Sign in →</a>
       <!-- Signed in: user pill + sign out -->
       <span class="user-pill" id="authedNav" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span id="userEmail"></span></span>
-      <button class="btn-ghost" id="signOutBtn" style="display:none;" onclick="signOut()">Sign out</button>
-      <div class="logo-divider-line"></div>
-      <img src="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/69dc2749d52c90cf97e32309_Secondary-positive.png" alt="HDS" class="topbar-hds-logo" />
+      <button class="btn-ghost" id="signOutBtn" style="display:none;font-size:12px;" onclick="signOut()">Sign out</button>
+      <div class="pt-divider"></div>
+      <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" class="pt-logo" />
     </div>
   </header>
 

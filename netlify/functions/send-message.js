@@ -217,7 +217,10 @@ function buildReplyHtml({ ticket, message, addedBy, link, allLink, attachCount }
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:32px 16px;">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-      <tr><td style="padding:24px 28px 16px;border-bottom:1px solid #E2E8EF;">
+      <tr><td align="left" style="padding:20px 28px;background:#fff;border-bottom:1px solid #E2E8EF;">
+        <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" height="32" style="height:32px;width:auto;display:block;border:0;" />
+      </td></tr>
+      <tr><td style="padding:24px 28px 16px;">
         <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">HDS IT Helpdesk · Ticket ${esc(ticket.id)}</div>
         <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">${esc(ticket.subject)}</div>
       </td></tr>
