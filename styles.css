@@ -408,7 +408,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .compose-meta { font-size: 11px; color: var(--caption); margin-bottom: 12px; }
 .compose-meta strong { color: var(--text-1); font-weight: 600; }
 .composer textarea {
-  width: 100%; min-height: 172px; padding: 10px 12px; font-size: 13px; font-family: inherit;
+  width: 100%; min-height: 122px; padding: 10px 12px; font-size: 13px; font-family: inherit;
   background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px;
   resize: vertical; color: var(--text-1);
 }
