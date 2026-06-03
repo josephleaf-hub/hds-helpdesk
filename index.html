@@ -80,16 +80,31 @@
     .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
     @media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
-    /* Keep all portal ticket-table columns visible on mobile (override admin's ≤480 column hiding); the table scrolls horizontally instead */
-    @media (max-width: 480px) {
-      #ticketList table th:nth-child(n), #ticketList table td:nth-child(n) { display: table-cell; }
-    }
 
     @media (max-width: 768px) {
       .cat-grid { grid-template-columns: repeat(2, 1fr); }
-      .portal-hero { padding: 20px; }
+
+      /* Submit hero: stack heading above a full-width button */
+      .portal-hero { padding: 18px 20px; flex-direction: column; align-items: stretch; }
+      .portal-hero .btn-primary { width: 100%; justify-content: center; }
+
+      /* Topbar: keep the email pill from overflowing */
+      .user-pill { max-width: 62vw; }
+      .user-pill #userEmail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      /* My Tickets: reflow the table into stacked cards */
+      #ticketList thead { display: none; }
+      #ticketList table { min-width: 0; }
+      #ticketList tbody tr { display: block; cursor: pointer; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; padding: 6px 14px; }
+      #ticketList td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: none; font-size: 13px; white-space: normal; }
+      #ticketList td::before { content: attr(data-label); font-weight: 700; color: var(--caption); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+      #ticketList td:first-child { color: var(--blue); font-weight: 700; }
+
+      /* Ticket detail: tighter padding + wrapping composer */
+      .detail-card, .detail-conv, .portal-composer, .resolved-notice { padding-left: 16px; padding-right: 16px; }
+      .composer-actions { flex-wrap: wrap; }
     }
-    @media (max-width: 400px) { .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+    @media (max-width: 400px) { .cat-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -458,12 +473,12 @@ async function loadMyTickets() {
           <tbody>
             ${tickets.map(t => `
               <tr onclick="openTicket('${esc(t.id)}')">
-                <td>${esc(t.id)}</td>
-                <td>${esc(t.subject)}</td>
-                <td>${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)}</td>
-                <td>${priBadge(t.priority)}</td>
-                <td>${statusBadge(t.status, PORTAL_STATUS)}</td>
-                <td>${fmtShort(t.updated_at || t.created_at)}</td>
+                <td data-label="Ticket">${esc(t.id)}</td>
+                <td data-label="Subject">${esc(t.subject)}</td>
+                <td data-label="Category">${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)}</td>
+                <td data-label="Priority">${priBadge(t.priority)}</td>
+                <td data-label="Status">${statusBadge(t.status, PORTAL_STATUS)}</td>
+                <td data-label="Updated">${fmtShort(t.updated_at || t.created_at)}</td>
               </tr>`).join('')}
           </tbody>
         </table>
