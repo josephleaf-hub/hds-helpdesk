@@ -111,9 +111,11 @@ exports.handler = async (event) => {
   // ── 5. Send the email (outbound only) ──────────────────────
   if (direction === 'outbound') {
     const subject = `Re: [${ticket.id}] ${ticket.subject}`;
-    const link = await resolvePortalLink(admin, ticket);
-    const html = buildReplyHtml({ ticket, message, addedBy, link });
-    const text = buildReplyText({ ticket, message, addedBy, link });
+    const token   = await resolveToken(admin, ticket);
+    const link    = token ? `${SITE_URL}/p/${token}/t/${ticket.id}` : `${SITE_URL}/t/${ticket.id}`;
+    const allLink = token ? `${SITE_URL}/p/${token}` : SITE_URL;
+    const html = buildReplyHtml({ ticket, message, addedBy, link, allLink });
+    const text = buildReplyText({ ticket, message, addedBy, link, allLink });
 
     try {
       const sgRes = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -189,7 +191,7 @@ function esc(s) {
   }[c]));
 }
 
-function buildReplyHtml({ ticket, message, addedBy, link }) {
+function buildReplyHtml({ ticket, message, addedBy, link, allLink }) {
   const bodyHtml = esc(message).replace(/\n/g, '<br>');
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>
@@ -206,6 +208,7 @@ function buildReplyHtml({ ticket, message, addedBy, link }) {
         <div style="margin-bottom:20px;">${bodyHtml}</div>
         <div style="margin:24px 0;">
           <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
+          <a href="${allLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">All my tickets</a>
         </div>
         <div style="margin-top:24px;color:#6B7280;font-size:13px;">— ${esc(addedBy)}<br>HDS IT Helpdesk</div>
       </td></tr>
@@ -219,7 +222,7 @@ function buildReplyHtml({ ticket, message, addedBy, link }) {
 </body></html>`;
 }
 
-function buildReplyText({ ticket, message, addedBy, link }) {
+function buildReplyText({ ticket, message, addedBy, link, allLink }) {
   return [
     `Hi ${ticket.requester_name.split(' ')[0]},`,
     '',
@@ -230,6 +233,7 @@ function buildReplyText({ ticket, message, addedBy, link }) {
     '',
     '———',
     `Reply to this conversation (signs you in automatically): ${link}`,
+    `All your tickets: ${allLink}`,
     `Reference: ${ticket.id}`,
   ].join('\n');
 }
@@ -238,13 +242,12 @@ function buildReplyText({ ticket, message, addedBy, link }) {
 // PORTABLE TOKEN — reuse the requester's token in the reply link,
 // falling back to the plain /t/ link if the lookup ever fails.
 // ─────────────────────────────────────────────
-async function resolvePortalLink(admin, ticket) {
+async function resolveToken(admin, ticket) {
   try {
-    const token = await getOrCreateToken(admin, ticket.requester_email);
-    return `${SITE_URL}/p/${token}/t/${ticket.id}`;
+    return await getOrCreateToken(admin, ticket.requester_email);
   } catch (e) {
     console.error('Token lookup failed, using plain link:', e.message);
-    return `${SITE_URL}/t/${ticket.id}`;
+    return null;
   }
 }
 
