@@ -233,6 +233,10 @@ select.input {
 }
 .form-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+/* Inside a grid, the gap handles row spacing — drop the per-group margin so
+   rows aren't double-spaced and the last row doesn't push a big empty footer. */
+.form-grid .form-group,
+.form-grid-3 .form-group { margin-bottom: 0; }
 
 /* ── TABLES ───────────────────────────────────── */
 .table-card {
