@@ -268,6 +268,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .b-open     { background: #EBF2FF; color: #1C64F2; }
 .b-progress { background: #FEF3C7; color: #B45309; }
 .b-waiting  { background: #FFF3EF; color: #C24824; }
+.b-waiting-admin { background: #FDE68A; color: #92400E; }
 .b-hold     { background: #F3F4F6; color: #4A5568; }
 .b-resolved { background: #E8F5EE; color: #2E7D52; }
 .b-closed   { background: #F3F4F6; color: #6B7280; }

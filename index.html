@@ -260,6 +260,8 @@ const SUB_TYPES = {
   support:  ['Software Not Working', 'Hardware Fault', 'Network / Connectivity', 'Email Problem', 'Printing / Scanning', 'Other'],
 };
 const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];
+// Requester-friendly status labels (waiting-on-admin reads as "IT to respond")
+const PORTAL_STATUS = Object.assign({}, STATUS_LABEL, { 'waiting-on-admin': 'IT to respond' });
 
 const sb = createHdsClient();
 let currentUser = null;
@@ -394,7 +396,7 @@ async function loadMyTickets() {
           <div class="trc-meta">${esc(CAT_LABEL[t.category] || t.category)} — ${esc(t.sub_type)} · Updated ${fmtShort(t.updated_at || t.created_at)}</div>
         </div>
         <div class="trc-right">
-          ${statusBadge(t.status)}
+          ${statusBadge(t.status, PORTAL_STATUS)}
           ${priBadge(t.priority)}
         </div>
       </div>`).join('');
@@ -520,7 +522,7 @@ function renderDetail(t, notes) {
     </div>
     <div class="detail-grid2">
       <div class="detail-left"><div class="detail-card">
-        <div class="field"><div class="field-label">Status</div><div class="field-val">${statusBadge(t.status)}</div></div>
+        <div class="field"><div class="field-label">Status</div><div class="field-val">${statusBadge(t.status, PORTAL_STATUS)}</div></div>
         <div class="field"><div class="field-label">Priority</div><div class="field-val">${priBadge(t.priority)}</div></div>
         <hr class="divider-line">
         <div class="field"><div class="field-label">Description</div><div class="desc-block">${esc(t.description)}</div></div>

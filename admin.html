@@ -69,6 +69,7 @@
           <option value="">All Statuses</option>
           <option value="open">Open</option>
           <option value="in-progress">In Progress</option>
+          <option value="waiting-on-admin">Waiting on Admin</option>
           <option value="waiting-on-requester">Waiting on Requester</option>
           <option value="on-hold">On Hold</option>
           <option value="resolved">Resolved</option>
@@ -196,7 +197,7 @@
 // CONSTANTS
 // ─────────────────────────────────────────────
 // CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM, DEPARTMENTS now live in shared.js
-const STATUS_ORDER = { open:0,'in-progress':1,'waiting-on-requester':2,'on-hold':3,resolved:4,closed:5 };
+const STATUS_ORDER = { open:0,'in-progress':1,'waiting-on-admin':2,'waiting-on-requester':3,'on-hold':4,resolved:5,closed:6 };
 const PRI_ORDER    = { urgent:0,high:1,medium:2,low:3 };
 
 const sb = createHdsClient();
@@ -539,7 +540,8 @@ function openEdit(id) {
             <div class="status-radio-row">
               <span class="label-strong">Status:</span>
               <label><input type="radio" name="emComposeStatus" value="" checked> No change</label>
-              <label><input type="radio" name="emComposeStatus" value="waiting-on-requester"> Waiting</label>
+              <label><input type="radio" name="emComposeStatus" value="waiting-on-requester"> On requester</label>
+              <label><input type="radio" name="emComposeStatus" value="waiting-on-admin"> On me</label>
               <label><input type="radio" name="emComposeStatus" value="in-progress"> In progress</label>
               <label><input type="radio" name="emComposeStatus" value="resolved"> Resolved</label>
             </div>

@@ -104,21 +104,43 @@ exports.handler = async (event) => {
     if (noteErr) return res(500, { error: 'Failed to log reply: ' + noteErr.message });
   }
 
-  // ── 5. Optional resolve (only from waiting-on-requester) ───
+  // ── 5. Status: resolve, or auto-flip the ball back to IT ───
+  const now = new Date().toISOString();
   let resolved = false;
-  if (resolve === true && ticket.status === 'waiting-on-requester') {
-    const now = new Date().toISOString();
+  let reopened = false;
+
+  if (resolve === true) {
     const { error: updErr } = await admin
       .from('tickets')
       .update({ status: 'resolved', resolved_at: now, updated_at: now })
       .eq('id', ticket.id);
     if (updErr) return res(500, { error: 'Resolve failed: ' + updErr.message });
     resolved = true;
+  } else {
+    // A reply puts the ball back on IT — and reopens a resolved/closed ticket.
+    reopened = ['resolved', 'closed'].includes(ticket.status);
+    if (ticket.status !== 'waiting-on-admin') {
+      const update = { status: 'waiting-on-admin', updated_at: now };
+      if (reopened) update.resolved_at = null;
+      const { error: updErr } = await admin
+        .from('tickets')
+        .update(update)
+        .eq('id', ticket.id);
+      if (updErr) return res(500, { error: 'Status update failed: ' + updErr.message });
+    }
+    if (reopened) {
+      await admin.from('ticket_notes').insert({
+        ticket_id: ticket.id,
+        added_by:  'System',
+        note_text: 'Ticket reopened by requester.',
+        note_type: 'internal',
+      });
+    }
   }
 
   // ── 6. Notify IT (non-blocking: reply is already logged) ───
   try {
-    await notifyIT({ ticket, message: hasMessage ? message.trim() : '', resolved });
+    await notifyIT({ ticket, message: hasMessage ? message.trim() : '', resolved, reopened });
   } catch (err) {
     console.error('IT notification failed:', err.message);
   }
@@ -135,7 +157,7 @@ function esc(s) {
   }[c]));
 }
 
-async function notifyIT({ ticket, message, resolved }) {
+async function notifyIT({ ticket, message, resolved, reopened }) {
   const adminLink = `${SITE_URL}/admin#${ticket.id}`;
   const who = ticket.requester_name || ticket.requester_email;
   const subject = `Re: [${ticket.id}] ${ticket.subject}`;
@@ -151,7 +173,7 @@ async function notifyIT({ ticket, message, resolved }) {
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
       <tr><td style="padding:24px 28px 16px;border-bottom:1px solid #E2E8EF;">
         <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">HDS IT Helpdesk · Ticket ${esc(ticket.id)}</div>
-        <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">${esc(who)} replied${resolved ? ' and marked this resolved' : ''}</div>
+        <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">${esc(who)} replied${resolved ? ' and marked this resolved' : (reopened ? ' (ticket reopened)' : '')}</div>
         <div style="font-size:13px;color:#6B7280;margin-top:2px;">${esc(ticket.subject)}</div>
       </td></tr>
       <tr><td style="padding:24px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">

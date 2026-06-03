@@ -20,7 +20,7 @@ function createHdsClient() {
 
 // ── Config maps ──
 const CAT_LABEL    = { access:'Access Request', hardware:'Hardware Request', account:'Account Setup', support:'IT Support' };
-const STATUS_LABEL = { open:'Open','in-progress':'In Progress','waiting-on-requester':'Waiting on Requester','on-hold':'On Hold',resolved:'Resolved',closed:'Closed' };
+const STATUS_LABEL = { open:'Open','in-progress':'In Progress','waiting-on-admin':'Waiting on Admin','waiting-on-requester':'Waiting on Requester','on-hold':'On Hold',resolved:'Resolved',closed:'Closed' };
 const PRI_LABEL    = { low:'Low',medium:'Medium',high:'High',urgent:'Urgent' };
 const IT_TEAM      = ['IT Level 1','IT Level 2','Senior Engineer','IT Manager'];
 const DEPARTMENTS  = ['Operations','Technology','Finance','Sales','Customer Service','HR & People','Leadership','Marketing','Warehouse','Driver / Field'];
@@ -39,9 +39,10 @@ function fmtShort(s) {
 }
 
 // ── Badges ──
-function statusBadge(s) {
-  const cls = { open:'b-open','in-progress':'b-progress','waiting-on-requester':'b-waiting','on-hold':'b-hold',resolved:'b-resolved',closed:'b-closed' };
-  return `<span class="badge ${cls[s]||'b-hold'}">${STATUS_LABEL[s]||s}</span>`;
+function statusBadge(s, labels) {
+  const cls = { open:'b-open','in-progress':'b-progress','waiting-on-admin':'b-waiting-admin','waiting-on-requester':'b-waiting','on-hold':'b-hold',resolved:'b-resolved',closed:'b-closed' };
+  const L = labels || STATUS_LABEL;
+  return `<span class="badge ${cls[s]||'b-hold'}">${L[s]||s}</span>`;
 }
 function priBadge(p) {
   const cls  = { low:'b-low',medium:'b-medium',high:'b-high',urgent:'b-urgent' };

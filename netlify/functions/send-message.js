@@ -86,7 +86,7 @@ exports.handler = async (event) => {
   if (message.length > 10000)
     return res(400, { error: 'Message too long (max 10,000 chars)' });
 
-  const VALID_STATUSES = ['open', 'in-progress', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
+  const VALID_STATUSES = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
   if (newStatus && !VALID_STATUSES.includes(newStatus))
     return res(400, { error: 'Invalid newStatus' });
 
@@ -155,11 +155,18 @@ exports.handler = async (event) => {
 
   if (noteErr) return res(500, { error: 'Failed to log note: ' + noteErr.message });
 
-  // ── 7. Update ticket status (optional) ─────────────────────
-  if (newStatus && newStatus !== ticket.status) {
-    const update = { status: newStatus, updated_at: new Date().toISOString() };
-    if (newStatus === 'resolved' || newStatus === 'closed') {
-      update.resolved_at = new Date().toISOString();
+  // ── 7. Update ticket status (auto-flip unless IT picked one) ─
+  // No explicit pick → outbound puts the ball on the requester,
+  // inbound (logged reply) puts it back on IT.
+  const finalStatus = newStatus
+    || (direction === 'outbound' ? 'waiting-on-requester' : 'waiting-on-admin');
+  if (finalStatus && finalStatus !== ticket.status) {
+    const now = new Date().toISOString();
+    const update = { status: finalStatus, updated_at: now };
+    if (finalStatus === 'resolved' || finalStatus === 'closed') {
+      update.resolved_at = now;
+    } else if (['resolved', 'closed'].includes(ticket.status)) {
+      update.resolved_at = null;   // reopening a closed ticket
     }
     const { error: updErr } = await admin
       .from('tickets')
