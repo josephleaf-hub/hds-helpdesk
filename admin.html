@@ -541,7 +541,6 @@ async function openEdit(id) {
           <textarea id="emComposeText" placeholder="Type your reply to ${firstName}…"></textarea>
           <div id="emAttachPreview" class="attach-preview"></div>
           <div class="compose-actions">
-            <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('emFileInput').click()">${ADMIN_PAPERCLIP} Attach</button>
             <div class="status-radio-row">
               <span class="label-strong">Status:</span>
               <label><input type="radio" name="emComposeStatus" value="" checked> No change</label>
@@ -550,6 +549,7 @@ async function openEdit(id) {
               <label><input type="radio" name="emComposeStatus" value="in-progress"> In progress</label>
               <label><input type="radio" name="emComposeStatus" value="resolved"> Resolved</label>
             </div>
+            <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('emFileInput').click()">${ADMIN_PAPERCLIP} Attach</button>
             <button class="btn btn-send" id="emComposeBtn" onclick="submitComposer()">Send Email Reply ${sendIco}</button>
           </div>
           <input type="file" id="emFileInput" accept="image/*" multiple style="display:none" onchange="handleAdminFiles(this.files)">
