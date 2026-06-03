@@ -129,7 +129,6 @@
       <a href="#" id="publicNav" class="btn-secondary" style="font-size:12px;" onclick="showSignIn();return false;">Already have tickets? Sign in →</a>
       <!-- Signed in: user pill + sign out -->
       <span class="user-pill" id="authedNav" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span id="userEmail"></span></span>
-      <button class="btn-ghost" id="newLinkBtn" style="display:none;font-size:12px;" onclick="regenerateMyToken()">New sign-in link</button>
       <button class="btn-ghost" id="signOutBtn" style="display:none;" onclick="signOut()">Sign out</button>
       <div class="logo-divider-line"></div>
       <img src="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/69dc2749d52c90cf97e32309_Secondary-positive.png" alt="HDS" class="topbar-hds-logo" />
@@ -324,7 +323,6 @@ function setChrome(authed) {
   document.getElementById('publicNav').style.display  = authed ? 'none' : '';
   document.getElementById('authedNav').style.display  = authed ? '' : 'none';
   document.getElementById('signOutBtn').style.display = authed ? '' : 'none';
-  document.getElementById('newLinkBtn').style.display = authed ? '' : 'none';
   document.getElementById('submitBackBtn').style.display = authed ? '' : 'none';
   document.getElementById('topbarTitle').textContent = authed ? 'My IT tickets' : 'IT Helpdesk';
 
@@ -395,25 +393,6 @@ function resetAuth() {
 async function signOut() {
   await sb.auth.signOut();
   // applySession (via onAuthStateChange) will swap back to the auth view
-}
-
-async function regenerateMyToken() {
-  if (!confirm('Email yourself a fresh sign-in link? Any older link you have will stop working.')) return;
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const token = session && session.access_token;
-    if (!token) throw new Error('Session expired — please sign in again.');
-    const res = await fetch('/api/regenerate-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: '{}',
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-    showToast("We've sent a fresh sign-in link to your email.");
-  } catch (err) {
-    showToast('Failed: ' + err.message);
-  }
 }
 
 // ─────────────────────────────────────────────
