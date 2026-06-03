@@ -18,6 +18,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
 
 const SUPABASE_URL              = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -110,8 +111,9 @@ exports.handler = async (event) => {
   // ── 5. Send the email (outbound only) ──────────────────────
   if (direction === 'outbound') {
     const subject = `Re: [${ticket.id}] ${ticket.subject}`;
-    const html = buildReplyHtml({ ticket, message, addedBy });
-    const text = buildReplyText({ ticket, message, addedBy });
+    const link = await resolvePortalLink(admin, ticket);
+    const html = buildReplyHtml({ ticket, message, addedBy, link });
+    const text = buildReplyText({ ticket, message, addedBy, link });
 
     try {
       const sgRes = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -187,7 +189,7 @@ function esc(s) {
   }[c]));
 }
 
-function buildReplyHtml({ ticket, message, addedBy }) {
+function buildReplyHtml({ ticket, message, addedBy, link }) {
   const bodyHtml = esc(message).replace(/\n/g, '<br>');
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>
@@ -203,12 +205,12 @@ function buildReplyHtml({ ticket, message, addedBy }) {
         <div style="margin-bottom:16px;">Hi ${esc(ticket.requester_name.split(' ')[0])},</div>
         <div style="margin-bottom:20px;">${bodyHtml}</div>
         <div style="margin:24px 0;">
-          <a href="${SITE_URL}/t/${esc(ticket.id)}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
+          <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
         </div>
         <div style="margin-top:24px;color:#6B7280;font-size:13px;">— ${esc(addedBy)}<br>HDS IT Helpdesk</div>
       </td></tr>
       <tr><td style="padding:16px 28px;background:#F8F9FA;border-top:1px solid #E2E8EF;font-size:12px;color:#6B7280;line-height:1.5;">
-        Open your ticket to reply: <a href="${SITE_URL}/t/${esc(ticket.id)}" style="color:#1C64F2;">${SITE_URL}/t/${esc(ticket.id)}</a><br>
+        Use the button above to view and reply — it signs you in automatically on any device.<br>
         Reference: <strong>${esc(ticket.id)}</strong>
       </td></tr>
     </table>
@@ -217,7 +219,7 @@ function buildReplyHtml({ ticket, message, addedBy }) {
 </body></html>`;
 }
 
-function buildReplyText({ ticket, message, addedBy }) {
+function buildReplyText({ ticket, message, addedBy, link }) {
   return [
     `Hi ${ticket.requester_name.split(' ')[0]},`,
     '',
@@ -227,7 +229,38 @@ function buildReplyText({ ticket, message, addedBy }) {
     `HDS IT Helpdesk`,
     '',
     '———',
-    `Reply to this conversation at ${SITE_URL}/t/${ticket.id}`,
+    `Reply to this conversation (signs you in automatically): ${link}`,
     `Reference: ${ticket.id}`,
   ].join('\n');
+}
+
+// ─────────────────────────────────────────────
+// PORTABLE TOKEN — reuse the requester's token in the reply link,
+// falling back to the plain /t/ link if the lookup ever fails.
+// ─────────────────────────────────────────────
+async function resolvePortalLink(admin, ticket) {
+  try {
+    const token = await getOrCreateToken(admin, ticket.requester_email);
+    return `${SITE_URL}/p/${token}/t/${ticket.id}`;
+  } catch (e) {
+    console.error('Token lookup failed, using plain link:', e.message);
+    return `${SITE_URL}/t/${ticket.id}`;
+  }
+}
+
+async function getOrCreateToken(admin, email) {
+  const e = (email || '').toLowerCase().trim();
+  const { data: existing } = await admin
+    .from('user_access_tokens')
+    .select('token')
+    .eq('user_email', e)
+    .is('revoked_at', null)
+    .maybeSingle();
+  if (existing && existing.token) return existing.token;
+  const token = crypto.randomBytes(18).toString('base64url');
+  const { error } = await admin
+    .from('user_access_tokens')
+    .upsert({ user_email: e, token }, { onConflict: 'user_email' });
+  if (error) throw error;
+  return token;
 }

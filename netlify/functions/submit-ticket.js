@@ -14,6 +14,7 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
 
 const SITE_URL = 'https://it-helpdesk.hdsaus.com.au';
 // Keep in sync with ALLOWED_DOMAINS in index.html — the no-build setup can't
@@ -103,21 +104,12 @@ exports.handler = async (event) => {
     console.error('IT notification failed:', emailErr.message);
   }
 
-  // ── Send the requester a confirmation + magic link (best-effort) ──
+  // ── Get-or-create the requester's portable token; email the link ──
   let confirmationSent = false;
   try {
-    // magiclink links require the auth user to exist — create it first
-    // (no-op if already registered), then mint the link.
-    await supabase.auth.admin.createUser({ email: emailNorm, email_confirm: true }).catch(() => {});
-    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: emailNorm,
-      options: { redirectTo: `${SITE_URL}/t/${ticketId}` },
-    });
-    if (linkErr) throw linkErr;
-    const actionLink = linkData && linkData.properties && linkData.properties.action_link;
-    if (!actionLink) throw new Error('No action_link returned');
-    await sendConfirmationEmail(ticketId, { subject, requesterName, requesterEmail: emailNorm }, actionLink);
+    const token = await getOrCreateToken(supabase, emailNorm);
+    const link = `${SITE_URL}/p/${token}/t/${ticketId}`;
+    await sendConfirmationEmail(ticketId, { subject, requesterName, requesterEmail: emailNorm }, link);
     confirmationSent = true;
   } catch (confErr) {
     console.error('Confirmation email failed:', confErr.message);
@@ -361,4 +353,24 @@ async function sendConfirmationEmail(ticketId, ticket, magicLink) {
     const txt = await res.text();
     throw new Error(`SendGrid API ${res.status}: ${txt}`);
   }
+}
+
+// ─────────────────────────────────────────────
+// PORTABLE TOKEN — one permanent token per requester email
+// ─────────────────────────────────────────────
+async function getOrCreateToken(supabase, email) {
+  const { data: existing } = await supabase
+    .from('user_access_tokens')
+    .select('token')
+    .eq('user_email', email)
+    .is('revoked_at', null)
+    .maybeSingle();
+  if (existing && existing.token) return existing.token;
+
+  const token = crypto.randomBytes(18).toString('base64url');
+  const { error } = await supabase
+    .from('user_access_tokens')
+    .upsert({ user_email: email, token }, { onConflict: 'user_email' });
+  if (error) throw error;
+  return token;
 }

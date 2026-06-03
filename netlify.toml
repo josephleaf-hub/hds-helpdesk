@@ -21,6 +21,12 @@
   to     = "/admin.html"
   status = 200
 
+# Portable token sign-in: /p/{token}/... → server-side redeem → magic-link redirect
+[[redirects]]
+  from   = "/p/*"
+  to     = "/.netlify/functions/redeem-token/:splat"
+  status = 200
+
 # Direct ticket links (/t/HDS-NNNN) are handled client-side by the portal
 [[redirects]]
   from   = "/t/*"

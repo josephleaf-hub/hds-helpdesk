@@ -99,7 +99,7 @@
     <input class="input" type="email" id="authEmail" placeholder="name@homedelivery.com.au" autocomplete="email"
            onkeydown="if(event.key==='Enter')requestMagicLink()" />
     <div class="auth-err" id="authErr"></div>
-    <button class="btn-primary btn-block" id="authBtn" onclick="requestMagicLink()">Send sign-in link</button>
+    <button class="btn-primary btn-block" id="authBtn" onclick="requestMagicLink()">Email me a sign-in link</button>
     <div style="margin-top:14px;"><a href="#" style="color:var(--caption);font-size:12px;text-decoration:none;" onclick="closeSignIn();return false;">← Back to submitting a ticket</a></div>
     <div style="margin-top:14px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--caption);">
       IT staff? <a href="/login.html" style="color:var(--blue);font-weight:600;text-decoration:none;">Log in to the admin dashboard →</a>
@@ -110,7 +110,7 @@
   <div class="auth-card" id="authSent" style="display:none;">
     <div class="auth-check-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
     <div class="auth-title">Check your email</div>
-    <div class="auth-sub">We sent a sign-in link to <strong id="authSentTo"></strong>. It expires in 1 hour. Open it on this device to sign in.</div>
+    <div class="auth-sub">We've emailed a sign-in link to <strong id="authSentTo"></strong>. It works on any device, any time — open it whenever you need to view your tickets.</div>
     <button class="btn-secondary" style="margin:0 auto;" onclick="resetAuth()">← Use a different email</button>
   </div>
 </div>
@@ -129,6 +129,7 @@
       <a href="#" id="publicNav" class="btn-secondary" style="font-size:12px;" onclick="showSignIn();return false;">Already have tickets? Sign in →</a>
       <!-- Signed in: user pill + sign out -->
       <span class="user-pill" id="authedNav" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span id="userEmail"></span></span>
+      <button class="btn-ghost" id="newLinkBtn" style="display:none;font-size:12px;" onclick="regenerateMyToken()">New sign-in link</button>
       <button class="btn-ghost" id="signOutBtn" style="display:none;" onclick="signOut()">Sign out</button>
       <div class="logo-divider-line"></div>
       <img src="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/69dc2749d52c90cf97e32309_Secondary-positive.png" alt="HDS" class="topbar-hds-logo" />
@@ -285,6 +286,13 @@ async function init() {
   sb.auth.onAuthStateChange((_e, session) => applySession(session));
   const { data: { session } } = await sb.auth.getSession();
   applySession(session);
+
+  // redeem-token sends invalid/expired links here.
+  if (new URLSearchParams(location.search).get('signin') === 'expired' && _authedNow === false) {
+    showSignIn();
+    document.getElementById('authErr').textContent = "That sign-in link is no longer valid — enter your email and we'll send a new one.";
+    history.replaceState(null, '', '/');
+  }
 }
 
 let _authedNow = null;
@@ -316,6 +324,7 @@ function setChrome(authed) {
   document.getElementById('publicNav').style.display  = authed ? 'none' : '';
   document.getElementById('authedNav').style.display  = authed ? '' : 'none';
   document.getElementById('signOutBtn').style.display = authed ? '' : 'none';
+  document.getElementById('newLinkBtn').style.display = authed ? '' : 'none';
   document.getElementById('submitBackBtn').style.display = authed ? '' : 'none';
   document.getElementById('topbarTitle').textContent = authed ? 'My IT tickets' : 'IT Helpdesk';
 
@@ -361,18 +370,19 @@ async function requestMagicLink() {
   const btn = document.getElementById('authBtn');
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href },
+    const res = await fetch('/api/regenerate-token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     });
-    if (error) throw error;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     document.getElementById('authSentTo').textContent = email;
     document.getElementById('authEntry').style.display = 'none';
     document.getElementById('authSent').style.display = 'block';
   } catch (err) {
     errEl.textContent = err.message || 'Could not send the link. Try again.';
   } finally {
-    btn.disabled = false; btn.textContent = 'Send sign-in link';
+    btn.disabled = false; btn.textContent = 'Email me a sign-in link';
   }
 }
 
@@ -385,6 +395,25 @@ function resetAuth() {
 async function signOut() {
   await sb.auth.signOut();
   // applySession (via onAuthStateChange) will swap back to the auth view
+}
+
+async function regenerateMyToken() {
+  if (!confirm('Email yourself a fresh sign-in link? Any older link you have will stop working.')) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const token = session && session.access_token;
+    if (!token) throw new Error('Session expired — please sign in again.');
+    const res = await fetch('/api/regenerate-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: '{}',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    showToast("We've sent a fresh sign-in link to your email.");
+  } catch (err) {
+    showToast('Failed: ' + err.message);
+  }
 }
 
 // ─────────────────────────────────────────────
