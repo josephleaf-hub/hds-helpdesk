@@ -66,14 +66,15 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return res(400, { error: 'Invalid JSON' }); }
 
-  const { ticketId, message, resolve } = body;
+  const { ticketId, message, resolve, attachmentIds } = body;
+  const atts = Array.isArray(attachmentIds) ? attachmentIds.filter(x => typeof x === 'string') : [];
 
   if (!ticketId || typeof ticketId !== 'string')
     return res(400, { error: 'ticketId is required' });
 
   const hasMessage = typeof message === 'string' && message.trim().length > 0;
-  if (!hasMessage && resolve !== true)
-    return res(400, { error: 'Provide a message or set resolve' });
+  if (!hasMessage && !atts.length && resolve !== true)
+    return res(400, { error: 'Provide a message, an image, or set resolve' });
   if (hasMessage && message.length > 10000)
     return res(400, { error: 'Message too long (max 10,000 chars)' });
 
@@ -91,17 +92,26 @@ exports.handler = async (event) => {
     return res(403, { error: 'This ticket does not belong to you' });
   }
 
-  // ── 4. Log the inbound note (only if a message was sent) ───
-  if (hasMessage) {
-    const { error: noteErr } = await admin
+  // ── 4. Log the inbound note (if there's a message and/or images) ───
+  if (hasMessage || atts.length) {
+    const { data: noteRow, error: noteErr } = await admin
       .from('ticket_notes')
       .insert({
         ticket_id: ticket.id,
         added_by:  ticket.requester_name || callerEmail,
-        note_text: message.trim(),
+        note_text: hasMessage ? message.trim() : '',
         note_type: 'inbound',
-      });
+      })
+      .select('id')
+      .single();
     if (noteErr) return res(500, { error: 'Failed to log reply: ' + noteErr.message });
+    if (atts.length) {
+      await admin.from('ticket_attachments')
+        .update({ note_id: noteRow.id })
+        .eq('ticket_id', ticket.id)
+        .is('note_id', null)
+        .in('id', atts);
+    }
   }
 
   // ── 5. Status: resolve, or auto-flip the ball back to IT ───
@@ -163,7 +173,7 @@ async function notifyIT({ ticket, message, resolved, reopened }) {
   const subject = `Re: [${ticket.id}] ${ticket.subject}`;
   const bodyHtml = message
     ? esc(message).replace(/\n/g, '<br>')
-    : '<em style="color:#6B7280;">(No message — ticket marked resolved.)</em>';
+    : '<em style="color:#6B7280;">(No message — open the ticket in the dashboard.)</em>';
 
   const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>

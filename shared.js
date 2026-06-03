@@ -72,7 +72,8 @@ function noteIcon(paths, color) {
 }
 // `reqFirst` = requester's first name (already escaped). outbound/inbound
 // carry the requester's name; internal notes are labelled 'Internal note'.
-function renderConversation(notes, reqFirst) {
+function renderConversation(notes, reqFirst, attMap) {
+  attMap = attMap || {};
   if (!notes || !notes.length) {
     return '<div style="color:#9CA3AF;font-size:12px;font-style:italic;margin-bottom:8px;">No conversation yet.</div>';
   }
@@ -81,10 +82,69 @@ function renderConversation(notes, reqFirst) {
     type === 'inbound'  ? `Reply from ${reqFirst}` : 'Internal note';
   return notes.map(n => {
     const s = NOTE_STYLE[n.note_type] || NOTE_STYLE.internal;
+    const textHtml = n.note_text ? `<div class="note-text" style="margin-top:4px;">${esc(n.note_text)}</div>` : '';
     return `
         <div class="note-item" style="background:${s.bg};border-left:3px solid ${s.border};padding:10px 12px;border-radius:6px;margin-bottom:8px;">
           <div class="note-meta" style="color:${s.color};font-weight:600;">${noteIcon(s.icon,s.color)} ${labelFor(n.note_type)} · <span style="color:#6B7280;font-weight:500;">${esc(n.added_by)} · ${fmtDate(n.created_at)}</span></div>
-          <div class="note-text" style="margin-top:4px;">${esc(n.note_text)}</div>
+          ${textHtml}
+          ${attachmentThumbs(attMap[n.id])}
         </div>`;
   }).join('');
+}
+
+// ── Image attachments ──────────────────────────
+function attachmentThumbs(list) {
+  if (!list || !list.length) return '';
+  return '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">' + list.map(a =>
+    `<a href="${a.url}" target="_blank" rel="noopener" title="${esc(a.name)}"><img src="${a.url}" alt="${esc(a.name)}" style="height:74px;width:74px;object-fit:cover;border-radius:8px;border:1px solid #C8D4DF;display:block;"></a>`
+  ).join('') + '</div>';
+}
+
+// Fetch a ticket's attachments (RLS-scoped) and group 1-hour signed URLs by note_id.
+async function loadAttachmentMap(sb, ticketId) {
+  const map = {};
+  const { data, error } = await sb.from('ticket_attachments').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+  if (error || !data) return map;
+  for (const a of data) {
+    let url = '';
+    try {
+      const { data: s } = await sb.storage.from('ticket-attachments').createSignedUrl(a.storage_path, 3600);
+      url = (s && s.signedUrl) || '';
+    } catch (_) { /* skip unsignable */ }
+    if (!url) continue;
+    const key = a.note_id || '_unlinked';
+    (map[key] = map[key] || []).push({ url, name: a.file_name, mime: a.mime_type });
+  }
+  return map;
+}
+
+// Read a File as base64 (strips the data: prefix) for JSON upload.
+function readFileBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',').pop());
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// Upload images for a ticket; returns the new attachment IDs to link to a note.
+async function uploadImages(sb, ticketId, files) {
+  if (!files || !files.length) return [];
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session && session.access_token;
+  if (!token) throw new Error('Session expired — please sign in again.');
+  const ids = [];
+  for (const f of files) {
+    const dataBase64 = await readFileBase64(f);
+    const res = await fetch('/api/upload-attachment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ ticketId, fileName: f.name, mimeType: f.type, dataBase64 }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    ids.push(data.attachmentId);
+  }
+  return ids;
 }

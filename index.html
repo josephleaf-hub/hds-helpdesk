@@ -282,6 +282,8 @@ const sb = createHdsClient();
 let currentUser = null;
 let selectedCategory = '';
 let activeTicket = null;
+let portalPendingFiles = [];
+const PAPERCLIP_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
 const _pm = location.pathname.match(/^\/t\/(HDS-\d+)/i);
 let pendingTicketId = _pm ? _pm[1].toUpperCase() : null;
 
@@ -586,26 +588,32 @@ async function openTicket(id) {
     const { data: notes, error: nErr } = await sb
       .from('ticket_notes').select('*').eq('ticket_id', id).order('created_at', { ascending: true });
     if (nErr) throw nErr;
+    const attMap = await loadAttachmentMap(sb, id);
     activeTicket = ticket;
+    portalPendingFiles = [];
     history.replaceState(null, '', '/t/' + ticket.id);
-    renderDetail(ticket, notes || []);
+    renderDetail(ticket, notes || [], attMap);
   } catch (err) {
     view.innerHTML = `<button class="btn-ghost" style="margin-bottom:8px;" onclick="showList()">← Back to my tickets</button>
       <div class="empty-state"><div class="empty-text" style="color:#C0392B;">${esc(err.message)}</div></div>`;
   }
 }
 
-function renderDetail(t, notes) {
+function renderDetail(t, notes, attMap) {
   const reqFirst = esc((t.requester_name || '').split(' ')[0] || 'there');
   const isClosed = ['resolved', 'closed'].includes(t.status);
   const composer = isClosed
     ? `<div class="resolved-notice">This ticket is ${esc((STATUS_LABEL[t.status] || t.status).toLowerCase())}. If your issue isn't fixed, please submit a new ticket.</div>`
     : `<div class="portal-composer">
          <textarea id="portalReplyText" placeholder="Type your reply to the IT team…"></textarea>
+         <div id="portalAttachPreview" class="attach-preview"></div>
          <div class="composer-actions">
+           <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('portalFileInput').click()">${PAPERCLIP_SVG} Attach image</button>
+           <span style="flex:1;"></span>
            ${t.status === 'waiting-on-requester' ? `<button class="btn-secondary" id="portalResolveBtn" onclick="markResolved()">Mark as resolved</button>` : ''}
            <button class="btn-primary" id="portalReplyBtn" onclick="sendPortalReply()">Send reply</button>
          </div>
+         <input type="file" id="portalFileInput" accept="image/*" multiple style="display:none" onchange="handlePortalFiles(this.files)">
        </div>`;
   document.getElementById('detailView').innerHTML = `
     <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
@@ -627,7 +635,7 @@ function renderDetail(t, notes) {
       <div class="detail-right">
         <div class="detail-conv">
           <div class="field-label" style="margin-bottom:10px;">Conversation</div>
-          ${renderConversation(notes, reqFirst)}
+          ${renderConversation(notes, reqFirst, attMap)}
         </div>
         ${composer}
       </div>
@@ -648,14 +656,36 @@ async function callRequesterReply(payload) {
   return data;
 }
 
+function handlePortalFiles(fileList) {
+  for (const f of fileList) {
+    if (portalPendingFiles.length >= 3) { showToast('You can attach up to 3 images.'); break; }
+    if (!f.type.startsWith('image/')) { showToast('Images only.'); continue; }
+    if (f.size > 2 * 1024 * 1024) { showToast(`"${f.name}" is over the 2 MB limit.`); continue; }
+    portalPendingFiles.push(f);
+  }
+  const input = document.getElementById('portalFileInput');
+  if (input) input.value = '';
+  renderPortalAttachPreview();
+}
+function removePortalFile(i) { portalPendingFiles.splice(i, 1); renderPortalAttachPreview(); }
+function renderPortalAttachPreview() {
+  const el = document.getElementById('portalAttachPreview');
+  if (!el) return;
+  el.innerHTML = portalPendingFiles.map((f, i) =>
+    `<span class="attach-chip"><span>${esc(f.name)}</span><button type="button" onclick="removePortalFile(${i})" aria-label="Remove">×</button></span>`
+  ).join('');
+}
+
 async function sendPortalReply() {
   const ta = document.getElementById('portalReplyText');
   const text = ((ta && ta.value) || '').trim();
-  if (!text) { showToast('Type a reply first.'); return; }
+  if (!text && !portalPendingFiles.length) { showToast('Type a reply or attach an image first.'); return; }
   const btn = document.getElementById('portalReplyBtn');
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    await callRequesterReply({ ticketId: activeTicket.id, message: text });
+    const attachmentIds = await uploadImages(sb, activeTicket.id, portalPendingFiles);
+    await callRequesterReply({ ticketId: activeTicket.id, message: text || undefined, attachmentIds });
+    portalPendingFiles = [];
     showToast('Reply sent.');
     openTicket(activeTicket.id);   // refresh
   } catch (err) {

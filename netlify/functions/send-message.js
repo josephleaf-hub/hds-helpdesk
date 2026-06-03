@@ -76,15 +76,17 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return res(400, { error: 'Invalid JSON' }); }
 
-  const { ticketId, message, direction, newStatus } = body;
+  const { ticketId, message, direction, newStatus, attachmentIds } = body;
+  const atts   = Array.isArray(attachmentIds) ? attachmentIds.filter(x => typeof x === 'string') : [];
+  const hasMsg = typeof message === 'string' && message.trim().length > 0;
 
   if (!ticketId || typeof ticketId !== 'string')
     return res(400, { error: 'ticketId is required' });
-  if (!message || typeof message !== 'string' || !message.trim())
-    return res(400, { error: 'message is required' });
+  if (!hasMsg && !atts.length)
+    return res(400, { error: 'A message or an attachment is required' });
   if (!['outbound', 'inbound'].includes(direction))
     return res(400, { error: "direction must be 'outbound' or 'inbound'" });
-  if (message.length > 10000)
+  if (hasMsg && message.length > 10000)
     return res(400, { error: 'Message too long (max 10,000 chars)' });
 
   const VALID_STATUSES = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
@@ -148,16 +150,27 @@ exports.handler = async (event) => {
   }
 
   // ── 6. Log the note ────────────────────────────────────────
-  const { error: noteErr } = await admin
+  const { data: noteRow, error: noteErr } = await admin
     .from('ticket_notes')
     .insert({
       ticket_id: ticket.id,
       added_by:  addedBy,
-      note_text: message.trim(),
+      note_text: hasMsg ? message.trim() : '',
       note_type: direction,
-    });
+    })
+    .select('id')
+    .single();
 
   if (noteErr) return res(500, { error: 'Failed to log note: ' + noteErr.message });
+
+  // Link any pre-uploaded images to this note (scoped to this ticket).
+  if (atts.length) {
+    await admin.from('ticket_attachments')
+      .update({ note_id: noteRow.id })
+      .eq('ticket_id', ticket.id)
+      .is('note_id', null)
+      .in('id', atts);
+  }
 
   // ── 7. Update ticket status (auto-flip unless IT picked one) ─
   // No explicit pick → outbound puts the ball on the requester,
@@ -192,7 +205,9 @@ function esc(s) {
 }
 
 function buildReplyHtml({ ticket, message, addedBy, link, allLink }) {
-  const bodyHtml = esc(message).replace(/\n/g, '<br>');
+  const bodyHtml = (message && message.trim())
+    ? esc(message).replace(/\n/g, '<br>')
+    : '<em style="color:#6B7280;">A screenshot was attached — open the portal to view it.</em>';
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>
 <body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
@@ -226,7 +241,7 @@ function buildReplyText({ ticket, message, addedBy, link, allLink }) {
   return [
     `Hi ${ticket.requester_name.split(' ')[0]},`,
     '',
-    message.trim(),
+    (message && message.trim()) ? message.trim() : 'A screenshot was attached — open the portal to view it.',
     '',
     `— ${addedBy}`,
     `HDS IT Helpdesk`,

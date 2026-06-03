@@ -206,6 +206,8 @@ let allTickets    = [];    // raw from Supabase
 let filtered      = [];    // after filters applied
 let activeTicketId = null;
 let currentComposerTab = 'reply';   // which composer tab is active: reply | internal | log
+let adminPendingFiles = [];
+const ADMIN_PAPERCLIP = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
 
 // ─────────────────────────────────────────────
 // AUTH CHECK — runs on page load
@@ -442,11 +444,12 @@ function miniBar(label, count, total, color) {
 // ─────────────────────────────────────────────
 // EDIT MODAL
 // ─────────────────────────────────────────────
-function openEdit(id) {
+async function openEdit(id) {
   const t = allTickets.find(x => x.id === id);
   if (!t) return;
   activeTicketId = id;
   currentComposerTab = 'reply';
+  adminPendingFiles = [];
   const reqFirst = esc((t.requester_name || '').split(' ')[0] || 'requester');
 
   document.getElementById('emTitle').textContent    = t.subject;
@@ -454,7 +457,8 @@ function openEdit(id) {
     `${t.id} · ${CAT_LABEL[t.category]||t.category} — ${t.sub_type} · Submitted ${fmtDate(t.created_at)}`;
 
   const notes = (t.ticket_notes || []).sort((a,b) => new Date(a.created_at)-new Date(b.created_at));
-  const notesHtml = renderConversation(notes, reqFirst);
+  const attMap = await loadAttachmentMap(sb, id);
+  const notesHtml = renderConversation(notes, reqFirst, attMap);
 
   const firstName = reqFirst;
   const chev   = '<svg class="chev ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -535,6 +539,7 @@ function openEdit(id) {
             Email sent from <strong>helpdesk@homedelivery.com.au</strong> to <strong>${esc(t.requester_email)}</strong> · they can reply directly to it
           </div>
           <textarea id="emComposeText" placeholder="Type your reply to ${firstName}…"></textarea>
+          <div id="emAttachPreview" class="attach-preview"></div>
           <div class="compose-actions">
             <div class="status-radio-row">
               <span class="label-strong">Status:</span>
@@ -544,8 +549,12 @@ function openEdit(id) {
               <label><input type="radio" name="emComposeStatus" value="in-progress"> In progress</label>
               <label><input type="radio" name="emComposeStatus" value="resolved"> Resolved</label>
             </div>
-            <button class="btn btn-send" id="emComposeBtn" onclick="submitComposer()">Send Email Reply ${sendIco}</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button type="button" class="btn-ghost attach-btn" onclick="document.getElementById('emFileInput').click()">${ADMIN_PAPERCLIP} Attach</button>
+              <button class="btn btn-send" id="emComposeBtn" onclick="submitComposer()">Send Email Reply ${sendIco}</button>
+            </div>
           </div>
+          <input type="file" id="emFileInput" accept="image/*" multiple style="display:none" onchange="handleAdminFiles(this.files)">
         </div>
 
       </div>
@@ -599,36 +608,69 @@ function setComposerTab(tab) {
 async function submitComposer() {
   const ta   = document.getElementById('emComposeText');
   const text = ((ta && ta.value) || '').trim();
-  if (!text) { showToast('Type something first.'); return; }
+  if (!text && !adminPendingFiles.length) { showToast('Type something or attach an image first.'); return; }
   const radio     = document.querySelector('input[name="emComposeStatus"]:checked');
   const newStatus = radio && radio.value ? radio.value : null;
   const tab       = currentComposerTab;
 
-  if (tab === 'reply')         await sendReply('outbound', text, newStatus);
-  else if (tab === 'log')      await sendReply('inbound',  text, newStatus);
-  else if (tab === 'internal') await addInternalNote(text, newStatus);
+  let attachmentIds = [];
+  try {
+    attachmentIds = await uploadImages(sb, activeTicketId, adminPendingFiles);
+  } catch (err) { showToast('Upload failed: ' + err.message); return; }
+  adminPendingFiles = [];
+
+  if (tab === 'reply')         await sendReply('outbound', text, newStatus, attachmentIds);
+  else if (tab === 'log')      await sendReply('inbound',  text, newStatus, attachmentIds);
+  else if (tab === 'internal') await addInternalNote(text, newStatus, attachmentIds);
 
   // The success paths re-render the modal (which resets to the Reply tab);
   // restore whichever tab the user was working in.
   setComposerTab(tab);
 }
 
-async function addInternalNote(text, newStatus) {
+// ── Composer image attachments (admin) ──
+function handleAdminFiles(fileList) {
+  for (const f of fileList) {
+    if (adminPendingFiles.length >= 3) { showToast('You can attach up to 3 images.'); break; }
+    if (!f.type.startsWith('image/')) { showToast('Images only.'); continue; }
+    if (f.size > 2 * 1024 * 1024) { showToast(`"${f.name}" is over the 2 MB limit.`); continue; }
+    adminPendingFiles.push(f);
+  }
+  const input = document.getElementById('emFileInput');
+  if (input) input.value = '';
+  renderAdminAttachPreview();
+}
+function removeAdminFile(i) { adminPendingFiles.splice(i, 1); renderAdminAttachPreview(); }
+function renderAdminAttachPreview() {
+  const el = document.getElementById('emAttachPreview');
+  if (!el) return;
+  el.innerHTML = adminPendingFiles.map((f, i) =>
+    `<span class="attach-chip"><span>${esc(f.name)}</span><button type="button" onclick="removeAdminFile(${i})" aria-label="Remove">×</button></span>`
+  ).join('');
+}
+
+async function addInternalNote(text, newStatus, attachmentIds) {
   const msg = (text || '').trim();
-  if (!msg) { showToast('Type a note first.'); return; }
+  const atts = attachmentIds || [];
+  if (!msg && !atts.length) { showToast('Type a note or attach an image first.'); return; }
 
   const btn  = document.getElementById('emComposeBtn');
   const orig = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
 
   try {
-    const { error: noteErr } = await sb.from('ticket_notes').insert({
+    const { data: noteRow, error: noteErr } = await sb.from('ticket_notes').insert({
       ticket_id: activeTicketId,
       added_by:  currentUser.full_name || currentUser.email,
       note_text: msg,
       note_type: 'internal',
-    });
+    }).select('id').single();
     if (noteErr) throw noteErr;
+
+    if (atts.length) {
+      await sb.from('ticket_attachments').update({ note_id: noteRow.id })
+        .eq('ticket_id', activeTicketId).is('note_id', null).in('id', atts);
+    }
 
     if (newStatus) {
       const update = { status: newStatus };
@@ -639,7 +681,7 @@ async function addInternalNote(text, newStatus) {
 
     showToast('Internal note added');
     await loadTickets();
-    openEdit(activeTicketId);
+    await openEdit(activeTicketId);
   } catch (err) {
     showToast('Failed: ' + err.message);
     if (btn) { btn.disabled = false; btn.innerHTML = orig; }
@@ -702,7 +744,7 @@ async function updateTicketField(field, value) {
     const labels = { status:'Status', priority:'Priority', assigned:'Assignee' };
     showToast(`${labels[field] || field} updated`);
     await loadTickets();
-    openEdit(activeTicketId);
+    await openEdit(activeTicketId);
   } catch (err) {
     showToast('Failed: ' + err.message);
   }
@@ -734,9 +776,10 @@ function openTab(name, el) {
 // ─────────────────────────────────────────────
 // REPLY TO REQUESTER (outbound) or LOG REPLY (inbound)
 // ─────────────────────────────────────────────
-async function sendReply(direction, text, newStatus) {
+async function sendReply(direction, text, newStatus, attachmentIds) {
   const msg = (text || '').trim();
-  if (!msg) {
+  const atts = attachmentIds || [];
+  if (!msg && !atts.length) {
     showToast(direction === 'outbound' ? 'Type a reply first.' : 'Paste the requester\'s reply first.');
     return;
   }
@@ -761,6 +804,7 @@ async function sendReply(direction, text, newStatus) {
         message: msg,
         direction,
         newStatus,
+        attachmentIds: atts,
       }),
     });
     const result = await res.json().catch(() => ({}));
@@ -769,7 +813,7 @@ async function sendReply(direction, text, newStatus) {
     showToast(direction === 'outbound' ? 'Reply sent to requester.' : 'Reply logged against ticket.');
     // Refresh ticket data and reopen modal in place
     await loadTickets();
-    openEdit(activeTicketId);
+    await openEdit(activeTicketId);
   } catch (err) {
     showToast('Failed: ' + err.message);
     if (btn) { btn.disabled = false; btn.innerHTML = orig; }

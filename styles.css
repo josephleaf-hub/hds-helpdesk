@@ -429,6 +429,11 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 }
 .btn:disabled { opacity: 0.6; cursor: default; }
 .btn-send     { background: var(--client); color: #fff; }
+.attach-btn { font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+.attach-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.attach-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 14px; padding: 3px 5px 3px 10px; font-size: 11px; color: var(--text-1); max-width: 200px; }
+.attach-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attach-chip button { border: none; background: #E2E8EF; color: var(--text-2); border-radius: 50%; width: 16px; height: 16px; cursor: pointer; line-height: 1; font-size: 12px; flex-shrink: 0; }
 .btn-internal { background: var(--blue); color: #fff; }
 .btn-ghost    { background: transparent; color: var(--caption); }
 .ico { stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
