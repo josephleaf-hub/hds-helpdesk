@@ -50,6 +50,23 @@ function priBadge(p) {
   return `<span class="badge ${cls[p]||'b-low'}"><span class="pri-dot" style="background:${cols[p]||'#9CA3AF'};"></span>${PRI_LABEL[p]||p}</span>`;
 }
 
+// ── Button loading state ──
+// Swap a button into a spinner + label while an async action runs, then restore.
+// Preserves the original markup (icon + text) so multi-state buttons come back clean.
+function setBtnLoading(btn, loading, label) {
+  if (!btn) return;
+  if (loading) {
+    if (btn.dataset.origHtml == null) btn.dataset.origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span>${label ? esc(label) : ''}`;
+  } else {
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    if (btn.dataset.origHtml != null) { btn.innerHTML = btn.dataset.origHtml; delete btn.dataset.origHtml; }
+  }
+}
+
 // ── Toast (expects a <div id="toast"> on the page) ──
 function showToast(msg) {
   const t = document.getElementById('toast');

@@ -42,6 +42,7 @@
     .portal-hero::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--blue); border-radius: 10px 0 0 10px; }
     .portal-hero-title { font-size: 17px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
     .portal-hero-sub   { font-size: 13px; color: var(--caption); margin-top: 4px; }
+    .portal-hero-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
     /* Category select cards */
     .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
@@ -86,6 +87,8 @@
     /* Ticket detail (full-page) */
     #detailView, #submitView { max-width: 1180px; margin: 0 auto; }
     .detail-back { margin: 0 0 14px -10px; }   /* cancel btn-ghost left padding so it aligns with the title */
+    .detail-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .detail-topbar .detail-back { margin: 0 0 0 -10px; }   /* row owns the bottom gap */
     .detail-header { margin-bottom: 22px; }
     .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
     .dh-meta  { font-size: 12px; color: var(--caption); margin-top: 4px; }
@@ -105,7 +108,8 @@
 
       /* Submit hero: stack heading above a full-width button */
       .portal-hero { padding: 18px 20px; flex-direction: column; align-items: stretch; }
-      .portal-hero .btn-primary { width: 100%; justify-content: center; }
+      .portal-hero-actions { width: 100%; }
+      .portal-hero .btn-primary, .portal-hero-actions .btn-secondary { flex: 1; justify-content: center; }
 
       /* Topbar: keep the email pill from overflowing */
       .user-pill { max-width: 62vw; }
@@ -186,7 +190,10 @@
           <div class="portal-hero-title">Your IT tickets</div>
           <div class="portal-hero-sub">Submit a request, track its status, and reply — all in one place.</div>
         </div>
-        <button class="btn-primary" onclick="showSubmit()">+ Submit a new ticket</button>
+        <div class="portal-hero-actions">
+          <button class="btn-secondary" style="font-size:12px;" onclick="loadMyTickets()" title="Refresh tickets"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
+          <button class="btn-primary" onclick="showSubmit()">+ Submit a new ticket</button>
+        </div>
       </div>
       <div id="ticketList"><div class="spinner"></div></div>
     </div>
@@ -410,7 +417,7 @@ async function requestMagicLink() {
   }
 
   const btn = document.getElementById('authBtn');
-  btn.disabled = true; btn.textContent = 'Sending…';
+  setBtnLoading(btn, true, 'Sending…');
   try {
     const res = await fetch('/api/regenerate-token', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -424,7 +431,7 @@ async function requestMagicLink() {
   } catch (err) {
     errEl.textContent = err.message || 'Could not send the link. Try again.';
   } finally {
-    btn.disabled = false; btn.textContent = 'Email me a sign-in link';
+    setBtnLoading(btn, false);
   }
 }
 
@@ -550,7 +557,7 @@ async function submitTicket() {
   }
 
   const btn = document.getElementById('submitBtnEl');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  setBtnLoading(btn, true, 'Submitting…');
   try {
     const res = await fetch('/api/submit-ticket', {
       method: 'POST',
@@ -583,7 +590,7 @@ async function submitTicket() {
   } catch (err) {
     showToast(err.message || 'Submission failed. Please try again.');
   } finally {
-    btn.disabled = false; btn.textContent = 'Submit ticket →';
+    setBtnLoading(btn, false);
   }
 }
 
@@ -647,7 +654,10 @@ function renderDetail(t, notes, attMap) {
          <input type="file" id="portalFileInput" accept="image/*" multiple style="display:none" onchange="handlePortalFiles(this.files)">
        </div>`;
   document.getElementById('detailView').innerHTML = `
-    <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
+    <div class="detail-topbar">
+      <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
+      <button class="btn-secondary" style="font-size:12px;" onclick="openTicket('${esc(t.id)}')" title="Refresh ticket"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
+    </div>
     <div class="detail-grid2">
       <div class="detail-left"><div class="detail-card">
         <div class="dh-title">${esc(t.subject)}</div>
@@ -712,23 +722,23 @@ async function sendPortalReply() {
   const text = ((ta && ta.value) || '').trim();
   if (!text && !portalPendingFiles.length) { showToast('Type a reply or attach an image first.'); return; }
   const btn = document.getElementById('portalReplyBtn');
-  btn.disabled = true; btn.textContent = 'Sending…';
+  setBtnLoading(btn, true, 'Sending…');
   try {
     const attachmentIds = await uploadImages(sb, activeTicket.id, portalPendingFiles);
     await callRequesterReply({ ticketId: activeTicket.id, message: text || undefined, attachmentIds });
     portalPendingFiles = [];
     showToast('Reply sent.');
-    openTicket(activeTicket.id);   // refresh
+    openTicket(activeTicket.id);   // refresh (re-renders the composer, clearing the button)
   } catch (err) {
     showToast('Failed: ' + err.message);
-    btn.disabled = false; btn.textContent = 'Send reply';
+    setBtnLoading(btn, false);
   }
 }
 
 async function markResolved() {
   if (!confirm('Mark this ticket as resolved?')) return;
   const btn = document.getElementById('portalResolveBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Resolving…'; }
+  setBtnLoading(btn, true, 'Resolving…');
   const ta = document.getElementById('portalReplyText');
   const text = ((ta && ta.value) || '').trim();
   try {
@@ -737,7 +747,7 @@ async function markResolved() {
     openTicket(activeTicket.id);
   } catch (err) {
     showToast('Failed: ' + err.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Mark as resolved'; }
+    setBtnLoading(btn, false);
   }
 }
 

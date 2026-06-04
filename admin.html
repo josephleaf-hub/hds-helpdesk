@@ -600,6 +600,8 @@ function setComposerTab(tab) {
     if (ta) ta.placeholder = `Type your reply to ${firstName}…`;
   }
   btn.disabled = false;
+  btn.classList.remove('is-loading');
+  delete btn.dataset.origHtml;
   if (ta) ta.focus();
 }
 
@@ -611,10 +613,15 @@ async function submitComposer() {
   const newStatus = radio && radio.value ? radio.value : null;
   const tab       = currentComposerTab;
 
+  // One loading state for the whole flow (upload + send). setComposerTab() at the
+  // end rebuilds the button, so success/failure both land back on a clean button.
+  const composeBtn = document.getElementById('emComposeBtn');
+  setBtnLoading(composeBtn, true, tab === 'internal' ? 'Saving…' : (tab === 'log' ? 'Logging…' : 'Sending…'));
+
   let attachmentIds = [];
   try {
     attachmentIds = await uploadImages(sb, activeTicketId, adminPendingFiles);
-  } catch (err) { showToast('Upload failed: ' + err.message); return; }
+  } catch (err) { showToast('Upload failed: ' + err.message); setBtnLoading(composeBtn, false); return; }
   adminPendingFiles = [];
 
   if (tab === 'reply')         await sendReply('outbound', text, newStatus, attachmentIds);
@@ -652,10 +659,6 @@ async function addInternalNote(text, newStatus, attachmentIds) {
   const atts = attachmentIds || [];
   if (!msg && !atts.length) { showToast('Type a note or attach an image first.'); return; }
 
-  const btn  = document.getElementById('emComposeBtn');
-  const orig = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
-
   try {
     const { data: noteRow, error: noteErr } = await sb.from('ticket_notes').insert({
       ticket_id: activeTicketId,
@@ -682,7 +685,6 @@ async function addInternalNote(text, newStatus, attachmentIds) {
     await openEdit(activeTicketId);
   } catch (err) {
     showToast('Failed: ' + err.message);
-    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
   }
 }
 
@@ -782,10 +784,6 @@ async function sendReply(direction, text, newStatus, attachmentIds) {
     return;
   }
 
-  const btn  = document.getElementById('emComposeBtn');
-  const orig = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.textContent = direction === 'outbound' ? 'Sending…' : 'Logging…'; }
-
   try {
     const { data: sessionData } = await sb.auth.getSession();
     const token = sessionData?.session?.access_token;
@@ -814,7 +812,6 @@ async function sendReply(direction, text, newStatus, attachmentIds) {
     await openEdit(activeTicketId);
   } catch (err) {
     showToast('Failed: ' + err.message);
-    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
   }
 }
 
