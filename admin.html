@@ -98,6 +98,9 @@
           <option value="IT Manager">IT Manager</option>
         </select>
         <button class="btn-ghost" onclick="clearFilters()" style="font-size:12px;">Clear</button>
+        <label id="fArchivedWrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;margin-left:auto;white-space:nowrap;">
+          <input type="checkbox" id="fArchived" onchange="applyFilters()" style="cursor:pointer;" /> Show archived
+        </label>
       </div>
 
       <div class="section-title" style="margin-top:0;">
@@ -181,6 +184,7 @@
     </div>
     <div class="modal-body" id="emBody"></div>
     <div class="modal-footer">
+      <button class="btn btn-ghost" id="emArchiveBtn" style="margin-right:auto;display:none;" onclick="toggleArchive()">Archive ticket</button>
       <button class="btn btn-ghost" onclick="closeEdit()">Close</button>
     </div>
   </div>
@@ -250,6 +254,8 @@ async function init() {
     document.getElementById('pageTitle').textContent = `${currentUser.department} — My Team's Tickets`;
     document.getElementById('pageSubtitle').textContent = `Manager view — ${currentUser.department} department`;
     document.getElementById('tabOverviewBtn').style.display = 'none';
+    const archWrap = document.getElementById('fArchivedWrap');
+    if (archWrap) archWrap.style.display = 'none';
     document.querySelector('.tab-btn.active').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> My Team\'s Tickets';
   }
 
@@ -306,8 +312,11 @@ function applyFilters() {
   const fCat    = document.getElementById('fCat')?.value     || '';
   const fPri    = document.getElementById('fPri')?.value     || '';
   const fAssign = document.getElementById('fAssign')?.value  || '';
+  const showArchived = document.getElementById('fArchived')?.checked || false;
 
   filtered = allTickets.filter(t => {
+    // Archived (soft-deleted) tickets are hidden unless "Show archived" is on.
+    if (t.deleted_at && !showArchived) return false;
     if (search && !`${t.id} ${t.subject} ${t.requester_name} ${t.department} ${t.sub_type}`.toLowerCase().includes(search)) return false;
     if (fStatus && t.status !== fStatus)       return false;
     if (fCat    && t.category !== fCat)        return false;
@@ -331,6 +340,8 @@ function clearFilters() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const arch = document.getElementById('fArchived');
+  if (arch) arch.checked = false;
   applyFilters();
 }
 
@@ -338,11 +349,12 @@ function clearFilters() {
 // RENDER: KPI CARDS
 // ─────────────────────────────────────────────
 function renderKPIs() {
-  const open    = allTickets.filter(t => t.status === 'open').length;
-  const prog    = allTickets.filter(t => t.status === 'in-progress').length;
-  const hold    = allTickets.filter(t => t.status === 'on-hold').length;
-  const hiUrg   = allTickets.filter(t => ['urgent','high'].includes(t.priority) && ['open','in-progress'].includes(t.status)).length;
-  const done    = allTickets.filter(t => ['resolved','closed'].includes(t.status)).length;
+  const A = allTickets.filter(t => !t.deleted_at);   // archived tickets never count
+  const open    = A.filter(t => t.status === 'open').length;
+  const prog    = A.filter(t => t.status === 'in-progress').length;
+  const hold    = A.filter(t => t.status === 'on-hold').length;
+  const hiUrg   = A.filter(t => ['urgent','high'].includes(t.priority) && ['open','in-progress'].includes(t.status)).length;
+  const done    = A.filter(t => ['resolved','closed'].includes(t.status)).length;
 
   const g = document.getElementById('kpiGrid');
   g.innerHTML = `
@@ -380,10 +392,13 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(t => `
-    <tr onclick="openEdit('${t.id}')">
+  tbody.innerHTML = filtered.map(t => {
+    const archived = !!t.deleted_at;
+    const archTag = archived ? ' <span class="badge b-closed" style="margin-left:6px;">Archived</span>' : '';
+    return `
+    <tr onclick="openEdit('${t.id}')"${archived ? ' style="opacity:0.55;"' : ''}>
       <td>${esc(t.id)}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject)}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject)}${archTag}</td>
       <td>${esc(CAT_LABEL[t.category] || t.category)}</td>
       <td>${esc(t.requester_name)}</td>
       <td>${esc(t.department)}</td>
@@ -392,42 +407,46 @@ function renderTable() {
       <td>${t.assigned_to ? esc(t.assigned_to) : '<span style="color:#9CA3AF;font-style:italic;">Unassigned</span>'}</td>
       <td>${fmtShort(t.created_at)}</td>
       <td onclick="event.stopPropagation()">
-        <button class="tbl-action" onclick="openEdit('${t.id}')">Edit</button>
+        ${archived
+          ? `<button class="tbl-action" onclick="toggleArchive('${t.id}')">Restore</button>`
+          : `<button class="tbl-action" onclick="openEdit('${t.id}')">Edit</button>`}
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ─────────────────────────────────────────────
 // RENDER: OVERVIEW CHARTS (mini bar charts)
 // ─────────────────────────────────────────────
 function renderOverview() {
-  const total = allTickets.length || 1;
+  const A = allTickets.filter(t => !t.deleted_at);   // archived tickets excluded from charts
+  const total = A.length || 1;
 
   // Status breakdown
   const statuses = ['open','in-progress','on-hold','resolved','closed'];
   document.getElementById('statusChart').innerHTML = statuses.map(s => {
-    const n = allTickets.filter(t => t.status === s).length;
+    const n = A.filter(t => t.status === s).length;
     return miniBar(STATUS_LABEL[s], n, total, s === 'open' ? '' : s === 'resolved' ? 'green' : s === 'on-hold' ? 'orange' : '');
   }).join('');
 
   // Category breakdown
   const cats = ['access','hardware','account','support'];
   document.getElementById('catChart').innerHTML = cats.map(c => {
-    const n = allTickets.filter(t => t.category === c).length;
+    const n = A.filter(t => t.category === c).length;
     return miniBar(CAT_LABEL[c], n, total, '');
   }).join('');
 
   // Department breakdown
-  const depts = [...new Set(allTickets.map(t => t.department))].sort();
+  const depts = [...new Set(A.map(t => t.department))].sort();
   document.getElementById('deptChart').innerHTML = depts.map(d => {
-    const n = allTickets.filter(t => t.department === d).length;
+    const n = A.filter(t => t.department === d).length;
     return miniBar(d, n, total, 'orange');
   }).join('') || '<div class="empty-text">No data</div>';
 
   // Priority breakdown
   const pris = ['urgent','high','medium','low'];
   document.getElementById('priChart').innerHTML = pris.map(p => {
-    const n = allTickets.filter(t => t.priority === p).length;
+    const n = A.filter(t => t.priority === p).length;
     const col = p==='urgent'?'':'';
     return miniBar(PRI_LABEL[p], n, total, p==='urgent'?'orange':p==='high'?'orange':p==='low'?'grey':'');
   }).join('');
@@ -558,6 +577,23 @@ async function openEdit(id) {
 
       </div>
     </div>`;
+
+  // Archive / restore control — admins only
+  const archBtn = document.getElementById('emArchiveBtn');
+  if (archBtn) {
+    if (currentUser.role === 'admin') {
+      archBtn.style.display = '';
+      if (t.deleted_at) {
+        archBtn.textContent = 'Restore ticket';
+        archBtn.style.color = 'var(--blue)';
+      } else {
+        archBtn.textContent = 'Archive ticket';
+        archBtn.style.color = '#C0392B';
+      }
+    } else {
+      archBtn.style.display = 'none';
+    }
+  }
 
   document.getElementById('editModal').classList.add('open');
 
@@ -755,6 +791,32 @@ function closeEdit() {
   closePillMenu();
   document.getElementById('editModal').classList.remove('open');
   activeTicketId = null;
+}
+
+// Soft-delete (archive) or restore a ticket. id is optional — falls back to the
+// open modal's ticket. Nothing is destroyed: we just set/clear deleted_at.
+async function toggleArchive(id) {
+  if (currentUser.role !== 'admin') { showToast('Only admins can archive tickets.'); return; }
+  const ticketId = id || activeTicketId;
+  const t = allTickets.find(x => x.id === ticketId);
+  if (!t) return;
+  const archiving = !t.deleted_at;
+  if (archiving && !confirm(`Archive ticket ${t.id}?\n\nIt will be hidden from the list and the KPIs, but kept on record with its full conversation. You can restore it any time from "Show archived".`)) return;
+
+  const btn = document.getElementById('emArchiveBtn');
+  if (activeTicketId === ticketId) setBtnLoading(btn, true, archiving ? 'Archiving…' : 'Restoring…');
+  try {
+    const { error } = await sb.from('tickets')
+      .update({ deleted_at: archiving ? new Date().toISOString() : null })
+      .eq('id', t.id);
+    if (error) throw error;
+    showToast(archiving ? `Ticket ${t.id} archived.` : `Ticket ${t.id} restored.`);
+    if (activeTicketId === ticketId) closeEdit();
+    await loadTickets();
+  } catch (err) {
+    showToast('Failed: ' + err.message);
+    if (activeTicketId === ticketId) setBtnLoading(btn, false);
+  }
 }
 
 // ─────────────────────────────────────────────
