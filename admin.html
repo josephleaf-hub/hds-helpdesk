@@ -169,7 +169,7 @@
 <!-- ══════════════════════════════
      EDIT TICKET MODAL
 ══════════════════════════════ -->
-<div class="modal-overlay" id="editModal" onclick="closeEditIfOutside(event)">
+<div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-header">
       <div>
@@ -755,7 +755,6 @@ function closeEdit() {
   document.getElementById('editModal').classList.remove('open');
   activeTicketId = null;
 }
-function closeEditIfOutside(e) { if (e.target.id === 'editModal') closeEdit(); }
 
 // ─────────────────────────────────────────────
 // TAB SWITCHING
