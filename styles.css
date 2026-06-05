@@ -261,8 +261,29 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
   background: none; border: 1px solid #C8D4DF; border-radius: 6px;
   padding: 4px 10px; font-size: 11px; font-weight: 600;
   cursor: pointer; font-family: inherit; color: #0F1C2E;
+  min-width: 74px; text-align: center; display: inline-block;   /* Edit & Restore share one width so the column never re-fits */
 }
 .tbl-action:hover { background: #F4F6F8; }
+
+/* ── "Show archived" toggle switch ────────────── */
+.arch-toggle {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 500; color: var(--text-2);
+  cursor: pointer; margin-left: auto; white-space: nowrap; user-select: none;
+}
+.arch-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.arch-track {
+  position: relative; width: 34px; height: 20px; flex-shrink: 0;
+  background: #C8D4DF; border-radius: 20px; transition: background 0.15s;
+}
+.arch-thumb {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  background: #fff; border-radius: 50%; transition: transform 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.arch-toggle input:checked + .arch-track { background: var(--blue); }
+.arch-toggle input:checked + .arch-track .arch-thumb { transform: translateX(14px); }
+.arch-toggle input:focus-visible + .arch-track { outline: 2px solid var(--blue); outline-offset: 2px; }
 
 /* ── BADGES ───────────────────────────────────── */
 .badge {

@@ -98,8 +98,10 @@
           <option value="IT Manager">IT Manager</option>
         </select>
         <button class="btn-ghost" onclick="clearFilters()" style="font-size:12px;">Clear</button>
-        <label id="fArchivedWrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;margin-left:auto;white-space:nowrap;">
-          <input type="checkbox" id="fArchived" onchange="applyFilters()" style="cursor:pointer;" /> Show archived
+        <label id="fArchivedWrap" class="arch-toggle">
+          <input type="checkbox" id="fArchived" onchange="applyFilters()" />
+          <span class="arch-track"><span class="arch-thumb"></span></span>
+          Show archived
         </label>
       </div>
 
