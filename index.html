@@ -192,7 +192,7 @@
           <div class="portal-hero-sub">Submit a request, track its status, and reply — all in one place.</div>
         </div>
         <div class="portal-hero-actions">
-          <button class="btn-secondary" style="font-size:12px;" onclick="loadMyTickets()" title="Refresh tickets"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
+          <button class="btn-secondary" style="font-size:12px;" onclick="loadMyTickets()" title="Refresh tickets"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
           <button class="btn-primary" onclick="showSubmit()">+ Submit a new ticket</button>
         </div>
       </div>
@@ -670,7 +670,7 @@ function renderDetail(t, notes, attMap) {
   document.getElementById('detailView').innerHTML = `
     <div class="detail-topbar">
       <button class="btn-ghost detail-back" onclick="showList()">← Back to my tickets</button>
-      <button class="btn-secondary" style="font-size:12px;" onclick="openTicket('${esc(t.id)}')" title="Refresh ticket"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;margin-right:4px;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
+      <button class="btn-secondary" style="font-size:12px;" onclick="openTicket('${esc(t.id)}')" title="Refresh ticket"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
     </div>
     <div class="detail-grid2">
       <div class="detail-left"><div class="detail-card">
