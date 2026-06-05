@@ -586,18 +586,18 @@ async function openEdit(id) {
       </div>
     </div>`;
 
-  // Archive / restore control — admins only
+  // Archive / restore control — admins only.
+  // Always clear any leftover loading state: this button is reused across every
+  // ticket modal, and a successful archive closes the modal without restoring it.
   const archBtn = document.getElementById('emArchiveBtn');
   if (archBtn) {
+    archBtn.disabled = false;
+    archBtn.classList.remove('is-loading');
+    delete archBtn.dataset.origHtml;
     if (currentUser.role === 'admin') {
       archBtn.style.display = '';
-      if (t.deleted_at) {
-        archBtn.textContent = 'Restore ticket';
-        archBtn.style.color = 'var(--blue)';
-      } else {
-        archBtn.textContent = 'Archive ticket';
-        archBtn.style.color = '#C0392B';
-      }
+      archBtn.textContent = t.deleted_at ? 'Restore ticket' : 'Archive ticket';
+      archBtn.style.color  = t.deleted_at ? 'var(--blue)' : '#C0392B';
     } else {
       archBtn.style.display = 'none';
     }
