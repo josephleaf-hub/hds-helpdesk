@@ -263,7 +263,7 @@ async function sendEmail(ticketId, ticket) {
       <tr>
         <td style="background:${bgCol};padding:12px 32px;border-top:1px solid #E2E8EF;">
           <span style="color:${color};font-size:12px;font-weight:600;">⚡ Priority: ${ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}</span>
-          <span style="color:#6B7280;font-size:12px;margin-left:16px;">Log in to the IT Admin Dashboard to manage this ticket.</span>
+          <span style="color:#6B7280;font-size:12px;margin-left:16px;">Open the <a href="${SITE_URL}/admin" style="color:#1C64F2;font-weight:600;text-decoration:none;">IT Admin Dashboard</a> to manage this ticket.</span>
         </td>
       </tr>
 
