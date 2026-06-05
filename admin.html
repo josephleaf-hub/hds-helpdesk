@@ -112,19 +112,19 @@
 
       <div class="table-card">
         <div class="table-scroll">
-          <table>
+          <table class="data-table">
             <thead>
               <tr>
-                <th>Ticket ID</th>
-                <th>Subject</th>
-                <th>Category</th>
-                <th>Requester</th>
-                <th>Department</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Assigned To</th>
-                <th>Submitted</th>
-                <th></th>
+                <th style="width:9%;">Ticket ID</th>
+                <th style="width:19%;">Subject</th>
+                <th style="width:12%;">Category</th>
+                <th style="width:12%;">Requester</th>
+                <th style="width:11%;">Department</th>
+                <th style="width:9%;">Priority</th>
+                <th style="width:10%;">Status</th>
+                <th style="width:10%;">Assigned To</th>
+                <th style="width:8%;">Submitted</th>
+                <th style="width:88px;"></th>
               </tr>
             </thead>
             <tbody id="ticketTbody"></tbody>
@@ -396,11 +396,11 @@ function renderTable() {
 
   tbody.innerHTML = filtered.map(t => {
     const archived = !!t.deleted_at;
-    const archTag = archived ? ' <span class="badge b-closed" style="margin-left:6px;">Archived</span>' : '';
+    const archTag = archived ? '<span class="badge b-closed">Archived</span>' : '';
     return `
     <tr onclick="openEdit('${t.id}')"${archived ? ' style="opacity:0.55;"' : ''}>
       <td>${esc(t.id)}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.subject)}${archTag}</td>
+      <td><div class="cell-subject"><span class="cell-ellipsis">${esc(t.subject)}</span>${archTag}</div></td>
       <td>${esc(CAT_LABEL[t.category] || t.category)}</td>
       <td>${esc(t.requester_name)}</td>
       <td>${esc(t.department)}</td>
