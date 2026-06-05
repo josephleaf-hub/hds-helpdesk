@@ -82,7 +82,7 @@ body {
 .logo-divider-line { width: 1px; height: 24px; background: #C8D4DF; flex-shrink: 0; }
 
 /* ── TAB BAR ──────────────────────────────────── */
-.tab-bar-wrap { padding: 28px 32px 8px; flex-shrink: 0; }
+.tab-bar-wrap { padding: 28px 32px 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .tab-bar {
   display: inline-flex;
   background: #E5E7EB; border-radius: 10px;
