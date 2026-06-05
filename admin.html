@@ -522,9 +522,15 @@ async function openEdit(id) {
           <div class="field-val">${esc(t.affected_user)}</div>
         </div>` : ''}
         ${t.resolved_at ? `
-        <div class="field" style="margin-bottom:0;">
+        <div class="field">
           <div class="field-label">Resolved at</div>
           <div class="field-val">${fmtDate(t.resolved_at)}</div>
+        </div>` : ''}
+        ${(attMap && attMap['_unlinked'] && attMap['_unlinked'].length) ? `
+        <hr class="divider-line">
+        <div class="field" style="margin-bottom:0;">
+          <div class="field-label">Submitted photo</div>
+          ${attachmentThumbs(attMap['_unlinked'])}
         </div>` : ''}
       </div>
 

@@ -135,6 +135,42 @@ async function loadAttachmentMap(sb, ticketId) {
   return map;
 }
 
+// Downscale + re-encode an image File to a JPEG base64 string (no data: prefix).
+// Keeps a submit request small enough for the 6 MB serverless payload limit.
+// Falls back to the original bytes if canvas encoding fails for any reason.
+function compressImageToBase64(file, maxDim, quality) {
+  maxDim = maxDim || 1600; quality = quality || 0.82;
+  return new Promise((resolve) => {
+    const fail = () => {
+      const r = new FileReader();
+      r.onload = () => resolve({ dataBase64: String(r.result).split(',').pop(), mimeType: file.type || 'image/jpeg', fileName: file.name || 'image' });
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(file);
+    };
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            let w = img.width, h = img.height;
+            if (Math.max(w, h) > maxDim) { const s = maxDim / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);
+            const out = c.toDataURL('image/jpeg', quality);
+            resolve({ dataBase64: out.split(',').pop(), mimeType: 'image/jpeg', fileName: (file.name || 'image').replace(/\.\w+$/, '') + '.jpg' });
+          } catch (_) { fail(); }
+        };
+        img.onerror = fail;
+        img.src = reader.result;
+      };
+      reader.onerror = fail;
+      reader.readAsDataURL(file);
+    } catch (_) { fail(); }
+  });
+}
+
 // Read a File as base64 (strips the data: prefix) for JSON upload.
 function readFileBase64(file) {
   return new Promise((resolve, reject) => {

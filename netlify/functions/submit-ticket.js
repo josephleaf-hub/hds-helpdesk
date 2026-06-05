@@ -21,6 +21,9 @@ const SITE_URL = 'https://it-helpdesk.hdsaus.com.au';
 // share a constant between the browser file and this Lambda bundle.
 const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];
 
+const ATTACH_BUCKET = 'ticket-attachments';
+const MAX_IMG_BYTES = 2 * 1024 * 1024;   // 2 MB (the client compresses well below this)
+
 exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -45,7 +48,7 @@ exports.handler = async (event) => {
 
   const {
     category, subType, priority, subject, description,
-    requesterName, requesterEmail, department, location, affectedUser
+    requesterName, requesterEmail, department, location, affectedUser, image
   } = body;
 
   // ── Validate required fields ──────────────────
@@ -96,6 +99,40 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to create ticket' }) };
   }
 
+  // ── Optional submission image (non-blocking) ───
+  // Stored as a ticket-level attachment (note_id null). The submitter may be
+  // unauthenticated, so this rides on the service-role client above rather than
+  // the auth'd /api/upload-attachment path. Failure never blocks the ticket.
+  let imageSaved = false;
+  if (image && image.dataBase64) {
+    try {
+      const mime = String(image.mimeType || '');
+      if (!mime.startsWith('image/')) throw new Error('Attachment is not an image');
+      const buffer = Buffer.from(image.dataBase64, 'base64');
+      if (buffer.length > MAX_IMG_BYTES) throw new Error('Image exceeds the 2 MB limit');
+
+      const safeName   = String(image.fileName || 'image.jpg').replace(/[^\w.\-]+/g, '_').slice(0, 80);
+      const storagePath = `${ticketId}/${Date.now()}-${safeName}`;
+      const { error: upErr } = await supabase.storage.from(ATTACH_BUCKET)
+        .upload(storagePath, buffer, { contentType: mime, upsert: false });
+      if (upErr) throw upErr;
+
+      const { error: rowErr } = await supabase.from('ticket_attachments').insert({
+        ticket_id:    ticketId,
+        note_id:      null,
+        storage_path: storagePath,
+        file_name:    safeName,
+        file_size:    buffer.length,
+        mime_type:    mime,
+        uploaded_by:  requesterName || emailNorm,
+      });
+      if (rowErr) throw rowErr;
+      imageSaved = true;
+    } catch (imgErr) {
+      console.error('Submission image failed:', imgErr.message);
+    }
+  }
+
   // ── Send IT notification (non-blocking failure) ──
   try {
     await sendEmail(ticketId, { category, subType, priority, subject, description, requesterName, requesterEmail: emailNorm, department, location, affectedUser });
@@ -119,7 +156,7 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ success: true, ticketId, confirmationSent }),
+    body: JSON.stringify({ success: true, ticketId, confirmationSent, imageSaved }),
   };
 };
 
