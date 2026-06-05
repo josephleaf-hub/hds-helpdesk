@@ -232,7 +232,7 @@ function buildReplyHtml({ ticket, message, addedBy, link, allLink, attachCount }
           <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
           <a href="${allLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">All my tickets</a>
         </div>
-        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— ${esc(addedBy)}<br>HDS IT Helpdesk</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— The HDS IT Helpdesk team</div>
       </td></tr>
       <tr><td style="padding:16px 28px;background:#F8F9FA;border-top:1px solid #E2E8EF;font-size:12px;color:#6B7280;line-height:1.5;">
         Use the button above to view and reply — it signs you in automatically on any device.<br>
@@ -255,8 +255,7 @@ function buildReplyText({ ticket, message, addedBy, link, allLink, attachCount }
   }
   lines.push(
     '',
-    `— ${addedBy}`,
-    `HDS IT Helpdesk`,
+    `— The HDS IT Helpdesk team`,
     '',
     '———',
     `Reply to this conversation (signs you in automatically): ${link}`,

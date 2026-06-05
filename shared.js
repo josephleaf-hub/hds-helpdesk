@@ -89,7 +89,9 @@ function noteIcon(paths, color) {
 }
 // `reqFirst` = requester's first name (already escaped). outbound/inbound
 // carry the requester's name; internal notes are labelled 'Internal note'.
-function renderConversation(notes, reqFirst, attMap) {
+// `maskStaff` (portal): hide the individual IT staff member's name on outbound/
+// internal notes — the requester sees "HDS IT Helpdesk", not who replied.
+function renderConversation(notes, reqFirst, attMap, maskStaff) {
   attMap = attMap || {};
   if (!notes || !notes.length) {
     return '<div style="color:#9CA3AF;font-size:12px;font-style:italic;margin-bottom:8px;">No conversation yet.</div>';
@@ -100,9 +102,11 @@ function renderConversation(notes, reqFirst, attMap) {
   return notes.map(n => {
     const s = NOTE_STYLE[n.note_type] || NOTE_STYLE.internal;
     const textHtml = n.note_text ? `<div class="note-text" style="margin-top:4px;">${esc(n.note_text)}</div>` : '';
+    const isStaff = n.note_type === 'outbound' || n.note_type === 'internal';
+    const who = (maskStaff && isStaff) ? 'HDS IT Helpdesk' : esc(n.added_by);
     return `
         <div class="note-item" style="background:${s.bg};border-left:3px solid ${s.border};padding:10px 12px;border-radius:6px;margin-bottom:8px;">
-          <div class="note-meta" style="color:${s.color};font-weight:600;">${noteIcon(s.icon,s.color)} ${labelFor(n.note_type)} · <span style="color:#6B7280;font-weight:500;">${esc(n.added_by)} · ${fmtDate(n.created_at)}</span></div>
+          <div class="note-meta" style="color:${s.color};font-weight:600;">${noteIcon(s.icon,s.color)} ${labelFor(n.note_type)} · <span style="color:#6B7280;font-weight:500;">${who} · ${fmtDate(n.created_at)}</span></div>
           ${textHtml}
           ${attachmentThumbs(attMap[n.id])}
         </div>`;
