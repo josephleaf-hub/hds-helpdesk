@@ -822,7 +822,11 @@ async function toggleArchive(id) {
     if (activeTicketId === ticketId) closeEdit();
     await loadTickets();
   } catch (err) {
-    showToast('Failed: ' + err.message);
+    console.error('toggleArchive failed:', err);
+    const missingCol = /deleted_at|column.*does not exist|schema cache/i.test(err.message || '');
+    showToast(missingCol
+      ? 'Archiving needs a one-time DB step: run migration-v1.3-soft-delete.sql in Supabase, then retry.'
+      : 'Failed: ' + err.message);
     if (activeTicketId === ticketId) setBtnLoading(btn, false);
   }
 }
