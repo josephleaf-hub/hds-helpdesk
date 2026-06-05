@@ -540,7 +540,7 @@ async function openEdit(id) {
       <div class="h-right">
 
         <!-- Pills strip -->
-        <div class="pills-strip">
+        <div class="pills-strip" id="emPillsStrip">
           <span class="pill-label">Status</span>
           <button class="pill ${stCls}" onclick="openPillMenu('status', this)">${STATUS_LABEL[t.status]||t.status}${chev}</button>
           <span class="pill-label" style="margin-left:8px;">Priority</span>
@@ -786,13 +786,43 @@ async function updateTicketField(field, value) {
     const { error } = await sb.from('tickets').update(update).eq('id', activeTicketId);
     if (error) throw error;
 
+    // Update the local copy and refresh in place. We deliberately DON'T rebuild
+    // the modal (loadTickets + openEdit) here — doing so wipes a half-typed
+    // composer message. Just repaint the pills, the table rows, and the KPIs.
+    const t = allTickets.find(x => x.id === activeTicketId);
+    if (t) {
+      t[column] = val;
+      if (update.resolved_at) t.resolved_at = update.resolved_at;
+    }
     const labels = { status:'Status', priority:'Priority', assigned:'Assignee' };
     showToast(`${labels[field] || field} updated`);
-    await loadTickets();
-    await openEdit(activeTicketId);
+    refreshPillsStrip();
+    applyFilters();
+    renderKPIs();
+    if (document.getElementById('tab-overview').classList.contains('active')) renderOverview();
   } catch (err) {
     showToast('Failed: ' + err.message);
   }
+}
+
+// Repaint just the modal's status/priority/assignee pills from the local ticket,
+// without touching the conversation or composer.
+function refreshPillsStrip() {
+  const strip = document.getElementById('emPillsStrip');
+  const t = allTickets.find(x => x.id === activeTicketId);
+  if (!strip || !t) return;
+  const chev  = '<svg class="chev ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+  const stCls = ({open:'b-open','in-progress':'b-progress','waiting-on-requester':'b-waiting','on-hold':'b-hold',resolved:'b-resolved',closed:'b-closed'})[t.status] || 'b-hold';
+  const prCls = ({low:'b-low',medium:'b-medium',high:'b-high',urgent:'b-urgent'})[t.priority] || 'b-low';
+  strip.innerHTML = `
+    <span class="pill-label">Status</span>
+    <button class="pill ${stCls}" onclick="openPillMenu('status', this)">${STATUS_LABEL[t.status]||t.status}${chev}</button>
+    <span class="pill-label" style="margin-left:8px;">Priority</span>
+    <button class="pill ${prCls}" onclick="openPillMenu('priority', this)">${PRI_LABEL[t.priority]||t.priority}${chev}</button>
+    <span class="pill-label" style="margin-left:8px;">Assigned</span>
+    ${t.assigned_to
+      ? `<button class="pill b-hold" onclick="openPillMenu('assigned', this)">${esc(t.assigned_to)}${chev}</button>`
+      : `<button class="pill p-unassigned" onclick="openPillMenu('assigned', this)">Unassigned${chev}</button>`}`;
 }
 
 function closeEdit() {
