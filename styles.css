@@ -258,14 +258,12 @@ tbody tr:hover { background: #F0F7FF; }
 tbody td { padding: 12px 16px; color: #6B7280; font-size: 12px; font-weight: 500; vertical-align: middle; }
 tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 
-/* Fixed layout: columns keep their width regardless of content, so long values
-   (and the archived pill on the subject) truncate with "…" instead of jostling
-   the whole table. Scoped to the admin table so the portal table is untouched. */
-.data-table { table-layout: fixed; }
-.data-table tbody td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cell-subject { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.cell-subject .cell-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.cell-subject .badge { flex-shrink: 0; }   /* pill always shows in full; the text truncates first */
+/* Table is auto-layout (columns size to content). Only the Subject column is
+   pinned to a fixed width, so the archived pill can't reflow the table: the
+   subject text truncates with "…" and the pill never shrinks. */
+.cell-subject { display: flex; align-items: center; gap: 6px; width: 260px; }
+.cell-subject .cell-ellipsis { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cell-subject .badge { flex-shrink: 0; }
 .tbl-action {
   background: none; border: 1px solid #C8D4DF; border-radius: 6px;
   padding: 4px 10px; font-size: 11px; font-weight: 600;
