@@ -341,8 +341,12 @@ async function init() {
   document.getElementById('reqDept').innerHTML =
     '<option value="">Select department…</option>' + DEPARTMENTS.map(d => `<option>${esc(d)}</option>`).join('');
 
-  sb.auth.onAuthStateChange((_e, session) => applySession(session));
   const { data: { session } } = await sb.auth.getSession();
+  // IT staff (admin/manager) belong on the dashboard, not the requester portal.
+  // Checked before any render so there's no flash of the portal view.
+  if (session && await isStaff(session)) { window.location.replace('/admin'); return; }
+
+  sb.auth.onAuthStateChange((_e, s) => applySession(s));
   applySession(session);
 
   // redeem-token sends invalid/expired links here.
@@ -351,6 +355,15 @@ async function init() {
     document.getElementById('authErr').textContent = "That sign-in link is no longer valid — enter your email and we'll send a new one.";
     history.replaceState(null, '', '/');
   }
+}
+
+// True if the signed-in user has an IT role (RLS policy own_role_select lets a
+// user read their own user_roles row). Falls back to false on any error.
+async function isStaff(session) {
+  try {
+    const { data } = await sb.from('user_roles').select('role').eq('user_id', session.user.id).maybeSingle();
+    return !!data && (data.role === 'admin' || data.role === 'manager');
+  } catch (_) { return false; }
 }
 
 let _authedNow = null;
