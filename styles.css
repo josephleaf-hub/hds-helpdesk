@@ -352,6 +352,11 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .modal-close:hover { background: #E2E8EF; }
 .modal-body     { flex: 1; min-height: 0; overflow: hidden; padding: 0; }
 
+/* Mobile-only Ticket/Chat switcher inside the modal (hidden on desktop) */
+.h-mobile-tabs { display: none; gap: 6px; padding: 10px 16px; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.hmt-btn { flex: 1; padding: 8px; border: 1px solid var(--border-strong); background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); font-family: inherit; cursor: pointer; }
+.hmt-btn.active { background: var(--blue-pale); border-color: var(--blue); color: var(--blue); }
+
 /* ── HYBRID MODAL (v1.2) ──────────────────────── */
 /* Two-column body */
 .h-body { display: grid; grid-template-columns: 36% 64%; height: 100%; min-height: 0; }
@@ -605,8 +610,18 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 
   .detail-grid { grid-template-columns: 1fr; }
 
-  .modal { border-radius: 16px 16px 0 0; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-height: 92vh; margin: 0; }
-  .modal-overlay { align-items: flex-end; padding: 0; }
+  /* Full-screen modal on phones */
+  .modal { border-radius: 0; position: fixed; inset: 0; width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; }
+  .modal-overlay { align-items: stretch; padding: 0; }
+  .modal-header { border-radius: 0; }
+
+  /* Show the Ticket/Chat switcher; stack tabs above a single visible pane */
+  .modal-body  { display: flex; flex-direction: column; }
+  .h-mobile-tabs { display: flex; }
+  .h-body { flex: 1; min-height: 0; }
+  .h-body.show-chat   .h-left  { display: none; }
+  .h-body.show-ticket .h-right { display: none; }
+  .h-body.show-ticket .h-left  { border-top: none; flex: 1; overflow-y: auto; }
 
   .form-card { padding: 18px; border-radius: 16px; }
   .card { border-radius: 16px; }

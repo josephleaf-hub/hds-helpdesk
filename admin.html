@@ -490,7 +490,11 @@ async function openEdit(id) {
   const logIco  = '<svg class="ico" width="13" height="13" viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>';
 
   document.getElementById('emBody').innerHTML = `
-    <div class="h-body">
+    <div class="h-mobile-tabs" role="tablist">
+      <button type="button" class="hmt-btn active" data-pane="chat" onclick="setModalPane('chat')">Conversation</button>
+      <button type="button" class="hmt-btn" data-pane="ticket" onclick="setModalPane('ticket')">Ticket details</button>
+    </div>
+    <div class="h-body show-chat" id="emHBody">
 
       <!-- LEFT: read-only ticket context -->
       <div class="h-left">
@@ -828,6 +832,16 @@ function closeEdit() {
   closePillMenu();
   document.getElementById('editModal').classList.remove('open');
   activeTicketId = null;
+}
+
+// Mobile-only: switch the ticket modal between the conversation and the ticket
+// details (the two columns are shown one at a time on small screens).
+function setModalPane(pane) {
+  const hb = document.getElementById('emHBody');
+  if (!hb) return;
+  hb.classList.toggle('show-chat',   pane === 'chat');
+  hb.classList.toggle('show-ticket', pane === 'ticket');
+  document.querySelectorAll('.hmt-btn').forEach(b => b.classList.toggle('active', b.dataset.pane === pane));
 }
 
 // Soft-delete (archive) or restore a ticket. id is optional — falls back to the
