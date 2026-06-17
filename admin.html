@@ -265,9 +265,24 @@ async function init() {
   document.getElementById('appShell').style.display = 'block';
 
   await loadTickets();
+  startAutoRefresh();
+}
+
+// Silently re-pull tickets every 5 minutes so new ones appear without a manual
+// refresh. Skipped while a ticket is open (don't disrupt a reply) or while the
+// browser tab is hidden (no point polling in the background).
+let _autoRefreshTimer = null;
+function startAutoRefresh() {
+  if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  _autoRefreshTimer = setInterval(() => {
+    if (activeTicketId) return;                 // a ticket modal is open
+    if (document.hidden) return;                // tab not visible
+    loadTickets(true).catch(() => {});          // silent: no spinner flash
+  }, 5 * 60 * 1000);
 }
 
 async function signOut() {
+  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
   await sb.auth.signOut();
   window.location.href = '/login.html';
 }
@@ -275,9 +290,11 @@ async function signOut() {
 // ─────────────────────────────────────────────
 // DATA LOADING
 // ─────────────────────────────────────────────
-async function loadTickets() {
-  document.getElementById('ticketTbody').innerHTML =
-    '<tr><td colspan="10" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
+async function loadTickets(silent) {
+  if (!silent) {
+    document.getElementById('ticketTbody').innerHTML =
+      '<tr><td colspan="10" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
+  }
 
   let q = sb
     .from('tickets')
