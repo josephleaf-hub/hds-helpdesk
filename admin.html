@@ -431,7 +431,7 @@ function renderTable() {
       <td>${fmtDate(t.updated_at || t.created_at)}</td>
       <td onclick="event.stopPropagation()">
         ${currentUser.role === 'admin'
-          ? `<button class="kebab-btn" onclick="openRowMenu('${t.id}', this)" aria-label="Ticket actions" title="Actions"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>`
+          ? `<button class="kebab-btn" onmouseenter="hoverRowMenu('${t.id}', this)" onmouseleave="leaveRowMenu()" onclick="openRowMenu('${t.id}', this)" aria-label="Ticket actions" title="Actions"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>`
           : ''}
       </td>
     </tr>`;
@@ -797,14 +797,34 @@ function closePillMenu() {
   const menu = document.getElementById('pillMenu');
   if (menu) menu.remove();
   document.removeEventListener('click', pillOutsideClose);
+  _rowMenuId = null;
+  clearTimeout(_rowMenuCloseTimer); _rowMenuCloseTimer = null;
+  clearTimeout(_rowMenuOpenTimer);  _rowMenuOpenTimer  = null;
 }
 
-// Row actions menu (the ⋮ kebab) — Archive or Restore depending on ticket state.
-// Reuses the .pill-menu styling + outside-click close.
+// Row actions menu (the ⋮ kebab) — opens on hover with a short open-delay (so
+// sweeping the cursor across rows doesn't pop menus) and a grace period so it
+// stays while you move onto it. Click still works (touch). Archive or Restore
+// depending on ticket state. Reuses .pill-menu styling + outside-click close.
+let _rowMenuId = null, _rowMenuOpenTimer = null, _rowMenuCloseTimer = null;
+
+function hoverRowMenu(id, el) {
+  clearTimeout(_rowMenuCloseTimer); _rowMenuCloseTimer = null;
+  clearTimeout(_rowMenuOpenTimer);
+  _rowMenuOpenTimer = setTimeout(() => openRowMenu(id, el), 120);
+}
+function leaveRowMenu() {
+  clearTimeout(_rowMenuOpenTimer); _rowMenuOpenTimer = null;
+  clearTimeout(_rowMenuCloseTimer);
+  _rowMenuCloseTimer = setTimeout(closePillMenu, 200);
+}
 function openRowMenu(id, anchorEl) {
+  clearTimeout(_rowMenuCloseTimer); _rowMenuCloseTimer = null;
+  if (_rowMenuId === id && document.getElementById('pillMenu')) return;  // already open
   closePillMenu();
   const t = allTickets.find(x => x.id === id);
   if (!t) return;
+  _rowMenuId = id;
   const menu = document.createElement('div');
   menu.className = 'pill-menu';
   menu.id = 'pillMenu';
@@ -815,6 +835,8 @@ function openRowMenu(id, anchorEl) {
   const rect = anchorEl.getBoundingClientRect();
   menu.style.top  = (rect.bottom + 6) + 'px';
   menu.style.left = Math.max(8, rect.right - 150) + 'px';
+  menu.addEventListener('mouseenter', () => { clearTimeout(_rowMenuCloseTimer); _rowMenuCloseTimer = null; });
+  menu.addEventListener('mouseleave', leaveRowMenu);
   document.body.appendChild(menu);
   setTimeout(() => document.addEventListener('click', pillOutsideClose), 0);
 }
