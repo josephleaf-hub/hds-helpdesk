@@ -31,8 +31,24 @@
     .range-pill:hover { background: #F4F6F8; }
     .range-pill svg { width: 14px; height: 14px; }
 
+    /* User pill + buttons (mirrors the admin header) */
+    .admin-user-pill { background: #FFFFFF; border: 1px solid #E2E8EF; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #0F1C2E; font-weight: 600; display: flex; align-items: center; gap: 7px; box-shadow: 0 1px 2px -1px rgba(0,0,0,0.10), 0 1px 3px 0 rgba(0,0,0,0.10); }
+    .admin-role-dot { width: 7px; height: 7px; border-radius: 50%; background: #1C64F2; display: inline-block; }
+    .admin-role-dot.mgr { background: #FF6B43; }
+    .btn-ghost { background: none; border: none; color: #6B7280; padding: 6px 10px; font-size: 13px; font-family: inherit; cursor: pointer; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .btn-ghost:hover { color: #0F1C2E; background: #F4F6F8; }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #0F1C2E; border: 1px solid #C8D4DF; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+    .btn-secondary:hover { background: #F4F6F8; }
+
+    /* Tab bar (mirrors the admin dashboard) */
+    .tab-bar-wrap { padding: 28px 32px 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .tab-bar { display: inline-flex; background: #E5E7EB; border-radius: 10px; padding: 7px; gap: 7px; }
+    .tab-btn { padding: 7px 16px; font-size: 13px; font-weight: 500; color: #6B7280; background: transparent; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap; font-family: inherit; transition: color 0.15s, background 0.15s, box-shadow 0.15s; text-decoration: none; display: inline-flex; align-items: center; }
+    .tab-btn:hover { color: #0F1C2E; }
+    .tab-btn.active { background: #fff; color: #1C64F2; font-weight: 500; box-shadow: 0 2px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(125,135,135,0.20); }
+
     /* Content */
-    .page-content { flex: 1; padding: 32px; }
+    .page-content { flex: 1; padding: 20px 32px 32px; }
 
     /* Section title */
     .section-title { font-size: 14px; font-weight: 600; color: #0F1C2E; padding-bottom: 12px; border-bottom: 1px solid #E2E8EF; margin-bottom: 16px; margin-top: 32px; display: flex; align-items: center; gap: 8px; }
@@ -113,14 +129,24 @@
       <div class="topbar-meta" id="topbarSub">Loading…</div>
     </div>
     <div class="topbar-right">
-      <a href="/admin" class="range-pill" title="Back to the dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Dashboard
-      </a>
+      <div class="admin-user-pill">
+        <span class="admin-role-dot" id="roleDot"></span>
+        <span id="userLabel">Loading…</span>
+      </div>
+      <button class="btn-ghost" onclick="signOut()">Sign Out</button>
       <div class="logo-divider-line"></div>
       <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" class="topbar-hds-logo" />
     </div>
   </header>
+
+  <!-- TAB BAR (mirrors the admin dashboard) -->
+  <div class="tab-bar-wrap">
+    <div class="tab-bar">
+      <a class="tab-btn" href="/admin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg> All Tickets</a>
+      <span class="tab-btn active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Analytics</span>
+    </div>
+    <button class="btn-secondary" style="font-size:12px;flex-shrink:0;" onclick="location.reload()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
+  </div>
 
   <div class="page-content">
 
@@ -289,6 +315,7 @@ const baseScales = {
 const tooltip = { backgroundColor: '#0F1C2E', titleFont: { ...chartFont, weight: '600', size: 12 }, bodyFont: chartFont, padding: 10, cornerRadius: 6 };
 
 // ── Helpers ──
+async function signOut() { await sb.auth.signOut(); window.location.href = '/login.html'; }
 function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 function median(nums) {
   const a = (nums || []).filter(n => n != null && !isNaN(n)).sort((x, y) => x - y);
@@ -319,12 +346,17 @@ function showNoData(canvasId, msg) {
   if (!session) { window.location.href = '/login.html'; return; }
 
   const { data: role, error: roleErr } = await sb
-    .from('user_roles').select('role, department').eq('user_id', session.user.id).single();
+    .from('user_roles').select('role, department, full_name').eq('user_id', session.user.id).single();
   if (roleErr || !role || (role.role !== 'admin' && role.role !== 'manager')) {
     await sb.auth.signOut();
     window.location.href = '/login.html';
     return;
   }
+
+  // Header user pill (mirrors the admin dashboard)
+  setText('userLabel', `${role.full_name || session.user.email} · ${role.role === 'admin' ? 'IT Admin' : 'Manager'}`);
+  const dot = document.getElementById('roleDot');
+  if (dot && role.role === 'manager') dot.classList.add('mgr');
 
   // RLS scopes this: admins see all, managers see their department only.
   const { data: tickets, error: tErr } = await sb
