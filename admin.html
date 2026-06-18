@@ -114,16 +114,16 @@
           <table>
             <thead>
               <tr>
-                <th>Ticket ID</th>
-                <th>Subject</th>
-                <th>Category</th>
-                <th>Requester</th>
-                <th>Department</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Assigned To</th>
-                <th>Submitted</th>
-                <th>Last Active</th>
+                <th class="th-sort" data-sort="id"         onclick="sortBy('id')">Ticket ID <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="subject"    onclick="sortBy('subject')">Subject <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="category"   onclick="sortBy('category')">Category <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="requester"  onclick="sortBy('requester')">Requester <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="department" onclick="sortBy('department')">Department <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="priority"   onclick="sortBy('priority')">Priority <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="status"     onclick="sortBy('status')">Status <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="assigned"   onclick="sortBy('assigned')">Assigned To <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="submitted"  onclick="sortBy('submitted')">Submitted <span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="active"     onclick="sortBy('active')">Last Active <span class="sort-arrow"></span></th>
                 <th></th>
               </tr>
             </thead>
@@ -208,6 +208,43 @@
 // CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM, DEPARTMENTS now live in shared.js
 const STATUS_ORDER = { open:0,'in-progress':1,'waiting-on-admin':2,'waiting-on-requester':3,'on-hold':4,resolved:5,closed:6 };
 const PRI_ORDER    = { urgent:0,high:1,medium:2,low:3 };
+
+// ── Column sorting ──
+// Each sortable header maps to a comparable value. Strings are lowercased;
+// priority/status use their logical order; dates compare by timestamp.
+const SORT_KEYS = {
+  id:        t => t.id,
+  subject:   t => (t.subject || '').toLowerCase(),
+  category:  t => (CAT_LABEL[t.category] || t.category || '').toLowerCase(),
+  requester: t => (t.requester_name || '').toLowerCase(),
+  department:t => (t.department || '').toLowerCase(),
+  priority:  t => (PRI_ORDER[t.priority] ?? 99),
+  status:    t => (STATUS_ORDER[t.status] ?? 99),
+  assigned:  t => (t.assigned_to || '~').toLowerCase(),   // Unassigned sorts last (asc)
+  submitted: t => new Date(t.created_at).getTime(),
+  active:    t => new Date(t.updated_at || t.created_at).getTime(),
+};
+const SORT_DEFAULT_DESC = new Set(['submitted', 'active']);  // dates: newest first on first click
+let sortKey = null, sortDir = 'asc';
+
+function sortBy(key) {
+  if (!SORT_KEYS[key]) return;
+  if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortKey = key; sortDir = SORT_DEFAULT_DESC.has(key) ? 'desc' : 'asc'; }
+  applyFilters();
+}
+
+function updateSortArrows() {
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    const arrow = th.querySelector('.sort-arrow');
+    const active = th.dataset.sort === sortKey;
+    th.classList.toggle('sorted', active);
+    if (arrow) {
+      arrow.textContent = active ? (sortDir === 'asc' ? '↑' : '↓') : '↕';
+      arrow.classList.toggle('dim', !active);
+    }
+  });
+}
 
 const sb = createHdsClient();
 
@@ -347,6 +384,14 @@ function applyFilters() {
     if (fAssign && fAssign !== '__unassigned__' && t.assigned_to !== fAssign) return false;
     return true;
   }).sort((a, b) => {
+    // Explicit column sort (header clicked) takes over…
+    if (sortKey && SORT_KEYS[sortKey]) {
+      const va = SORT_KEYS[sortKey](a), vb = SORT_KEYS[sortKey](b);
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      if (cmp !== 0) return sortDir === 'desc' ? -cmp : cmp;
+      return new Date(b.created_at) - new Date(a.created_at);   // stable tiebreak
+    }
+    // …otherwise the default "what needs attention" order: status → priority → newest.
     const sd = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (sd !== 0) return sd;
     const pd = PRI_ORDER[a.priority] - PRI_ORDER[b.priority];
@@ -411,6 +456,7 @@ function renderTable() {
 
   if (!filtered.length) {
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#6B7280;">No tickets match your filters.</td></tr>';
+    updateSortArrows();
     return;
   }
 
@@ -436,6 +482,7 @@ function renderTable() {
       </td>
     </tr>`;
   }).join('');
+  updateSortArrows();
 }
 
 // ─────────────────────────────────────────────
