@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Helpdesk — Analytics — HDS</title>
+  <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/6a3381fcf9e5913feceb1d64_It%20SUpport%20App-favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    html { overflow-y: scroll; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F6F8; color: #0F1C2E; min-height: 100vh; font-size: 13px; -webkit-font-smoothing: antialiased; }
+    .main { display: flex; flex-direction: column; min-height: 100vh; max-width: 1800px; margin: 0 auto; width: 100%; }
+
+    /* Loading */
+    .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 12px; }
+    .loading-text { font-size: 13px; color: #6B7280; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #E2E8EF; border-top-color: #1C64F2; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Header */
+    .topbar { background: transparent; padding: 40px 32px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid #E2E8EF; }
+    .topbar-left { display: flex; flex-direction: column; gap: 5px; padding-bottom: 10px; }
+    .topbar-title { font-size: 24px; font-weight: 600; color: #0F1C2E; letter-spacing: -0.02em; line-height: normal; }
+    .topbar-meta { font-size: 13px; color: #6B7280; font-weight: 400; line-height: normal; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .topbar-hds-logo { height: 32px; display: block; }
+    .logo-divider-line { width: 1px; height: 24px; background: #C8D4DF; }
+    .range-pill { display: inline-flex; align-items: center; gap: 7px; background: #FFFFFF; border: 1px solid #C8D4DF; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 500; color: #4A5568; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+    .range-pill:hover { background: #F4F6F8; }
+    .range-pill svg { width: 14px; height: 14px; }
+
+    /* Content */
+    .page-content { flex: 1; padding: 32px; }
+
+    /* Section title */
+    .section-title { font-size: 14px; font-weight: 600; color: #0F1C2E; padding-bottom: 12px; border-bottom: 1px solid #E2E8EF; margin-bottom: 16px; margin-top: 32px; display: flex; align-items: center; gap: 8px; }
+    .section-title:first-child { margin-top: 0; }
+    .section-title-badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #EBF2FF; color: #1C64F2; }
+
+    /* KPI */
+    .kpi-wrap { background: #FFFFFF; border-radius: 20px; padding: 15px; box-shadow: 0 1px 2px -1px rgba(0,0,0,0.10), 0 1px 3px 0 rgba(0,0,0,0.10); margin-bottom: 20px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .kpi-card { background: #F3F4F6; border: none; border-radius: 10px; padding: 14px 15px 14px 18px; position: relative; overflow: hidden; }
+    .kpi-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #D1D5DB; border-radius: 10px 0 0 10px; }
+    .kpi-card.hds-card { background: #EEF4FF; }
+    .kpi-card.hds-card::before { background: #1C64F2; }
+    .kpi-card.hds-card .kpi-value { color: #1C64F2; }
+    .kpi-card.green-card { background: #EEF9F3; }
+    .kpi-card.green-card::before { background: #2E7D52; }
+    .kpi-card.green-card .kpi-value { color: #2E7D52; }
+    .kpi-card.amber-card { background: #FEF6E7; }
+    .kpi-card.amber-card::before { background: #B45309; }
+    .kpi-card.amber-card .kpi-value { color: #B45309; }
+    .kpi-label { font-size: 12px; font-weight: 500; color: #6B7280; margin-bottom: 6px; line-height: 1.5; }
+    .kpi-value { font-size: 24px; font-weight: 700; color: #0F1C2E; line-height: 1.2; letter-spacing: -0.03em; }
+    .kpi-sub { font-size: 12px; font-weight: 500; color: #6B7280; margin-top: 6px; line-height: 1.5; min-height: 18px; }
+
+    /* Charts */
+    .chart-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .chart-wrap { background: #FFFFFF; border: none; border-radius: 20px; padding: 20px; box-shadow: 0 1px 2px -1px rgba(0,0,0,0.10), 0 1px 3px 0 rgba(0,0,0,0.10); margin-bottom: 20px; }
+    .chart-2col .chart-wrap { margin-bottom: 0; }
+    .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .chart-title { font-size: 14px; font-weight: 600; color: #0F1C2E; }
+    .chart-subtitle { font-size: 12px; font-weight: 500; color: #6B7280; margin-top: 3px; }
+    .chart-canvas-wrap { position: relative; height: 320px; min-height: 320px; }
+    .chart-nodata { display: flex; align-items: center; justify-content: center; height: 100%; color: #8A97A8; font-size: 13px; font-weight: 500; text-align: center; }
+
+    /* Table */
+    .table-card { background: #FFFFFF; border: none; border-radius: 20px; box-shadow: 0 1px 2px -1px rgba(0,0,0,0.10), 0 1px 3px 0 rgba(0,0,0,0.10); overflow: hidden; margin-bottom: 20px; }
+    .table-scroll { overflow-x: auto; border-radius: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; background: #F8F9FA; border-bottom: 1px solid #E2E8EF; padding: 12px 16px; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #E2E8EF; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #F0F7FF; }
+    tbody td { padding: 12px 16px; color: #6B7280; vertical-align: middle; font-size: 12px; font-weight: 500; }
+    tbody td:first-child { color: #0F1C2E; font-weight: 600; }
+    .tr-total { background: #F8F9FA !important; }
+    .tr-total td { font-weight: 700 !important; color: #0F1C2E !important; border-top: 2px solid #C8D4DF; }
+    .text-center { text-align: center; }
+
+    /* Note banner */
+    .note-banner { display: flex; align-items: center; gap: 9px; background: #EBF2FF; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 500; color: #1C64F2; margin-bottom: 20px; }
+    .note-banner svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #C8D4DF; border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      .topbar { padding: 16px; flex-wrap: wrap; gap: 10px; }
+      .page-content { padding: 16px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .chart-2col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING (until auth + data resolve) -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Loading analytics…</div>
+</div>
+
+<main class="main" id="appMain" style="display:none;">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">IT Helpdesk — Analytics</div>
+      <div class="topbar-meta" id="topbarSub">Loading…</div>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin" class="range-pill" title="Back to the dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Dashboard
+      </a>
+      <div class="logo-divider-line"></div>
+      <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" class="topbar-hds-logo" />
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- SNAPSHOT -->
+    <div class="section-title">Snapshot <span class="section-title-badge">Live</span></div>
+    <div class="kpi-wrap">
+      <div class="kpi-grid">
+        <div class="kpi-card hds-card">
+          <div class="kpi-label">Open backlog</div>
+          <div class="kpi-value" id="kpiOpen">—</div>
+          <div class="kpi-sub">Active tickets</div>
+        </div>
+        <div class="kpi-card amber-card">
+          <div class="kpi-label">Awaiting IT</div>
+          <div class="kpi-value" id="kpiAwaitIT">—</div>
+          <div class="kpi-sub">Your move</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Awaiting requester</div>
+          <div class="kpi-value" id="kpiAwaitReq">—</div>
+          <div class="kpi-sub">Ball in their court</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">On hold</div>
+          <div class="kpi-value" id="kpiOnHold">—</div>
+          <div class="kpi-sub">Paused</div>
+        </div>
+        <div class="kpi-card green-card">
+          <div class="kpi-label">Resolved</div>
+          <div class="kpi-value" id="kpiResolved">—</div>
+          <div class="kpi-sub" id="kpiResolvedSub">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Oldest open</div>
+          <div class="kpi-value" id="kpiOldest">—</div>
+          <div class="kpi-sub" id="kpiOldestSub">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="section-title">Response &amp; resolution</div>
+    <div class="kpi-wrap">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Median first response</div>
+          <div class="kpi-value" id="kpiFirstResp">—</div>
+          <div class="kpi-sub">Ticket open → first IT reply</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Median time to resolve</div>
+          <div class="kpi-value" id="kpiResolve">—</div>
+          <div class="kpi-sub">Open → resolved</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Fastest resolve</div>
+          <div class="kpi-value" id="kpiFastest">—</div>
+          <div class="kpi-sub" id="kpiFastestSub">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Resolved this week</div>
+          <div class="kpi-value" id="kpiResolvedWeek">—</div>
+          <div class="kpi-sub" id="kpiResolvedWeekSub">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN CHARTS -->
+    <div class="section-title">Breakdown</div>
+    <div class="chart-2col">
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Tickets by category</div>
+            <div class="chart-subtitle">What people are raising</div>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="categoryChart"></canvas></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Current pipeline</div>
+            <div class="chart-subtitle">Tickets by status</div>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- PRIORITY -->
+    <div class="section-title">By priority</div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Tickets by priority</div>
+          <div class="chart-subtitle">How urgent the load is</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="priorityChart"></canvas></div>
+    </div>
+
+    <!-- VOLUME -->
+    <div class="section-title">Over time</div>
+    <div class="note-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Trend lines get more meaningful as volume builds — at low ticket counts this is indicative, not statistical.
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Tickets over time</div>
+          <div class="chart-subtitle">Opened vs resolved, last 14 days</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="volumeChart"></canvas></div>
+    </div>
+
+    <!-- CATEGORY TABLE -->
+    <div class="section-title">By category</div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th class="text-center">Tickets</th>
+              <th class="text-center">Share</th>
+              <th class="text-center">Median first response</th>
+              <th class="text-center">Median resolve</th>
+            </tr>
+          </thead>
+          <tbody id="catTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEPARTMENT -->
+    <div class="section-title">By department</div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Tickets by department</div>
+          <div class="chart-subtitle">Which teams are generating load</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="deptChart"></canvas></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Credentials live in config.js — edit that one file only -->
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="shared.js"></script>
+<script>
+const sb = createHdsClient();
+
+// Chart.js shared styling (matches the mockup / hds-dash tokens)
+const chartFont = { family: 'Inter', size: 11 };
+const baseScales = {
+  x: { grid: { color: '#E2E8EF', drawBorder: false }, ticks: { color: '#8A97A8', font: chartFont }, border: { display: false }, beginAtZero: true },
+  y: { grid: { color: '#E2E8EF', drawBorder: false }, ticks: { color: '#8A97A8', font: chartFont, precision: 0 }, border: { display: false }, beginAtZero: true }
+};
+const tooltip = { backgroundColor: '#0F1C2E', titleFont: { ...chartFont, weight: '600', size: 12 }, bodyFont: chartFont, padding: 10, cornerRadius: 6 };
+
+// ── Helpers ──
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function median(nums) {
+  const a = (nums || []).filter(n => n != null && !isNaN(n)).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const mid = Math.floor(a.length / 2);
+  return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+}
+// Human duration from milliseconds: <1m, 18m, 3h 20m, 3d 4h
+function fmtDur(ms) {
+  if (ms == null || isNaN(ms) || ms < 0) return '—';
+  const m = Math.round(ms / 60000);
+  if (m < 1) return '<1m';
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60), rm = m % 60;
+  if (h < 24) return rm ? `${h}h ${rm}m` : `${h}h`;
+  const d = Math.floor(h / 24), rh = h % 24;
+  return rh ? `${d}d ${rh}h` : `${d}d`;
+}
+function showNoData(canvasId, msg) {
+  const c = document.getElementById(canvasId);
+  if (!c) return;
+  c.parentElement.innerHTML = `<div class="chart-nodata">${msg || 'Not enough data yet'}</div>`;
+}
+
+// ── Bootstrap: auth bounce exactly like /admin, then load data ──
+(async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login.html'; return; }
+
+  const { data: role, error: roleErr } = await sb
+    .from('user_roles').select('role, department').eq('user_id', session.user.id).single();
+  if (roleErr || !role || (role.role !== 'admin' && role.role !== 'manager')) {
+    await sb.auth.signOut();
+    window.location.href = '/login.html';
+    return;
+  }
+
+  // RLS scopes this: admins see all, managers see their department only.
+  const { data: tickets, error: tErr } = await sb
+    .from('tickets')
+    .select('id, category, sub_type, priority, status, department, created_at, resolved_at')
+    .is('deleted_at', null);
+  if (tErr) { document.getElementById('loadingText').textContent = 'Failed to load: ' + tErr.message; return; }
+
+  // First IT (outbound) note per ticket → first-response time.
+  const { data: outNotes } = await sb
+    .from('ticket_notes').select('ticket_id, created_at')
+    .eq('note_type', 'outbound').order('created_at', { ascending: true });
+  const firstOut = {};
+  for (const n of (outNotes || [])) if (!firstOut[n.ticket_id]) firstOut[n.ticket_id] = n.created_at;
+
+  render(tickets || [], firstOut);
+
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('appMain').style.display = 'flex';
+})();
+
+// ── Render everything ──
+function render(tickets, firstOut) {
+  const now = Date.now();
+  const ACTIVE = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold'];
+  const total = tickets.length;
+  const ms = s => new Date(s).getTime();
+
+  // ── Snapshot KPIs ──
+  const active = tickets.filter(t => ACTIVE.includes(t.status));
+  const awaitIT  = tickets.filter(t => ['open', 'in-progress', 'waiting-on-admin'].includes(t.status)).length;
+  const awaitReq = tickets.filter(t => t.status === 'waiting-on-requester').length;
+  const onHold   = tickets.filter(t => t.status === 'on-hold').length;
+  const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+  setText('kpiOpen', active.length);
+  setText('kpiAwaitIT', awaitIT);
+  setText('kpiAwaitReq', awaitReq);
+  setText('kpiOnHold', onHold);
+  setText('kpiResolved', resolved);
+  setText('kpiResolvedSub', total ? Math.round(resolved / total * 100) + '% of all tickets' : 'No tickets yet');
+
+  let oldest = null;
+  for (const t of active) { const c = ms(t.created_at); if (oldest === null || c < oldest.c) oldest = { c, id: t.id }; }
+  setText('kpiOldest', oldest ? fmtDur(now - oldest.c) : '—');
+  setText('kpiOldestSub', oldest ? oldest.id : 'No open tickets');
+
+  // ── Performance KPIs ──
+  const frTimes = [], resTimes = [];
+  let fastest = null;
+  for (const t of tickets) {
+    const c = ms(t.created_at);
+    if (firstOut[t.id]) frTimes.push(ms(firstOut[t.id]) - c);
+    if (t.resolved_at) { const r = ms(t.resolved_at) - c; resTimes.push(r); if (fastest === null || r < fastest.r) fastest = { r, id: t.id }; }
+  }
+  setText('kpiFirstResp', frTimes.length ? fmtDur(median(frTimes)) : '—');
+  setText('kpiResolve', resTimes.length ? fmtDur(median(resTimes)) : '—');
+  setText('kpiFastest', fastest ? fmtDur(fastest.r) : '—');
+  setText('kpiFastestSub', fastest ? fastest.id : 'None resolved yet');
+
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const resolvedWeek = tickets.filter(t => t.resolved_at && ms(t.resolved_at) >= weekAgo).length;
+  const openedWeek   = tickets.filter(t => ms(t.created_at) >= weekAgo).length;
+  setText('kpiResolvedWeek', resolvedWeek);
+  setText('kpiResolvedWeekSub', 'of ' + openedWeek + ' opened');
+
+  setText('topbarSub', `All ${total} ticket${total === 1 ? '' : 's'} since launch · updated just now`);
+
+  // ── Charts + table ──
+  renderCategory(tickets);
+  renderStatus(tickets);
+  renderPriority(tickets);
+  renderVolume(tickets);
+  renderCatTable(tickets, firstOut, total);
+  renderDept(tickets);
+}
+
+function renderCategory(tickets) {
+  const order = ['access', 'hardware', 'account', 'support'];
+  const counts = {}; tickets.forEach(t => counts[t.category] = (counts[t.category] || 0) + 1);
+  const present = order.filter(c => counts[c] > 0);
+  Object.keys(counts).forEach(c => { if (!order.includes(c) && counts[c] > 0) present.push(c); });
+  if (!present.length) { showNoData('categoryChart'); return; }
+  const palette = ['#1C64F2', '#2E7D52', '#B45309', '#6D28D9', '#93AEED', '#8A97A8', '#0D1B2E'];
+  new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: { labels: present.map(c => CAT_LABEL[c] || c), datasets: [{ data: present.map(c => counts[c]), backgroundColor: present.map((_, i) => palette[i % palette.length]), borderWidth: 3, borderColor: '#FFFFFF' }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'right', labels: { font: chartFont, color: '#4A5568', boxWidth: 10, padding: 14 } }, tooltip } }
+  });
+}
+
+function renderStatus(tickets) {
+  const order = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
+  const colors = { 'open': '#1C64F2', 'in-progress': '#93AEED', 'waiting-on-admin': '#6D28D9', 'waiting-on-requester': '#B45309', 'on-hold': '#8A97A8', 'resolved': '#2E7D52', 'closed': '#0D1B2E' };
+  const counts = {}; order.forEach(s => counts[s] = 0);
+  tickets.forEach(t => { if (counts[t.status] != null) counts[t.status]++; });
+  new Chart(document.getElementById('statusChart'), {
+    type: 'bar',
+    data: { labels: order.map(s => STATUS_LABEL[s] || s), datasets: [{ data: order.map(s => counts[s]), backgroundColor: order.map(s => colors[s]), borderRadius: 3, borderWidth: 1, borderColor: '#F4F6F8', borderSkipped: false }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip }, scales: baseScales }
+  });
+}
+
+function renderPriority(tickets) {
+  const order = ['urgent', 'high', 'medium', 'low'];
+  const colors = { urgent: '#C0392B', high: '#B45309', medium: '#1C64F2', low: '#8A97A8' };
+  const counts = {}; order.forEach(p => counts[p] = 0);
+  tickets.forEach(t => { if (counts[t.priority] != null) counts[t.priority]++; });
+  new Chart(document.getElementById('priorityChart'), {
+    type: 'bar',
+    data: { labels: order.map(p => PRI_LABEL[p] || p), datasets: [{ data: order.map(p => counts[p]), backgroundColor: order.map(p => colors[p]), borderRadius: 3, borderWidth: 1, borderColor: '#F4F6F8', borderSkipped: false }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip }, scales: baseScales }
+  });
+}
+
+function renderVolume(tickets) {
+  if (!tickets.length) { showNoData('volumeChart', 'Not enough data yet'); return; }
+  const DAY = 24 * 60 * 60 * 1000;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const start = today.getTime() - 13 * DAY;
+  const labels = [], opened = new Array(14).fill(0), resolved = new Array(14).fill(0);
+  let lastMonth = null;
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(start + i * DAY);
+    const mon = d.toLocaleDateString('en-AU', { month: 'short' });
+    labels.push(mon !== lastMonth ? d.getDate() + ' ' + mon : '' + d.getDate());
+    lastMonth = mon;
+  }
+  const idxFor = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); const i = Math.round((d.getTime() - start) / DAY); return (i >= 0 && i < 14) ? i : -1; };
+  tickets.forEach(t => {
+    const oi = idxFor(t.created_at); if (oi >= 0) opened[oi]++;
+    if (t.resolved_at) { const ri = idxFor(t.resolved_at); if (ri >= 0) resolved[ri]++; }
+  });
+  new Chart(document.getElementById('volumeChart'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Opened', data: opened, borderColor: '#1C64F2', backgroundColor: 'rgba(28,100,242,0.08)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#1C64F2' },
+      { label: 'Resolved', data: resolved, borderColor: '#2E7D52', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#2E7D52' }
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: chartFont, color: '#4A5568', boxWidth: 10, padding: 14 } }, tooltip }, scales: baseScales }
+  });
+}
+
+function renderCatTable(tickets, firstOut, total) {
+  const tbody = document.getElementById('catTableBody');
+  if (!total) { tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding:24px;color:#6B7280;">No tickets yet.</td></tr>'; return; }
+  const order = ['access', 'hardware', 'account', 'support'];
+  const present = order.filter(c => tickets.some(t => t.category === c));
+  tickets.forEach(t => { if (!order.includes(t.category) && !present.includes(t.category)) present.push(t.category); });
+  const ms = s => new Date(s).getTime();
+  const allFr = [], allRes = [];
+  const rows = present.map(c => {
+    const ts = tickets.filter(t => t.category === c);
+    const fr = [], res = [];
+    ts.forEach(t => { const cr = ms(t.created_at); if (firstOut[t.id]) fr.push(ms(firstOut[t.id]) - cr); if (t.resolved_at) res.push(ms(t.resolved_at) - cr); });
+    allFr.push(...fr); allRes.push(...res);
+    return `<tr><td>${esc(CAT_LABEL[c] || c)}</td><td class="text-center">${ts.length}</td><td class="text-center">${Math.round(ts.length / total * 100)}%</td><td class="text-center">${fr.length ? fmtDur(median(fr)) : '—'}</td><td class="text-center">${res.length ? fmtDur(median(res)) : '—'}</td></tr>`;
+  });
+  rows.push(`<tr class="tr-total"><td>Total</td><td class="text-center">${total}</td><td class="text-center">100%</td><td class="text-center">${allFr.length ? fmtDur(median(allFr)) : '—'}</td><td class="text-center">${allRes.length ? fmtDur(median(allRes)) : '—'}</td></tr>`);
+  tbody.innerHTML = rows.join('');
+}
+
+function renderDept(tickets) {
+  const counts = {};
+  tickets.forEach(t => { const d = t.department || 'Unspecified'; counts[d] = (counts[d] || 0) + 1; });
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) { showNoData('deptChart', 'Not enough data yet'); return; }
+  new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: { labels: entries.map(e => e[0]), datasets: [{ label: 'Tickets', data: entries.map(e => e[1]), backgroundColor: '#1C64F2', borderRadius: 3, borderWidth: 1, borderColor: '#F4F6F8', borderSkipped: false }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip }, scales: baseScales }
+  });
+}
+</script>
+</body>
+</html>
