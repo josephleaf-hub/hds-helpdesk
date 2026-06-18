@@ -123,6 +123,7 @@
                 <th>Status</th>
                 <th>Assigned To</th>
                 <th>Submitted</th>
+                <th>Last Active</th>
                 <th></th>
               </tr>
             </thead>
@@ -296,7 +297,7 @@ async function signOut() {
 async function loadTickets(silent) {
   if (!silent) {
     document.getElementById('ticketTbody').innerHTML =
-      '<tr><td colspan="10" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
+      '<tr><td colspan="11" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
   }
 
   let q = sb
@@ -409,7 +410,7 @@ function renderTable() {
   const tbody = document.getElementById('ticketTbody');
 
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#6B7280;">No tickets match your filters.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#6B7280;">No tickets match your filters.</td></tr>';
     return;
   }
 
@@ -427,10 +428,11 @@ function renderTable() {
       <td>${statusBadge(t.status)}</td>
       <td>${t.assigned_to ? esc(t.assigned_to) : '<span style="color:#9CA3AF;font-style:italic;">Unassigned</span>'}</td>
       <td>${fmtShort(t.created_at)}</td>
+      <td>${fmtDate(t.updated_at || t.created_at)}</td>
       <td onclick="event.stopPropagation()">
-        ${archived
-          ? `<button class="tbl-action" onclick="toggleArchive('${t.id}')">Restore</button>`
-          : `<button class="tbl-action" onclick="openEdit('${t.id}')">Edit</button>`}
+        ${currentUser.role === 'admin'
+          ? `<button class="kebab-btn" onclick="openRowMenu('${t.id}', this)" aria-label="Ticket actions" title="Actions"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>`
+          : ''}
       </td>
     </tr>`;
   }).join('');
@@ -788,13 +790,33 @@ function openPillMenu(field, anchorEl) {
 
 function pillOutsideClose(e) {
   const menu = document.getElementById('pillMenu');
-  if (menu && !menu.contains(e.target) && !e.target.closest('.pill')) closePillMenu();
+  if (menu && !menu.contains(e.target) && !e.target.closest('.pill') && !e.target.closest('.kebab-btn')) closePillMenu();
 }
 
 function closePillMenu() {
   const menu = document.getElementById('pillMenu');
   if (menu) menu.remove();
   document.removeEventListener('click', pillOutsideClose);
+}
+
+// Row actions menu (the ⋮ kebab) — Archive or Restore depending on ticket state.
+// Reuses the .pill-menu styling + outside-click close.
+function openRowMenu(id, anchorEl) {
+  closePillMenu();
+  const t = allTickets.find(x => x.id === id);
+  if (!t) return;
+  const menu = document.createElement('div');
+  menu.className = 'pill-menu';
+  menu.id = 'pillMenu';
+  menu.style.minWidth = '150px';
+  menu.innerHTML = t.deleted_at
+    ? `<button style="color:var(--blue);" onclick="closePillMenu();toggleArchive('${id}')">Restore ticket</button>`
+    : `<button style="color:#C0392B;" onclick="closePillMenu();toggleArchive('${id}')">Archive ticket</button>`;
+  const rect = anchorEl.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 6) + 'px';
+  menu.style.left = Math.max(8, rect.right - 150) + 'px';
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', pillOutsideClose), 0);
 }
 
 async function updateTicketField(field, value) {

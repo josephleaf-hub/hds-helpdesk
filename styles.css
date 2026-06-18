@@ -271,6 +271,12 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
   min-width: 74px; text-align: center; display: inline-block;   /* Edit & Restore share one width so the column never re-fits */
 }
 .tbl-action:hover { background: #F4F6F8; }
+.kebab-btn {
+  background: none; border: 1px solid transparent; border-radius: 6px;
+  padding: 4px 6px; cursor: pointer; color: var(--text-2);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.kebab-btn:hover { background: #F4F6F8; border-color: var(--border); color: var(--text-1); }
 
 /* ── "Show archived" toggle switch ────────────── */
 .arch-toggle {
@@ -301,7 +307,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .b-open     { background: #EBF2FF; color: #1C64F2; }
 .b-progress { background: #FEF3C7; color: #B45309; }
 .b-waiting  { background: #FFF3EF; color: #C24824; }
-.b-waiting-admin { background: #FDE68A; color: #92400E; }
+.b-waiting-admin { background: #EDE9FE; color: #6D28D9; }
 .b-hold     { background: #F3F4F6; color: #4A5568; }
 .b-resolved { background: #E8F5EE; color: #2E7D52; }
 .b-closed   { background: #F3F4F6; color: #6B7280; }
