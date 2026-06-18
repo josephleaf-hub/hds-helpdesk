@@ -263,10 +263,13 @@ tbody tr:hover { background: #F0F7FF; }
 tbody td { padding: 12px 16px; color: #6B7280; font-size: 12px; font-weight: 500; vertical-align: middle; }
 tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 
-/* Table is auto-layout (columns size to content). Only the Subject column is
-   pinned to a fixed width, so the archived pill can't reflow the table: the
-   subject text truncates with "…" and the pill never shrinks. */
-.cell-subject { display: flex; align-items: center; gap: 6px; width: 260px; }
+/* Fixed column widths (set on the <th>s): columns never resize when sorting or
+   when content changes — only the rows reorder. Long values truncate with "…".
+   Scoped to the admin table so the portal's stacking table is untouched. */
+.data-table { table-layout: fixed; min-width: 1200px; }
+.data-table tbody td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-table thead th { overflow: hidden; text-overflow: ellipsis; }
+.cell-subject { display: flex; align-items: center; gap: 6px; width: 100%; }
 .cell-subject .cell-ellipsis { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cell-subject .badge { flex-shrink: 0; }
 .tbl-action {
