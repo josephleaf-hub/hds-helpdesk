@@ -181,7 +181,10 @@
         <div class="modal-title" id="emTitle"></div>
         <div class="modal-ticket-id" id="emMeta"></div>
       </div>
-      <button class="modal-close" onclick="closeEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <button class="btn-secondary" id="emRefreshBtn" style="font-size:12px;" onclick="refreshOpenTicket()" title="Refresh this ticket"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
+        <button class="modal-close" onclick="closeEdit()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
     </div>
     <div class="modal-body" id="emBody"></div>
     <div class="modal-footer">
@@ -275,9 +278,9 @@ let _autoRefreshTimer = null;
 function startAutoRefresh() {
   if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer = setInterval(() => {
-    if (activeTicketId) return;                 // a ticket modal is open
-    if (document.hidden) return;                // tab not visible
-    loadTickets(true).catch(() => {});          // silent: no spinner flash
+    if (document.hidden) return;                // tab not visible — skip
+    if (activeTicketId) refreshOpenTicket(true).catch(() => {});   // refresh the open ticket's conversation in place
+    else loadTickets(true).catch(() => {});                       // refresh the list silently
   }, 5 * 60 * 1000);
 }
 
@@ -849,6 +852,36 @@ function closeEdit() {
   closePillMenu();
   document.getElementById('editModal').classList.remove('open');
   activeTicketId = null;
+}
+
+// Refresh the OPEN ticket in place: re-pull data, repaint the conversation +
+// pills, and leave the composer (and any half-typed reply) untouched. Used by
+// the modal's Refresh button and the 5-min auto-refresh while a ticket is open.
+async function refreshOpenTicket(silent) {
+  const id = activeTicketId;
+  if (!id) return;
+  const btn = silent ? null : document.getElementById('emRefreshBtn');
+  if (btn) setBtnLoading(btn, true, 'Refreshing…');
+  try {
+    const prevCount = document.querySelectorAll('#emConvScroll .note-item').length;
+    await loadTickets(true);                       // refresh underlying data (table + KPIs) silently
+    const t = allTickets.find(x => x.id === id);
+    if (!t) { closeEdit(); return; }               // ticket was archived/removed elsewhere
+    const reqFirst = esc((t.requester_name || '').split(' ')[0] || 'requester');
+    const notes = (t.ticket_notes || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const attMap = await loadAttachmentMap(sb, id);
+    const conv = document.getElementById('emConvScroll');
+    if (conv) {
+      conv.innerHTML = renderConversation(notes, reqFirst, attMap);
+      // Jump to the newest message on a manual refresh, or when a new one arrived.
+      if (!silent || notes.length > prevCount) conv.scrollTop = conv.scrollHeight;
+    }
+    refreshPillsStrip();
+  } catch (err) {
+    if (!silent) showToast('Refresh failed: ' + err.message);
+  } finally {
+    if (btn) setBtnLoading(btn, false);
+  }
 }
 
 // Mobile-only: switch the ticket modal between the conversation and the ticket
