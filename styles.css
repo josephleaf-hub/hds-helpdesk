@@ -650,13 +650,8 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
   .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
   .kpi-card { padding: 14px 12px 14px 18px; }
 
-  /* Hide less important table columns on very small screens */
-  table th:nth-child(5),
-  table td:nth-child(5),
-  table th:nth-child(8),
-  table td:nth-child(8),
-  table th:nth-child(9),
-  table td:nth-child(9) { display: none; }
+  /* (Admin ticket table keeps all columns on mobile and scrolls horizontally;
+     the portal My Tickets table stacks into cards — see index.html.) */
 }
 
   
