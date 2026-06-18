@@ -41,12 +41,9 @@
   <div class="tab-bar-wrap">
     <div class="tab-bar">
       <button class="tab-btn active" id="tabTicketsBtn" onclick="openTab('tickets', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg> All Tickets</button>
-      <button class="tab-btn" id="tabOverviewBtn" onclick="openTab('overview', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Overview</button>
+      <a class="tab-btn" id="tabAnalyticsLink" href="/admin/analytics" style="text-decoration:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Analytics</a>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-      <a href="/admin/analytics" class="btn-secondary" style="font-size:12px;text-decoration:none;" title="Open analytics"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
-      <button class="btn-secondary" style="font-size:12px;flex-shrink:0;" onclick="loadTickets()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
-    </div>
+    <button class="btn-secondary" style="font-size:12px;flex-shrink:0;" onclick="loadTickets()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
   </div>
 
   <!-- CONTENT -->
@@ -135,40 +132,6 @@
       </div>
 
     </div><!-- /tab-tickets -->
-
-    <!-- ══════════════════════════════
-         TAB: OVERVIEW (admin only)
-    ══════════════════════════════ -->
-    <div id="tab-overview" class="tab-pane">
-
-      <div id="overviewContent">
-        <div class="overview-row">
-          <!-- By Status -->
-          <div class="overview-card">
-            <div class="overview-card-title">Tickets by Status</div>
-            <div id="statusChart"></div>
-          </div>
-          <!-- By Category -->
-          <div class="overview-card">
-            <div class="overview-card-title">Tickets by Category</div>
-            <div id="catChart"></div>
-          </div>
-        </div>
-        <div class="overview-row">
-          <!-- By Department -->
-          <div class="overview-card">
-            <div class="overview-card-title">Tickets by Department</div>
-            <div id="deptChart"></div>
-          </div>
-          <!-- By Priority -->
-          <div class="overview-card">
-            <div class="overview-card-title">Tickets by Priority</div>
-            <div id="priChart"></div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /tab-overview -->
 
   </div><!-- /page-content -->
 </main>
@@ -293,11 +256,9 @@ async function init() {
   if (isAdmin) {
     document.getElementById('pageTitle').textContent = 'IT Admin Dashboard';
     document.getElementById('pageSubtitle').textContent = 'All tickets across the business';
-    document.getElementById('tabOverviewBtn').style.display = '';
   } else {
     document.getElementById('pageTitle').textContent = `${currentUser.department} — My Team's Tickets`;
     document.getElementById('pageSubtitle').textContent = `Manager view — ${currentUser.department} department`;
-    document.getElementById('tabOverviewBtn').style.display = 'none';
     const archWrap = document.getElementById('fArchivedWrap');
     if (archWrap) archWrap.style.display = 'none';
     document.querySelector('.tab-btn.active').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> My Team\'s Tickets';
@@ -359,9 +320,6 @@ async function loadTickets(silent) {
   allTickets = data || [];
   applyFilters();
   renderKPIs();
-  if (document.getElementById('tab-overview').classList.contains('active')) {
-    renderOverview();
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -484,52 +442,6 @@ function renderTable() {
     </tr>`;
   }).join('');
   updateSortArrows();
-}
-
-// ─────────────────────────────────────────────
-// RENDER: OVERVIEW CHARTS (mini bar charts)
-// ─────────────────────────────────────────────
-function renderOverview() {
-  const A = allTickets.filter(t => !t.deleted_at);   // archived tickets excluded from charts
-  const total = A.length || 1;
-
-  // Status breakdown
-  const statuses = ['open','in-progress','on-hold','resolved','closed'];
-  document.getElementById('statusChart').innerHTML = statuses.map(s => {
-    const n = A.filter(t => t.status === s).length;
-    return miniBar(STATUS_LABEL[s], n, total, s === 'open' ? '' : s === 'resolved' ? 'green' : s === 'on-hold' ? 'orange' : '');
-  }).join('');
-
-  // Category breakdown
-  const cats = ['access','hardware','account','support'];
-  document.getElementById('catChart').innerHTML = cats.map(c => {
-    const n = A.filter(t => t.category === c).length;
-    return miniBar(CAT_LABEL[c], n, total, '');
-  }).join('');
-
-  // Department breakdown
-  const depts = [...new Set(A.map(t => t.department))].sort();
-  document.getElementById('deptChart').innerHTML = depts.map(d => {
-    const n = A.filter(t => t.department === d).length;
-    return miniBar(d, n, total, 'orange');
-  }).join('') || '<div class="empty-text">No data</div>';
-
-  // Priority breakdown
-  const pris = ['urgent','high','medium','low'];
-  document.getElementById('priChart').innerHTML = pris.map(p => {
-    const n = A.filter(t => t.priority === p).length;
-    const col = p==='urgent'?'':'';
-    return miniBar(PRI_LABEL[p], n, total, p==='urgent'?'orange':p==='high'?'orange':p==='low'?'grey':'');
-  }).join('');
-}
-
-function miniBar(label, count, total, color) {
-  const pct = Math.max(2, Math.round((count / total) * 100));
-  return `<div class="mini-bar-row">
-    <div class="mini-bar-label">${esc(label)}</div>
-    <div class="mini-bar-track"><div class="mini-bar-fill ${color}" style="width:${pct}%;"></div></div>
-    <div class="mini-bar-count">${count}</div>
-  </div>`;
 }
 
 // ─────────────────────────────────────────────
@@ -914,7 +826,6 @@ async function updateTicketField(field, value) {
     refreshPillsStrip();
     applyFilters();
     renderKPIs();
-    if (document.getElementById('tab-overview').classList.contains('active')) renderOverview();
   } catch (err) {
     showToast('Failed: ' + err.message);
   }
@@ -1025,7 +936,6 @@ function openTab(name, el) {
   document.getElementById('tab-' + name).classList.add('active');
   if (el) el.classList.add('active');
   window.scrollTo(0, 0);
-  if (name === 'overview') renderOverview();
 }
 
 // ─────────────────────────────────────────────
