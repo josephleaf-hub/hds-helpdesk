@@ -318,7 +318,7 @@ function startAutoRefresh() {
     if (document.hidden) return;                // tab not visible — skip
     if (activeTicketId) refreshOpenTicket(true).catch(() => {});   // refresh the open ticket's conversation in place
     else loadTickets(true).catch(() => {});                       // refresh the list silently
-  }, 5 * 60 * 1000);
+  }, 60 * 1000);
 }
 
 async function signOut() {

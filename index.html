@@ -355,6 +355,15 @@ async function init() {
     document.getElementById('authErr').textContent = "That sign-in link is no longer valid — enter your email and we'll send a new one.";
     history.replaceState(null, '', '/');
   }
+
+  // Auto-refresh every minute (signed-in requesters only): the open ticket's
+  // conversation in place, or the My Tickets list silently. Skips the submit
+  // form and hidden tabs so it never disrupts typing.
+  setInterval(() => {
+    if (document.hidden || _authedNow !== true) return;
+    if (document.getElementById('detailView').style.display === 'block' && activeTicket) refreshPortalConversation();
+    else if (document.getElementById('listView').style.display === 'block') loadMyTickets(true);
+  }, 60 * 1000);
 }
 
 // True if the signed-in user has an IT role (RLS policy own_role_select lets a
@@ -490,9 +499,9 @@ function showDetail() {
   window.scrollTo(0, 0);
 }
 
-async function loadMyTickets() {
+async function loadMyTickets(silent) {
   const area = document.getElementById('ticketList');
-  area.innerHTML = '<div class="spinner"></div>';
+  if (!silent) area.innerHTML = '<div class="spinner"></div>';
   try {
     const { data: tickets, error } = await sb
       .from('tickets')
@@ -704,11 +713,25 @@ function renderDetail(t, notes, attMap) {
       <div class="detail-right">
         <div class="detail-conv">
           <div class="field-label" style="margin-bottom:10px;">Conversation</div>
-          ${renderConversation(notes, reqFirst, attMap, true)}
+          <div id="portalConv">${renderConversation(notes, reqFirst, attMap, true)}</div>
         </div>
         ${composer}
       </div>
     </div>`;
+}
+
+// Refresh the open ticket's conversation in place — leaves the reply composer
+// (and any half-typed message) untouched. Used by the 1-min portal auto-refresh.
+async function refreshPortalConversation() {
+  if (!activeTicket) return;
+  try {
+    const { data: notes } = await sb.from('ticket_notes')
+      .select('*').eq('ticket_id', activeTicket.id).order('created_at', { ascending: true });
+    const attMap = await loadAttachmentMap(sb, activeTicket.id);
+    const reqFirst = esc((activeTicket.requester_name || '').split(' ')[0] || 'there');
+    const el = document.getElementById('portalConv');
+    if (el) el.innerHTML = renderConversation(notes || [], reqFirst, attMap, true);
+  } catch (_) { /* transient — try again next tick */ }
 }
 
 async function callRequesterReply(payload) {
