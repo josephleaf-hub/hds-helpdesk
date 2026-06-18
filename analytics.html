@@ -105,11 +105,31 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #C8D4DF; border-radius: 3px; }
 
-    @media (max-width: 900px) {
-      .topbar { padding: 16px; flex-wrap: wrap; gap: 10px; }
+    /* Tablet: stack the two breakdown charts */
+    @media (max-width: 1024px) {
+      .chart-2col { grid-template-columns: 1fr; }
+      .chart-2col .chart-wrap { margin-bottom: 20px; }
+    }
+
+    /* Mobile: stack the header + tab bar, tighten padding, 2-col KPIs */
+    @media (max-width: 768px) {
+      .topbar { padding: 20px 16px 12px; flex-wrap: wrap; gap: 12px; }
+      .topbar-left { width: 100%; }
+      .topbar-right { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
+      .tab-bar-wrap { padding: 8px 16px 8px; flex-wrap: wrap; gap: 10px; }
+      .tab-bar { overflow-x: auto; max-width: 100%; }
       .page-content { padding: 16px; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .chart-2col { grid-template-columns: 1fr; }
+      .section-title { margin-top: 24px; }
+    }
+
+    /* Small phones */
+    @media (max-width: 480px) {
+      .topbar-title { font-size: 20px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .kpi-value { font-size: 22px; }
+      .chart-canvas-wrap { height: 280px; min-height: 280px; }
+      .chart-wrap { padding: 16px; }
     }
   </style>
 </head>
