@@ -120,9 +120,8 @@
                 <th class="th-sort" style="width:11%;" data-sort="requester"  onclick="sortBy('requester')">Requester <span class="sort-arrow"></span></th>
                 <th class="th-sort" style="width:9%;"  data-sort="department" onclick="sortBy('department')">Department <span class="sort-arrow"></span></th>
                 <th class="th-sort" style="width:8%;"  data-sort="priority"   onclick="sortBy('priority')">Priority <span class="sort-arrow"></span></th>
-                <th class="th-sort" style="width:10%;" data-sort="status"     onclick="sortBy('status')">Status <span class="sort-arrow"></span></th>
-                <th class="th-sort" style="width:10%;" data-sort="assigned"   onclick="sortBy('assigned')">Assigned To <span class="sort-arrow"></span></th>
-                <th class="th-sort" style="width:8%;"  data-sort="submitted"  onclick="sortBy('submitted')">Submitted <span class="sort-arrow"></span></th>
+                <th class="th-sort" style="width:11%;" data-sort="status"     onclick="sortBy('status')">Status <span class="sort-arrow"></span></th>
+                <th class="th-sort" style="width:9%;"  data-sort="submitted"  onclick="sortBy('submitted')">Submitted <span class="sort-arrow"></span></th>
                 <th class="th-sort" style="width:8%;"  data-sort="active"     onclick="sortBy('active')">Last Active <span class="sort-arrow"></span></th>
                 <th style="width:4%;"></th>
               </tr>
@@ -334,7 +333,7 @@ async function signOut() {
 async function loadTickets(silent) {
   if (!silent) {
     document.getElementById('ticketTbody').innerHTML =
-      '<tr><td colspan="11" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
+      '<tr><td colspan="10" style="text-align:center;padding:32px;"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px;"></div></td></tr>';
   }
 
   let q = sb
@@ -455,7 +454,7 @@ function renderTable() {
   const tbody = document.getElementById('ticketTbody');
 
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#6B7280;">No tickets match your filters.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#6B7280;">No tickets match your filters.</td></tr>';
     updateSortArrows();
     return;
   }
@@ -472,7 +471,6 @@ function renderTable() {
       <td>${esc(t.department)}</td>
       <td>${priBadge(t.priority)}</td>
       <td>${statusBadge(t.status)}</td>
-      <td>${t.assigned_to ? esc(t.assigned_to) : '<span style="color:#9CA3AF;font-style:italic;">Unassigned</span>'}</td>
       <td>${fmtShort(t.created_at)}</td>
       <td>${fmtDate(t.updated_at || t.created_at)}</td>
       <td onclick="event.stopPropagation()">
