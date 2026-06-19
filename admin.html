@@ -211,9 +211,14 @@
       <!-- Description -->
       <div class="nt-group">
         <div class="nt-group-label">Description</div>
-        <div class="nt-field" style="margin-bottom:0;">
+        <div class="nt-field">
           <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
         </div>
+        <button type="button" class="nt-btn-ghost" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:7px 12px;" onclick="document.getElementById('ntFileInput').click()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Attach images
+        </button>
+        <div id="ntAttachPreview" class="attach-preview"></div>
+        <input type="file" id="ntFileInput" accept="image/*" multiple style="display:none" onchange="handleNtFiles(this.files)">
       </div>
 
       <!-- Classification -->
@@ -1043,6 +1048,27 @@ async function toggleArchive(id) {
 // ─────────────────────────────────────────────
 const NT_NOTIFY_ON  = 'Requester gets a secure link to view and reply in the portal. The conversation moves onto the platform.';
 const NT_NOTIFY_OFF = 'No email sent — logged internally only. Use this for issues you’ve already handled or are tracking yourself.';
+let ntPendingFiles = [];   // images attached in the New ticket modal (uploaded after the ticket is created)
+
+function handleNtFiles(fileList) {
+  for (const f of fileList) {
+    if (ntPendingFiles.length >= 3) { showToast('You can attach up to 3 images.'); break; }
+    if (!f.type.startsWith('image/')) { showToast('Images only.'); continue; }
+    if (f.size > 2 * 1024 * 1024)     { showToast(`"${f.name}" is over the 2 MB limit.`); continue; }
+    ntPendingFiles.push(f);
+  }
+  const input = document.getElementById('ntFileInput');
+  if (input) input.value = '';
+  renderNtAttachPreview();
+}
+function removeNtFile(i) { ntPendingFiles.splice(i, 1); renderNtAttachPreview(); }
+function renderNtAttachPreview() {
+  const el = document.getElementById('ntAttachPreview');
+  if (!el) return;
+  el.innerHTML = ntPendingFiles.map((f, i) =>
+    `<span class="attach-chip"><span>${esc(f.name)}</span><button type="button" onclick="removeNtFile(${i})" aria-label="Remove">×</button></span>`
+  ).join('');
+}
 
 function openNewTicket() {
   // Populate selects from real data
@@ -1060,6 +1086,8 @@ function openNewTicket() {
       .map(([v, l]) => `<option value="${v}"${v === 'in-progress' ? ' selected' : ''}>${l}</option>`).join('');
 
   ['ntSubject','ntName','ntEmail','ntAffected','ntDesc'].forEach(id => { document.getElementById(id).value = ''; });
+  ntPendingFiles = [];
+  renderNtAttachPreview();
 
   // Notify defaults ON
   document.getElementById('ntNotifyToggle').classList.add('on');
@@ -1125,9 +1153,17 @@ async function submitNewTicket() {
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
 
+    // Upload any attached images to the new ticket (non-fatal — ticket exists either way).
+    let imgWarn = false;
+    if (ntPendingFiles.length) {
+      try { await uploadImages(sb, data.ticketId, ntPendingFiles); }
+      catch (e) { console.error('New-ticket image upload failed:', e); imgWarn = true; }
+    }
+    ntPendingFiles = [];
+
     setBtnLoading(btn, false);
     closeNewTicket();
-    showToast(`Ticket ${data.ticketId} created${data.notified ? ' · requester notified' : ''}.`);
+    showToast(`Ticket ${data.ticketId} created${data.notified ? ' · requester notified' : ''}${imgWarn ? ' (image upload failed)' : ''}.`);
     await loadTickets();
   } catch (err) {
     showToast('Failed: ' + err.message);
