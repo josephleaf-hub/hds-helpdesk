@@ -860,3 +860,19 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
   .chart-canvas-wrap { height: 280px; min-height: 280px; }
   .chart-wrap { padding: 16px; }
 }
+
+/* ───────────────────────── STAFF LOGIN PAGE ───────────────────────── */
+.login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+.login-wrap { width: 100%; max-width: 420px; }
+.login-header { text-align: center; margin-bottom: 32px; }
+.login-logo { height: 36px; margin-bottom: 20px; }
+.login-title { font-size: 22px; font-weight: 700; color: #0F1C2E; letter-spacing: -0.02em; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: #6B7280; }
+.login-card { background: #fff; border-radius: 20px; padding: 32px; box-shadow: var(--shadow-card); }
+.login-card .btn-primary { width: 100%; justify-content: center; padding: 11px; font-size: 14px; }
+.error-box { background: #FDECEA; border: 1px solid #f5c2be; border-radius: 10px; padding: 11px 14px; font-size: 13px; color: #C0392B; margin-bottom: 16px; display: none; }
+.error-box.show { display: block; }
+.login-footer { text-align: center; margin-top: 20px; }
+.login-footer a { color: #1C64F2; font-size: 13px; text-decoration: none; }
+.login-footer a:hover { text-decoration: underline; }
+@media (max-width: 480px) { .login-card { padding: 24px 18px; } }
