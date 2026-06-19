@@ -33,6 +33,14 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   // ── Mount: auth + staff redirect + magic-link handling + auto-refresh ──
   useEffect(() => {
     let mounted = true;
+    // Email deep link lands on /?ticket=HDS-NNNN (see app/p/[...slug]); queue it to open.
+    const qp = new URLSearchParams(window.location.search).get('ticket');
+    if (qp) {
+      pendingOpen.current = qp;
+      const u = new URL(window.location.href);
+      u.searchParams.delete('ticket');
+      window.history.replaceState(null, '', u.pathname + u.search);
+    }
     (async () => {
       const { data: { session } } = await sb.auth.getSession();
       if (session) {

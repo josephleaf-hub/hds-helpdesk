@@ -15,7 +15,11 @@ export async function GET(req: NextRequest, { params }: { params: { slug?: strin
 
   const slug = params.slug || [];
   const token = slug[0] || '';
-  const dest = slug.length > 1 ? '/' + slug.slice(1).join('/') : '/';
+  // The email "view ticket" link is /p/{token}/t/HDS-NNNN. Magic links only honour
+  // a redirect_to that matches Supabase's allow-list; the root is proven to match,
+  // subpaths are not guaranteed. So target the root and carry the ticket as a query
+  // param (?ticket=HDS-NNNN) — the portal opens it on load. Anything else → root.
+  const dest = (slug[1] === 't' && slug[2]) ? `/?ticket=${encodeURIComponent(slug[2])}` : '/';
   if (!token) return fail();
 
   const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
