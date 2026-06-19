@@ -48,13 +48,13 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
         if (role && (role.role === 'admin' || role.role === 'manager')) { window.location.replace('/admin'); return; }
       }
       if (!mounted) return;
-      syncAuth(session?.user ?? null, true);
+      syncAuth(session?.user ?? null);
       if (new URLSearchParams(window.location.search).get('signin') === 'expired' && !session) {
         setSignInOpen(true); setSigninExpired(true);
         window.history.replaceState(null, '', '/');
       }
     })();
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => syncAuth(s?.user ?? null, false));
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => syncAuth(s?.user ?? null));
 
     const iv = setInterval(() => {
       if (document.hidden || authedRef.current !== true) return;
@@ -67,21 +67,24 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   }, []);
 
   // Supabase fires onAuthStateChange on every token refresh / tab focus / re-validate,
-  // not just sign-in. Navigate ONLY on a real transition (first load, sign-in, sign-out)
-  // so a spurious refresh event can't yank the user out of a ticket they just opened.
-  function syncAuth(u: User | null, initial: boolean) {
+  // and the hash-based SIGNED_IN can land BEFORE the initial getSession() resolves.
+  // Navigate ONLY on a real auth transition (was !== now) — covers first load, sign-in
+  // and sign-out, but a redundant call while already authed (e.g. the slower getSession
+  // arriving after SIGNED_IN already opened a deep-linked ticket) does nothing.
+  function syncAuth(u: User | null) {
     const nowAuthed = !!u;
-    const was = prevAuthedRef.current;
+    const was = prevAuthedRef.current;        // null until the first call
+    const transition = was !== nowAuthed;
     prevAuthedRef.current = nowAuthed;
     setUser(u);
     setAuthed(nowAuthed);
     if (nowAuthed) {
-      loadMyTickets(was === true);          // silent background refresh if already signed in
-      if (initial || was !== true) {        // first load OR signed-out -> signed-in
+      loadMyTickets(!transition);             // silent background refresh when already signed in
+      if (transition) {
         if (pendingOpen.current) { const id = pendingOpen.current; pendingOpen.current = null; openTicket(id); }
         else setView('list');
       }
-    } else if (initial || was === true) {   // first load OR signed-in -> signed-out
+    } else if (transition) {
       setView('submit');
     }
   }
