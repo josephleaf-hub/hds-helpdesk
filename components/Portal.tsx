@@ -28,6 +28,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const viewRef = useRef(view); viewRef.current = view;
   const authedRef = useRef(authed); authedRef.current = authed;
   const pendingOpen = useRef(initialTicketId || null);
+  const prevAuthedRef = useRef<boolean | null>(null);
 
   // ── Mount: auth + staff redirect + magic-link handling + auto-refresh ──
   useEffect(() => {
@@ -39,13 +40,13 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
         if (role && (role.role === 'admin' || role.role === 'manager')) { window.location.replace('/admin'); return; }
       }
       if (!mounted) return;
-      applySession(session?.user ?? null);
+      syncAuth(session?.user ?? null, true);
       if (new URLSearchParams(window.location.search).get('signin') === 'expired' && !session) {
         setSignInOpen(true); setSigninExpired(true);
         window.history.replaceState(null, '', '/');
       }
     })();
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => applySession(s?.user ?? null));
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => syncAuth(s?.user ?? null, false));
 
     const iv = setInterval(() => {
       if (document.hidden || authedRef.current !== true) return;
@@ -57,14 +58,22 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function applySession(u: User | null) {
+  // Supabase fires onAuthStateChange on every token refresh / tab focus / re-validate,
+  // not just sign-in. Navigate ONLY on a real transition (first load, sign-in, sign-out)
+  // so a spurious refresh event can't yank the user out of a ticket they just opened.
+  function syncAuth(u: User | null, initial: boolean) {
+    const nowAuthed = !!u;
+    const was = prevAuthedRef.current;
+    prevAuthedRef.current = nowAuthed;
     setUser(u);
-    setAuthed(!!u);
-    if (u) {
-      loadMyTickets();
-      if (pendingOpen.current) { const id = pendingOpen.current; pendingOpen.current = null; openTicket(id); }
-      else setView('list');
-    } else {
+    setAuthed(nowAuthed);
+    if (nowAuthed) {
+      loadMyTickets(was === true);          // silent background refresh if already signed in
+      if (initial || was !== true) {        // first load OR signed-out -> signed-in
+        if (pendingOpen.current) { const id = pendingOpen.current; pendingOpen.current = null; openTicket(id); }
+        else setView('list');
+      }
+    } else if (initial || was === true) {   // first load OR signed-in -> signed-out
       setView('submit');
     }
   }
