@@ -876,3 +876,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .login-footer a { color: #1C64F2; font-size: 13px; text-decoration: none; }
 .login-footer a:hover { text-decoration: underline; }
 @media (max-width: 480px) { .login-card { padding: 24px 18px; } }
+
+/* Admin edit-modal: kill the trailing gap under the last context field
+   (most visible on resolved tickets, where the left column is short). */
+.h-left .field:last-child { margin-bottom: 0; }
