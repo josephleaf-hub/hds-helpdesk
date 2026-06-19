@@ -43,7 +43,10 @@
       <button class="tab-btn active" id="tabTicketsBtn" onclick="openTab('tickets', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg> All Tickets</button>
       <a class="tab-btn" id="tabAnalyticsLink" href="/admin/analytics" style="text-decoration:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0;margin-right:7px;"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Analytics</a>
     </div>
-    <button class="btn-secondary" style="font-size:12px;flex-shrink:0;" onclick="loadTickets()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <button class="btn-primary" style="font-size:12px;padding:8px 14px;" onclick="openNewTicket()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New ticket</button>
+      <button class="btn-secondary" style="font-size:12px;flex-shrink:0;" onclick="loadTickets()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
+    </div>
   </div>
 
   <!-- CONTENT -->
@@ -162,6 +165,106 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ══════════════════════════════
+     NEW TICKET MODAL (admin raises on behalf of a requester)
+══════════════════════════════ -->
+<div class="nt-overlay" id="newTicketModal">
+  <div class="nt-modal">
+    <div class="nt-head">
+      <div>
+        <div class="nt-title">New ticket</div>
+        <div class="nt-sub">Raise a ticket on behalf of a requester</div>
+      </div>
+      <button class="nt-close" onclick="closeNewTicket()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <div class="nt-body">
+      <div class="nt-field">
+        <label class="nt-label">Subject <span class="req">*</span></label>
+        <input class="nt-input" id="ntSubject" placeholder="One-line summary of the request" />
+      </div>
+
+      <div class="nt-cols">
+        <!-- LEFT -->
+        <div>
+          <div class="nt-group">
+            <div class="nt-group-label">Requester</div>
+            <div class="nt-field">
+              <label class="nt-label">Name <span class="req">*</span></label>
+              <input class="nt-input" id="ntName" placeholder="e.g. Jase Paul" autocomplete="off" />
+            </div>
+            <div class="nt-field">
+              <label class="nt-label">Email <span class="req">*</span></label>
+              <input class="nt-input" id="ntEmail" type="email" placeholder="name@homedelivery.com.au" autocomplete="off" />
+            </div>
+            <div class="nt-row-2">
+              <div class="nt-field">
+                <label class="nt-label">Department</label>
+                <select class="nt-input" id="ntDept"></select>
+              </div>
+              <div class="nt-field">
+                <label class="nt-label">Affected user</label>
+                <input class="nt-input" id="ntAffected" placeholder="If different" />
+              </div>
+            </div>
+          </div>
+
+          <div class="nt-group">
+            <div class="nt-group-label">Description</div>
+            <div class="nt-field" style="margin-bottom:0;">
+              <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="nt-group nt-right">
+          <div class="nt-group-label">Classification</div>
+          <div class="nt-field">
+            <label class="nt-label">Category <span class="req">*</span></label>
+            <select class="nt-input" id="ntCategory" onchange="populateNtSubTypes()"></select>
+          </div>
+          <div class="nt-row-2">
+            <div class="nt-field">
+              <label class="nt-label">Sub-type</label>
+              <select class="nt-input" id="ntSubType"></select>
+            </div>
+            <div class="nt-field">
+              <label class="nt-label">Priority</label>
+              <select class="nt-input" id="ntPriority"></select>
+            </div>
+          </div>
+
+          <div class="nt-group-label" style="margin-top:20px;">Handling</div>
+          <div class="nt-row-2">
+            <div class="nt-field">
+              <label class="nt-label">Assign to</label>
+              <select class="nt-input" id="ntAssign"></select>
+            </div>
+            <div class="nt-field">
+              <label class="nt-label">Initial status</label>
+              <select class="nt-input" id="ntStatus"></select>
+            </div>
+          </div>
+
+          <div class="nt-notify">
+            <div class="nt-notify-head">
+              <span class="nt-notify-label">Notify requester</span>
+              <button type="button" class="nt-toggle on" id="ntNotifyToggle" onclick="toggleNtNotify()" aria-label="Toggle notify"></button>
+            </div>
+            <div class="nt-notify-help" id="ntNotifyHelp"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nt-foot">
+      <button class="nt-btn-ghost" onclick="closeNewTicket()">Cancel</button>
+      <button class="nt-btn-primary" id="ntSubmitBtn" onclick="submitNewTicket()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create ticket</button>
+    </div>
+  </div>
+</div>
+
 <!-- Credentials live in config.js — edit that one file only -->
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -173,6 +276,13 @@
 // CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM, DEPARTMENTS now live in shared.js
 const STATUS_ORDER = { open:0,'in-progress':1,'waiting-on-admin':2,'waiting-on-requester':3,'on-hold':4,resolved:5,closed:6 };
 const PRI_ORDER    = { urgent:0,high:1,medium:2,low:3 };
+// Sub-types per category (mirror of the portal's SUB_TYPES) — for the New ticket modal.
+const SUB_TYPES = {
+  access:   ['New System Access', 'Modify Existing Access', 'VPN / Remote Access', 'Application License', 'Remove / Revoke Access'],
+  hardware: ['New Laptop', 'Laptop Replacement', 'Monitor / Peripheral', 'Mobile Device', 'Headset / Audio', 'Other Hardware'],
+  account:  ['New Starter Setup', 'Leaver Account Deactivation', 'Password Reset', 'Email & Signature Setup', 'Profile / Name Change'],
+  support:  ['Software Not Working', 'Hardware Fault', 'Network / Connectivity', 'Email Problem', 'Printing / Scanning', 'Other'],
+};
 
 // ── Column sorting ──
 // Each sortable header maps to a comparable value. Strings are lowercased;
@@ -924,6 +1034,100 @@ async function toggleArchive(id) {
       ? 'Archiving needs a one-time DB step: run migration-v1.3-soft-delete.sql in Supabase, then retry.'
       : 'Failed: ' + err.message);
     if (activeTicketId === ticketId) setBtnLoading(btn, false);
+  }
+}
+
+// ─────────────────────────────────────────────
+// NEW TICKET (admin raises on behalf of a requester)
+// ─────────────────────────────────────────────
+const NT_NOTIFY_ON  = 'Requester gets a secure link to view and reply in the portal. The conversation moves onto the platform.';
+const NT_NOTIFY_OFF = 'No email sent — logged internally only. Use this for issues you’ve already handled or are tracking yourself.';
+
+function openNewTicket() {
+  // Populate selects from real data
+  document.getElementById('ntCategory').innerHTML =
+    Object.entries(CAT_LABEL).map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+  populateNtSubTypes();
+  document.getElementById('ntDept').innerHTML =
+    '<option value="">Select…</option>' + DEPARTMENTS.map(d => `<option>${esc(d)}</option>`).join('');
+  document.getElementById('ntAssign').innerHTML =
+    '<option value="">Unassigned</option>' + IT_TEAM.map(m => `<option>${esc(m)}</option>`).join('');
+  document.getElementById('ntPriority').innerHTML =
+    ['low','medium','high','urgent'].map(p => `<option value="${p}"${p === 'medium' ? ' selected' : ''}>${PRI_LABEL[p]}</option>`).join('');
+  document.getElementById('ntStatus').innerHTML =
+    [['open','Open'],['in-progress','In Progress'],['on-hold','On Hold'],['resolved','Resolved']]
+      .map(([v, l]) => `<option value="${v}"${v === 'in-progress' ? ' selected' : ''}>${l}</option>`).join('');
+
+  ['ntSubject','ntName','ntEmail','ntAffected','ntDesc'].forEach(id => { document.getElementById(id).value = ''; });
+
+  // Notify defaults ON
+  document.getElementById('ntNotifyToggle').classList.add('on');
+  document.getElementById('ntNotifyHelp').textContent = NT_NOTIFY_ON;
+
+  // Clear any stale loading state on the submit button (it's reused)
+  setBtnLoading(document.getElementById('ntSubmitBtn'), false);
+
+  document.getElementById('newTicketModal').classList.add('open');
+  document.getElementById('ntSubject').focus();
+}
+
+function populateNtSubTypes() {
+  const c = document.getElementById('ntCategory').value;
+  const list = SUB_TYPES[c] || [];
+  document.getElementById('ntSubType').innerHTML = list.map(s => `<option>${esc(s)}</option>`).join('');
+}
+
+function closeNewTicket() { document.getElementById('newTicketModal').classList.remove('open'); }
+
+function toggleNtNotify() {
+  const t = document.getElementById('ntNotifyToggle');
+  t.classList.toggle('on');
+  document.getElementById('ntNotifyHelp').textContent = t.classList.contains('on') ? NT_NOTIFY_ON : NT_NOTIFY_OFF;
+}
+
+async function submitNewTicket() {
+  const subject        = document.getElementById('ntSubject').value.trim();
+  const requesterName  = document.getElementById('ntName').value.trim();
+  const requesterEmail = document.getElementById('ntEmail').value.trim();
+  const category       = document.getElementById('ntCategory').value;
+  if (!subject)        { showToast('Subject is required.'); document.getElementById('ntSubject').focus(); return; }
+  if (!requesterName)  { showToast('Requester name is required.'); document.getElementById('ntName').focus(); return; }
+  if (!requesterEmail || !requesterEmail.includes('@')) { showToast('A valid requester email is required.'); document.getElementById('ntEmail').focus(); return; }
+
+  const payload = {
+    subject, requesterName, requesterEmail, category,
+    subType:      document.getElementById('ntSubType').value,
+    department:   document.getElementById('ntDept').value,
+    affectedUser: document.getElementById('ntAffected').value.trim(),
+    priority:     document.getElementById('ntPriority').value,
+    description:  document.getElementById('ntDesc').value.trim(),
+    status:       document.getElementById('ntStatus').value,
+    assignedTo:   document.getElementById('ntAssign').value,
+    notify:       document.getElementById('ntNotifyToggle').classList.contains('on'),
+  };
+
+  const btn = document.getElementById('ntSubmitBtn');
+  setBtnLoading(btn, true, 'Creating…');
+  try {
+    const { data: sessionData } = await sb.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Session expired — please sign in again.');
+
+    const r = await fetch('/api/create-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+
+    setBtnLoading(btn, false);
+    closeNewTicket();
+    showToast(`Ticket ${data.ticketId} created${data.notified ? ' · requester notified' : ''}.`);
+    await loadTickets();
+  } catch (err) {
+    showToast('Failed: ' + err.message);
+    setBtnLoading(btn, false);
   }
 }
 
