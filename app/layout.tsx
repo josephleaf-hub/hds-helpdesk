@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
+import { ConfirmProvider } from '@/components/Confirm';
 
 export const metadata: Metadata = {
   title: 'IT Helpdesk — HDS',
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body><ToastProvider>{children}</ToastProvider></body>
+      <body><ToastProvider><ConfirmProvider>{children}</ConfirmProvider></ToastProvider></body>
     </html>
   );
 }

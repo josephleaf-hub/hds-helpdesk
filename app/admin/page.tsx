@@ -9,6 +9,7 @@ import { FloatingMenu } from '@/components/admin/FloatingMenu';
 import { EditModal } from '@/components/admin/EditModal';
 import { NewTicketModal } from '@/components/admin/NewTicketModal';
 import { useToast } from '@/components/Toast';
+import { useConfirm } from '@/components/Confirm';
 import type { Ticket } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
@@ -36,6 +37,7 @@ const COLS: { key?: string; label: string; width: string }[] = [
 
 export default function AdminPage() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [phase, setPhase] = useState<'loading' | 'ready'>('loading');
   const [user, setUser] = useState<AdminUser | null>(null);
   const [allTickets, setAllTickets] = useState<Ticket[]>([]);
@@ -159,7 +161,11 @@ export default function AdminPage() {
     const t = allTickets.find(x => x.id === id);
     if (!t) return;
     const archiving = !t.deleted_at;
-    if (archiving && !window.confirm(`Archive ticket ${t.id}?\n\nIt will be hidden from the list and the KPIs, but kept on record with its full conversation. You can restore it any time from "Show archived".`)) return;
+    if (archiving && !(await confirm({
+      title: `Archive ticket ${t.id}?`,
+      body: 'It will be hidden from the list and the KPIs, but kept on record with its full conversation. You can restore it any time from "Show archived".',
+      confirmLabel: 'Archive ticket', tone: 'danger',
+    }))) return;
     try {
       const { error } = await sb.from('tickets').update({ deleted_at: archiving ? new Date().toISOString() : null }).eq('id', t.id);
       if (error) throw error;

@@ -8,6 +8,7 @@ import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
 import { Conversation } from '@/components/Conversation';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
+import { useConfirm } from '@/components/Confirm';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
@@ -24,6 +25,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   onReload: () => Promise<void>; patchTicket: (id: string, partial: Partial<Ticket>) => void;
 }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [tab, setTab] = useState<Tab>('reply');
   const [text, setText] = useState('');
@@ -161,7 +163,11 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   async function toggleArchive() {
     if (user.role !== 'admin') { toast('Only admins can archive tickets.'); return; }
     const archiving = !ticket.deleted_at;
-    if (archiving && !window.confirm(`Archive ticket ${ticket.id}?\n\nIt will be hidden from the list and the KPIs, but kept on record with its full conversation. You can restore it any time from "Show archived".`)) return;
+    if (archiving && !(await confirm({
+      title: `Archive ticket ${ticket.id}?`,
+      body: 'It will be hidden from the list and the KPIs, but kept on record with its full conversation. You can restore it any time from "Show archived".',
+      confirmLabel: 'Archive ticket', tone: 'danger',
+    }))) return;
     setArchiveBusy(true);
     try {
       const { error } = await sb.from('tickets').update({ deleted_at: archiving ? new Date().toISOString() : null }).eq('id', ticket.id);

@@ -9,6 +9,7 @@ import { loadAttachmentMap, compressImageToBase64, uploadImages } from '@/lib/at
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { Conversation } from '@/components/Conversation';
 import { useToast } from '@/components/Toast';
+import { useConfirm } from '@/components/Confirm';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 const LOCATIONS = ['Melbourne HQ', 'Sydney', 'Brisbane', 'Adelaide', 'Perth', 'Remote'];
@@ -18,6 +19,7 @@ const RefreshIcon = () => (
 
 export default function Portal({ initialTicketId }: { initialTicketId?: string }) {
   const toast = useToast();
+  const confirm = useConfirm();
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
@@ -175,7 +177,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
 
   async function markResolved() {
     if (!activeTicket) return;
-    if (!window.confirm('Mark this ticket as resolved?')) return;
+    if (!(await confirm({ title: 'Mark this ticket as resolved?', body: 'This lets the IT team know your issue is sorted. You can always reply again if it isn’t.', confirmLabel: 'Mark resolved', tone: 'primary' }))) return;
     setResolveBusy(true);
     try {
       await callRequesterReply({ ticketId: activeTicket.id, message: replyText.trim() || undefined, resolve: true });

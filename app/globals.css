@@ -880,3 +880,14 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 /* Admin edit-modal: kill the trailing gap under the last context field
    (most visible on resolved tickets, where the left column is short). */
 .h-left .field:last-child { margin-bottom: 0; }
+
+/* ───────────────────────── CONFIRM DIALOG ─────────────────────────
+   Branded replacement for window.confirm(); sits above every other
+   overlay (pill-menu 1100, nt-overlay 1200, ticket modal). */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(15,28,46,0.45); z-index: 1300; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.confirm-card { background: var(--bg-surface); border-radius: 16px; padding: 22px 22px 18px; max-width: 440px; width: 100%; box-shadow: var(--shadow-hover); }
+.confirm-title { font-size: 16px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; }
+.confirm-body { font-size: 13px; color: #6B7280; line-height: 1.6; margin-bottom: 22px; white-space: pre-line; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #C0392B; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+.btn-danger:hover { background: #A93226; }
