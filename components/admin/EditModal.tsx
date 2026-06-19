@@ -79,18 +79,24 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     if (!msg && !files.length) { toast('Type something or attach an image first.'); return; }
     const newStatus = statusRadio || null;
     setBusy(true);
+    // Images upload first (note_id null) and only get linked to a note once the
+    // send/insert succeeds. If we never link them, delete them on failure — an
+    // orphaned attachment would otherwise show up as a phantom "Submitted photo".
+    let uploadedIds: string[] = [];
+    let linked = false;
     try {
-      const attachmentIds = await uploadImages(ticket.id, files);
+      uploadedIds = await uploadImages(ticket.id, files);
       if (tab === 'reply' || tab === 'log') {
         const { data: { session } } = await sb.auth.getSession();
         const token = session?.access_token;
         if (!token) throw new Error('Session expired — please sign in again.');
         const res = await fetch('/api/send-message', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ ticketId: ticket.id, message: msg, direction: tab === 'reply' ? 'outbound' : 'inbound', newStatus, attachmentIds }),
+          body: JSON.stringify({ ticketId: ticket.id, message: msg, direction: tab === 'reply' ? 'outbound' : 'inbound', newStatus, attachmentIds: uploadedIds }),
         });
         const result = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(result.error || ('HTTP ' + res.status));
+        linked = true;   // send-message linked them server-side
         toast(tab === 'reply' ? 'Reply sent to requester.' : 'Reply logged against ticket.');
       } else {
         // Internal note — direct insert (no email).
@@ -98,10 +104,11 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           ticket_id: ticket.id, added_by: user.full_name || user.email, note_text: msg, note_type: 'internal',
         }).select('id').single();
         if (noteErr) throw noteErr;
-        if (attachmentIds.length) {
+        if (uploadedIds.length) {
           await sb.from('ticket_attachments').update({ note_id: noteRow.id })
-            .eq('ticket_id', ticket.id).is('note_id', null).in('id', attachmentIds);
+            .eq('ticket_id', ticket.id).is('note_id', null).in('id', uploadedIds);
         }
+        linked = true;   // note created + attachments linked; a later status error must NOT delete them
         if (newStatus) {
           const update: Partial<Ticket> = { status: newStatus as Ticket['status'] };
           if (newStatus === 'resolved' || newStatus === 'closed') update.resolved_at = new Date().toISOString();
@@ -113,6 +120,9 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       setText(''); setFiles([]); setStatusRadio('');
       await onReload();
     } catch (err) {
+      if (uploadedIds.length && !linked) {
+        try { await sb.from('ticket_attachments').delete().in('id', uploadedIds); } catch { /* best-effort */ }
+      }
       toast('Failed: ' + (err as Error).message);
     } finally {
       setBusy(false);
