@@ -207,6 +207,14 @@
         </div>
       </div>
 
+      <!-- Description -->
+      <div class="nt-group">
+        <div class="nt-group-label">Description</div>
+        <div class="nt-field" style="margin-bottom:0;">
+          <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
+        </div>
+      </div>
+
       <!-- Classification -->
       <div class="nt-group">
         <div class="nt-group-label">Classification</div>
@@ -248,13 +256,6 @@
         </div>
       </div>
 
-      <!-- Description -->
-      <div class="nt-group">
-        <div class="nt-group-label">Description</div>
-        <div class="nt-field" style="margin-bottom:0;">
-          <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
-        </div>
-      </div>
     </div>
 
     <div class="nt-foot">
@@ -1092,6 +1093,9 @@ async function submitNewTicket() {
   if (!subject)        { showToast('Subject is required.'); document.getElementById('ntSubject').focus(); return; }
   if (!requesterName)  { showToast('Requester name is required.'); document.getElementById('ntName').focus(); return; }
   if (!requesterEmail || !requesterEmail.includes('@')) { showToast('A valid requester email is required.'); document.getElementById('ntEmail').focus(); return; }
+  if (!['homedelivery.com.au', 'hdsau.com'].includes((requesterEmail.split('@')[1] || '').toLowerCase())) {
+    showToast('Use an HDS email — @homedelivery.com.au or @hdsau.com.'); document.getElementById('ntEmail').focus(); return;
+  }
 
   const payload = {
     subject, requesterName, requesterEmail, category,

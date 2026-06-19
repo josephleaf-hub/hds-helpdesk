@@ -15,8 +15,8 @@
      3. If notify is ON (default), email the requester a portal link with a
         NEW "request logged" template. Notify failure is non-fatal.
 
-   No domain-gating on the requester email — the requester may be external
-   (vendor/contractor) and IT is trusted.
+   The requester email is gated to HDS domains (internal staff only), same as
+   the portal submit path.
    ═══════════════════════════════════════════════════════════════ */
 
 const { createClient } = require('@supabase/supabase-js');
@@ -45,6 +45,7 @@ function res(statusCode, body) {
 const VALID_STATUSES   = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
 const VALID_CATEGORIES = ['access', 'hardware', 'account', 'support'];
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+const ALLOWED_DOMAINS  = ['homedelivery.com.au', 'hdsau.com'];   // internal HDS staff only
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
@@ -89,6 +90,8 @@ exports.handler = async (event) => {
   if (!requesterName || !String(requesterName).trim()) return res(400, { error: 'Requester name is required' });
   const emailNorm = String(requesterEmail || '').toLowerCase().trim();
   if (!emailNorm || !emailNorm.includes('@'))          return res(400, { error: 'A valid requester email is required' });
+  if (!ALLOWED_DOMAINS.includes(emailNorm.split('@')[1]))
+    return res(400, { error: 'Requester email must be an HDS address (@homedelivery.com.au or @hdsau.com)' });
   if (!VALID_CATEGORIES.includes(category))            return res(400, { error: 'A valid category is required' });
   if (priority && !VALID_PRIORITIES.includes(priority)) return res(400, { error: 'Invalid priority' });
 
