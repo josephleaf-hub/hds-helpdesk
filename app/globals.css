@@ -891,3 +891,16 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .btn-danger { display: inline-flex; align-items: center; gap: 6px; background: #C0392B; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
 .btn-danger:hover { background: #A93226; }
+
+/* ──────────────── NEW-TICKET "DRAFT FROM EMAIL" (AI assist) ──────────────── */
+.nt-draft { margin-bottom: 18px; padding: 14px; background: #F4F8FF; border: 1px solid #DBE6FB; border-radius: 12px; }
+.nt-draft-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--blue); margin-bottom: 8px; }
+.nt-draft textarea.nt-input { min-height: 84px; }
+.nt-draft-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.nt-draft-err { font-size: 12px; color: #C0392B; }
+.btn-draft { display: inline-flex; align-items: center; gap: 7px; background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+.btn-draft:hover:not(:disabled) { background: var(--blue-hover); }
+.btn-draft:disabled { opacity: 0.55; cursor: default; }
+.nt-draft-banner { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 10px 13px; background: #EEF9F3; border: 1px solid #BFE3CE; border-radius: 10px; font-size: 12px; font-weight: 500; color: #2E7D52; line-height: 1.5; }
+@keyframes nt-flash { 0% { background: #EBF2FF; border-color: var(--blue); } 100% { background: #fff; } }
+.nt-input.nt-filled { animation: nt-flash 1.8s ease-out; }

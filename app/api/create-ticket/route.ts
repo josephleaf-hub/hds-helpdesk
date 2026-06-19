@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   let body: Record<string, string | boolean | undefined>;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const { requesterName, requesterEmail, department, location, affectedUser, subject, category, subType, priority, description, status, assignedTo, notify } = body as Record<string, string> & { notify?: boolean };
+  const { requesterName, requesterEmail, department, location, affectedUser, subject, category, subType, priority, description, status, assignedTo, notify, sourceThread } = body as Record<string, string> & { notify?: boolean };
 
   if (!subject || !String(subject).trim()) return NextResponse.json({ error: 'Subject is required' }, { status: 400 });
   if (!requesterName || !String(requesterName).trim()) return NextResponse.json({ error: 'Requester name is required' }, { status: 400 });
@@ -68,6 +68,22 @@ export async function POST(req: NextRequest) {
   if (insErr) {
     console.error('Ticket insert failed:', insErr);
     return NextResponse.json({ error: 'Failed to create ticket: ' + insErr.message }, { status: 500 });
+  }
+
+  // If the ticket was drafted from a pasted email thread, keep the original
+  // verbatim as the first note (internal — IT-side record, not shown to the
+  // requester in the portal) so the source is never lost. Non-fatal.
+  const thread = String(sourceThread || '').trim();
+  if (thread) {
+    try {
+      await admin.from('ticket_notes').insert({
+        ticket_id: ticketId, added_by: roleRow.full_name || userData.user.email || 'IT Staff',
+        note_text: `Original email thread (pasted at creation):\n\n${thread}`.slice(0, 20000),
+        note_type: 'internal',
+      });
+    } catch (err) {
+      console.error('create-ticket: failed to save source thread note:', (err as Error).message);
+    }
   }
 
   let notified = false;

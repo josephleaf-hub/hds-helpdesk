@@ -18,9 +18,9 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
   const [dept, setDept] = useState('');
   const [affected, setAffected] = useState('');
   const [desc, setDesc] = useState('');
-  const [category, setCategory] = useState('access');
-  const [subType, setSubType] = useState(SUB_TYPES['access'][0]);
-  const [priority, setPriority] = useState('medium');
+  const [category, setCategory] = useState('');
+  const [subType, setSubType] = useState('');
+  const [priority, setPriority] = useState('');
   const [status, setStatus] = useState('in-progress');
   const [assign, setAssign] = useState('');
   const [notify, setNotify] = useState(true);
@@ -28,7 +28,54 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function pickCategory(c: string) { setCategory(c); setSubType((SUB_TYPES[c] || [''])[0] || ''); }
+  // "Draft from email" assist
+  const [thread, setThread] = useState('');
+  const [drafting, setDrafting] = useState(false);
+  const [draftError, setDraftError] = useState('');
+  const [drafted, setDrafted] = useState(false);
+  const [highlight, setHighlight] = useState<Set<string>>(new Set());
+  const hlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hl = (k: string) => (highlight.has(k) ? ' nt-filled' : '');
+
+  function pickCategory(c: string) { setCategory(c); setSubType(''); }
+
+  async function draft() {
+    const t = thread.trim();
+    if (!t) { toast('Paste an email thread first.'); return; }
+    setDrafting(true); setDraftError('');
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Session expired — please sign in again.');
+      const r = await fetch('/api/draft-ticket', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ thread: t }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.ok) throw new Error(data.error || ('HTTP ' + r.status));
+      const d = data.draft as Record<string, string>;
+      const filled = new Set<string>();
+      const apply = (key: string, val: string, fn: (v: string) => void) => { if (val && val.trim()) { fn(val.trim()); filled.add(key); } };
+      apply('subject', d.subject, setSubject);
+      apply('name', d.requester_name, setName);
+      apply('email', d.requester_email, setEmail);
+      apply('dept', d.department, setDept);
+      apply('affected', d.affected_user, setAffected);
+      apply('desc', d.description, setDesc);
+      apply('category', d.category, setCategory);
+      apply('subType', d.sub_type, setSubType);
+      apply('priority', d.priority, setPriority);
+      setDrafted(true);
+      setHighlight(filled);
+      if (hlTimer.current) clearTimeout(hlTimer.current);
+      hlTimer.current = setTimeout(() => setHighlight(new Set()), 1800);
+    } catch (err) {
+      // A failed draft must never block manual entry — just surface a note.
+      setDraftError((err as Error).message || 'Draft failed — please fill the form manually.');
+    } finally {
+      setDrafting(false);
+    }
+  }
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -48,6 +95,7 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
     if (!name.trim()) { toast('Requester name is required.'); return; }
     if (!e || !e.includes('@')) { toast('A valid requester email is required.'); return; }
     if (!ALLOWED_DOMAINS.includes((e.split('@')[1] || '').toLowerCase())) { toast('Use an HDS email — @homedelivery.com.au or @hdsau.com.'); return; }
+    if (!category) { toast('Pick a category.'); return; }
 
     setBusy(true);
     try {
@@ -59,6 +107,8 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
         body: JSON.stringify({
           subject: subject.trim(), requesterName: name.trim(), requesterEmail: e, category, subType,
           department: dept, affectedUser: affected.trim(), priority, description: desc.trim(), status, assignedTo: assign, notify,
+          // Keep the pasted thread (if any) as the ticket's first internal note.
+          sourceThread: thread.trim() || undefined,
         }),
       });
       const data = await r.json().catch(() => ({}));
@@ -89,30 +139,54 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
         </div>
 
         <div className="nt-body">
+          {/* AI assist — paste a thread, Claude drafts the fields (never creates) */}
+          <div className="nt-draft">
+            <div className="nt-draft-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>
+              Draft from email
+            </div>
+            <textarea className="nt-input" value={thread} onChange={(e) => setThread(e.target.value)} placeholder="Paste the full email thread here, then click Draft from email — the fields below fill in as editable suggestions." />
+            <div className="nt-draft-actions">
+              <button type="button" className="btn-draft" onClick={draft} disabled={drafting || !thread.trim()}>
+                {drafting
+                  ? 'Reading thread…'
+                  : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg> Draft from email</>}
+              </button>
+              {draftError && <span className="nt-draft-err">{draftError}</span>}
+            </div>
+          </div>
+
+          {drafted && (
+            <div className="nt-draft-banner">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+              Drafted from the email — review and edit every field before creating. Nothing is saved until you click Create.
+            </div>
+          )}
+
           <div className="nt-field">
             <label className="nt-label">Subject <span className="req">*</span></label>
-            <input className="nt-input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="One-line summary of the request" autoFocus />
+            <input className={'nt-input' + hl('subject')} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="One-line summary of the request" autoFocus />
           </div>
 
           <div className="nt-group">
             <div className="nt-group-label">Requester</div>
             <div className="nt-field">
               <label className="nt-label">Name <span className="req">*</span></label>
-              <input className="nt-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jase Paul" autoComplete="off" />
+              <input className={'nt-input' + hl('name')} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jase Paul" autoComplete="off" />
             </div>
             <div className="nt-field">
               <label className="nt-label">Email <span className="req">*</span></label>
-              <input className="nt-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="off" />
+              <input className={'nt-input' + hl('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="off" />
               <div className="nt-hint">Use the requester&apos;s HDS work email (@homedelivery.com.au or @hdsau.com).</div>
             </div>
             <div className="nt-row-2">
               <div className="nt-field">
                 <label className="nt-label">Department</label>
-                <select className="nt-input" value={dept} onChange={(e) => setDept(e.target.value)}><option value="">Select…</option>{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</select>
+                <select className={'nt-input' + hl('dept')} value={dept} onChange={(e) => setDept(e.target.value)}><option value="">—</option>{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</select>
               </div>
               <div className="nt-field">
                 <label className="nt-label">Affected user</label>
-                <input className="nt-input" value={affected} onChange={(e) => setAffected(e.target.value)} placeholder="If different" />
+                <input className={'nt-input' + hl('affected')} value={affected} onChange={(e) => setAffected(e.target.value)} placeholder="If different" />
               </div>
             </div>
           </div>
@@ -120,7 +194,7 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
           <div className="nt-group">
             <div className="nt-group-label">Description</div>
             <div className="nt-field">
-              <textarea className="nt-input" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What's the issue or request? Paste any relevant context here." />
+              <textarea className={'nt-input' + hl('desc')} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What's the issue or request? Paste any relevant context here." />
             </div>
             <button type="button" className="nt-btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '7px 12px' }} onClick={() => fileRef.current?.click()}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg> Attach images
@@ -133,16 +207,16 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
             <div className="nt-group-label">Classification</div>
             <div className="nt-field">
               <label className="nt-label">Category <span className="req">*</span></label>
-              <select className="nt-input" value={category} onChange={(e) => pickCategory(e.target.value)}>{Object.entries(CAT_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+              <select className={'nt-input' + hl('category')} value={category} onChange={(e) => pickCategory(e.target.value)}><option value="">—</option>{Object.entries(CAT_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
             </div>
             <div className="nt-row-2">
               <div className="nt-field">
                 <label className="nt-label">Sub-type</label>
-                <select className="nt-input" value={subType} onChange={(e) => setSubType(e.target.value)}>{(SUB_TYPES[category] || []).map(s => <option key={s}>{s}</option>)}</select>
+                <select className={'nt-input' + hl('subType')} value={subType} onChange={(e) => setSubType(e.target.value)}><option value="">—</option>{(SUB_TYPES[category] || []).map(s => <option key={s}>{s}</option>)}</select>
               </div>
               <div className="nt-field">
                 <label className="nt-label">Priority</label>
-                <select className="nt-input" value={priority} onChange={(e) => setPriority(e.target.value)}>{['low', 'medium', 'high', 'urgent'].map(p => <option key={p} value={p}>{PRI_LABEL[p]}</option>)}</select>
+                <select className={'nt-input' + hl('priority')} value={priority} onChange={(e) => setPriority(e.target.value)}><option value="">—</option>{['low', 'medium', 'high', 'urgent'].map(p => <option key={p} value={p}>{PRI_LABEL[p]}</option>)}</select>
               </div>
             </div>
           </div>
