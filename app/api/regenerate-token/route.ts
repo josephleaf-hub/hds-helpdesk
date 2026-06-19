@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-import { getSiteUrl } from '@/lib/site';
+import { siteUrl } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,7 +13,7 @@ const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];
 
 export async function POST(req: NextRequest) {
   const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const SITE_URL = getSiteUrl();
+  const SITE_URL = siteUrl(req);
   const EMAIL_FROM = process.env.EMAIL_FROM || 'helpdesk@homedelivery.com.au';
 
   // Determine the email: authenticated session first, else request body.

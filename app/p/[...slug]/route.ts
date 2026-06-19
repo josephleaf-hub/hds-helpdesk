@@ -4,13 +4,13 @@
    Token never logged in full (last 4 only). */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getSiteUrl } from '@/lib/site';
+import { siteUrl } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest, { params }: { params: { slug?: string[] } }) {
-  const SITE_URL = getSiteUrl();
+export async function GET(req: NextRequest, { params }: { params: { slug?: string[] } }) {
+  const SITE_URL = siteUrl(req);
   const fail = () => NextResponse.redirect(`${SITE_URL}/?signin=expired`, 302);
 
   const slug = params.slug || [];

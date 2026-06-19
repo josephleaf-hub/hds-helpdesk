@@ -1,12 +1,14 @@
+import type { NextRequest } from 'next/server';
+
 /**
- * Canonical site origin for server routes (magic-link redirects, portal links).
- * On Netlify, DEPLOY_PRIME_URL is the branch/preview URL and URL is the prod
- * custom domain — so links are correct on both the preview and production.
+ * Site origin for server routes (magic-link redirects, portal links), derived
+ * from the INCOMING REQUEST so links always point at the host the user is
+ * actually on — preview or prod. (Netlify's DEPLOY_PRIME_URL/URL env vars are
+ * unreliable at function runtime and resolved to prod, so we don't use them.)
  */
-export function getSiteUrl(): string {
-  return (
-    process.env.DEPLOY_PRIME_URL ||
-    process.env.URL ||
-    'https://it-helpdesk.hdsaus.com.au'
-  );
+export function siteUrl(req: NextRequest): string {
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+  const proto = req.headers.get('x-forwarded-proto') || 'https';
+  if (host) return `${proto}://${host}`;
+  return 'https://it-helpdesk.hdsaus.com.au';
 }
