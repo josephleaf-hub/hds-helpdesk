@@ -1,0 +1,23 @@
+import type { Metadata } from 'next';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'IT Helpdesk — HDS',
+  icons: {
+    icon: 'https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/6a3381fcf9e5913feceb1d64_It%20SUpport%20App-favicon.png',
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
