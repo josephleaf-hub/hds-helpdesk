@@ -587,9 +587,11 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 /* ── NEW TICKET MODAL (admin raises a ticket on behalf of a requester) ──
    Namespaced nt-* so it never collides with the edit modal / shared form
    components. Ported from admin-new-ticket-modal.html. */
-.nt-overlay { display: none; position: fixed; inset: 0; background: rgba(15,28,46,0.45); z-index: 1200; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+.nt-overlay { display: none; position: fixed; inset: 0; background: rgba(15,28,46,0.45); z-index: 1200; padding: 20px; overflow-y: auto; }
 .nt-overlay.open { display: flex; }
-.nt-modal { background: #FFFFFF; border-radius: 20px; width: 100%; max-width: 780px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); overflow: hidden; }
+/* margin:auto centres it both ways; when the modal is taller than the viewport
+   the top stays reachable and the overlay scrolls (avoids flex-centering clip). */
+.nt-modal { background: #FFFFFF; border-radius: 20px; width: 100%; max-width: 780px; margin: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); overflow: hidden; }
 .nt-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 24px 18px; border-bottom: 1px solid #E2E8EF; }
 .nt-title { font-size: 18px; font-weight: 600; color: #0F1C2E; letter-spacing: -0.01em; }
 .nt-sub { font-size: 13px; color: #6B7280; margin-top: 3px; }
