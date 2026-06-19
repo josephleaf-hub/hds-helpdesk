@@ -753,4 +753,77 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
     @media (max-width: 768px) {
       .overview-row { grid-template-columns: 1fr; }
     }
+
+/* ═══════════════════════════════════════════════
+   PORTAL-SPECIFIC (ported from index.html <style>)
+   ═══════════════════════════════════════════════ */
+.loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.auth-card { background: var(--bg-surface); border-radius: 20px; box-shadow: var(--shadow-card); padding: 36px 32px; width: 100%; max-width: 420px; text-align: center; }
+.auth-logo { height: 34px; margin-bottom: 22px; }
+.auth-title { font-size: 20px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; letter-spacing: -0.02em; }
+.auth-sub { font-size: 13px; color: var(--caption); margin-bottom: 22px; line-height: 1.5; }
+.auth-card .input { text-align: left; margin-bottom: 16px; }
+.auth-err { color: var(--error); font-size: 12px; margin: -4px 0 12px; text-align: left; }
+.auth-err:empty { display: none; }
+.auth-check-icon { color: var(--success); margin-bottom: 14px; }
+
+.user-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--text-1); }
+
+.portal-hero { background: #EEF4FF; border-radius: 20px; padding: 20px 24px 20px 28px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; overflow: hidden; }
+.portal-hero::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--blue); border-radius: 10px 0 0 10px; }
+.portal-hero-title { font-size: 17px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
+.portal-hero-sub { font-size: 13px; color: var(--caption); margin-top: 4px; }
+.portal-hero-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
+#requestDetails { margin-top: 20px; }
+.cat-card { background: #F3F4F6; border: 2px solid transparent; border-radius: 14px; padding: 16px 12px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.cat-card:hover { border-color: var(--blue); background: #F7FAFF; }
+.cat-card.selected { border-color: var(--blue); background: var(--blue-pale); }
+.cat-label { font-size: 12px; font-weight: 600; color: var(--text-1); line-height: 1.3; margin-top: 8px; }
+
+.portal-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 32px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.pt-title { font-size: 18px; font-weight: 600; color: var(--text-1); letter-spacing: -0.01em; }
+.pt-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.pt-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.pt-logo { height: 32px; width: auto; display: block; }
+.portal-shell .page-content { padding-top: 36px; }
+
+#detailView, #submitView { max-width: 1180px; margin: 0 auto; }
+.detail-back { margin: 0 0 14px -10px; }
+.detail-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.detail-topbar .detail-back { margin: 0 0 0 -10px; }
+.dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
+.dh-meta { font-size: 12px; color: var(--caption); margin-top: 4px; }
+.detail-statusrow { display: flex; gap: 40px; flex-wrap: wrap; }
+.detail-grid2 { display: grid; grid-template-columns: 36fr 64fr; gap: 24px; align-items: start; }
+.detail-left, .detail-right { min-width: 0; }
+.detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
+.detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 20px 24px; }
+.portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 18px 24px; }
+.portal-composer textarea { width: 100%; min-height: 90px; padding: 10px 12px; font-size: 13px; font-family: inherit; background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px; resize: vertical; color: var(--text-1); }
+.composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
+@media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
+
+@media (max-width: 768px) {
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .portal-hero { padding: 18px 20px; flex-direction: column; align-items: stretch; }
+  .portal-hero-actions { width: 100%; }
+  .portal-hero .btn-primary, .portal-hero-actions .btn-secondary { flex: 1; justify-content: center; }
+  .user-pill { max-width: 62vw; }
+  .user-pill .pt-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #ticketList thead { display: none; }
+  #ticketList table { min-width: 0; }
+  #ticketList tbody tr { display: block; cursor: pointer; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; padding: 6px 14px; }
+  #ticketList td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: none; font-size: 13px; white-space: normal; }
+  #ticketList td::before { content: attr(data-label); font-weight: 700; color: var(--caption); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+  #ticketList td:first-child { color: var(--blue); font-weight: 700; }
+  .detail-card, .detail-conv, .portal-composer, .resolved-notice { padding-left: 16px; padding-right: 16px; }
+  .portal-topbar { padding: 12px 16px; gap: 10px; }
+  .pt-right { gap: 10px; }
+  .portal-shell .page-content { padding-top: 24px; }
+}
+@media (max-width: 400px) { .cat-grid { grid-template-columns: 1fr; } }
   
