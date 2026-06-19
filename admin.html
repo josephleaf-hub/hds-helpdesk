@@ -184,76 +184,75 @@
         <input class="nt-input" id="ntSubject" placeholder="One-line summary of the request" />
       </div>
 
-      <div class="nt-cols">
-        <!-- LEFT -->
-        <div>
-          <div class="nt-group">
-            <div class="nt-group-label">Requester</div>
-            <div class="nt-field">
-              <label class="nt-label">Name <span class="req">*</span></label>
-              <input class="nt-input" id="ntName" placeholder="e.g. Jase Paul" autocomplete="off" />
-            </div>
-            <div class="nt-field">
-              <label class="nt-label">Email <span class="req">*</span></label>
-              <input class="nt-input" id="ntEmail" type="email" placeholder="name@homedelivery.com.au" autocomplete="off" />
-            </div>
-            <div class="nt-row-2">
-              <div class="nt-field">
-                <label class="nt-label">Department</label>
-                <select class="nt-input" id="ntDept"></select>
-              </div>
-              <div class="nt-field">
-                <label class="nt-label">Affected user</label>
-                <input class="nt-input" id="ntAffected" placeholder="If different" />
-              </div>
-            </div>
+      <!-- Requester -->
+      <div class="nt-group">
+        <div class="nt-group-label">Requester</div>
+        <div class="nt-field">
+          <label class="nt-label">Name <span class="req">*</span></label>
+          <input class="nt-input" id="ntName" placeholder="e.g. Jase Paul" autocomplete="off" />
+        </div>
+        <div class="nt-field">
+          <label class="nt-label">Email <span class="req">*</span></label>
+          <input class="nt-input" id="ntEmail" type="email" placeholder="name@homedelivery.com.au" autocomplete="off" />
+        </div>
+        <div class="nt-row-2">
+          <div class="nt-field">
+            <label class="nt-label">Department</label>
+            <select class="nt-input" id="ntDept"></select>
           </div>
-
-          <div class="nt-group">
-            <div class="nt-group-label">Description</div>
-            <div class="nt-field" style="margin-bottom:0;">
-              <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
-            </div>
+          <div class="nt-field">
+            <label class="nt-label">Affected user</label>
+            <input class="nt-input" id="ntAffected" placeholder="If different" />
           </div>
         </div>
+      </div>
 
-        <!-- RIGHT -->
-        <div class="nt-group nt-right">
-          <div class="nt-group-label">Classification</div>
+      <!-- Classification -->
+      <div class="nt-group">
+        <div class="nt-group-label">Classification</div>
+        <div class="nt-field">
+          <label class="nt-label">Category <span class="req">*</span></label>
+          <select class="nt-input" id="ntCategory" onchange="populateNtSubTypes()"></select>
+        </div>
+        <div class="nt-row-2">
           <div class="nt-field">
-            <label class="nt-label">Category <span class="req">*</span></label>
-            <select class="nt-input" id="ntCategory" onchange="populateNtSubTypes()"></select>
+            <label class="nt-label">Sub-type</label>
+            <select class="nt-input" id="ntSubType"></select>
           </div>
-          <div class="nt-row-2">
-            <div class="nt-field">
-              <label class="nt-label">Sub-type</label>
-              <select class="nt-input" id="ntSubType"></select>
-            </div>
-            <div class="nt-field">
-              <label class="nt-label">Priority</label>
-              <select class="nt-input" id="ntPriority"></select>
-            </div>
+          <div class="nt-field">
+            <label class="nt-label">Priority</label>
+            <select class="nt-input" id="ntPriority"></select>
           </div>
+        </div>
+      </div>
 
-          <div class="nt-group-label" style="margin-top:20px;">Handling</div>
-          <div class="nt-row-2">
-            <div class="nt-field">
-              <label class="nt-label">Assign to</label>
-              <select class="nt-input" id="ntAssign"></select>
-            </div>
-            <div class="nt-field">
-              <label class="nt-label">Initial status</label>
-              <select class="nt-input" id="ntStatus"></select>
-            </div>
+      <!-- Handling -->
+      <div class="nt-group">
+        <div class="nt-group-label">Handling</div>
+        <div class="nt-row-2">
+          <div class="nt-field">
+            <label class="nt-label">Assign to</label>
+            <select class="nt-input" id="ntAssign"></select>
           </div>
+          <div class="nt-field">
+            <label class="nt-label">Initial status</label>
+            <select class="nt-input" id="ntStatus"></select>
+          </div>
+        </div>
+        <div class="nt-notify">
+          <div class="nt-notify-head">
+            <span class="nt-notify-label">Notify requester</span>
+            <button type="button" class="nt-toggle on" id="ntNotifyToggle" onclick="toggleNtNotify()" aria-label="Toggle notify"></button>
+          </div>
+          <div class="nt-notify-help" id="ntNotifyHelp"></div>
+        </div>
+      </div>
 
-          <div class="nt-notify">
-            <div class="nt-notify-head">
-              <span class="nt-notify-label">Notify requester</span>
-              <button type="button" class="nt-toggle on" id="ntNotifyToggle" onclick="toggleNtNotify()" aria-label="Toggle notify"></button>
-            </div>
-            <div class="nt-notify-help" id="ntNotifyHelp"></div>
-          </div>
+      <!-- Description -->
+      <div class="nt-group">
+        <div class="nt-group-label">Description</div>
+        <div class="nt-field" style="margin-bottom:0;">
+          <textarea class="nt-input" id="ntDesc" placeholder="What's the issue or request? Paste any relevant context here."></textarea>
         </div>
       </div>
     </div>
