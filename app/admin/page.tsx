@@ -116,10 +116,8 @@ export default function AdminPage() {
         if (cmp !== 0) return sortDir === 'desc' ? -cmp : cmp;
         return +new Date(b.created_at) - +new Date(a.created_at);
       }
-      const sd = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
-      if (sd !== 0) return sd;
-      const pd = (PRI_ORDER[a.priority] ?? 99) - (PRI_ORDER[b.priority] ?? 99);
-      if (pd !== 0) return pd;
+      // Default order: most recently submitted first. The table no longer
+      // reshuffles by status/priority — click a column header to re-sort.
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
   }, [allTickets, search, fStatus, fCat, fPri, fAssign, showArchived, sortKey, sortDir]);
