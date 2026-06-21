@@ -14,7 +14,7 @@ import type { Ticket, Note, AttachMap } from '@/lib/types';
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
 type Tab = 'reply' | 'internal' | 'log';
 
-const ST_CLS: Record<string, string> = { open: 'b-open', 'in-progress': 'b-progress', 'waiting-on-requester': 'b-waiting', 'waiting-on-admin': 'b-hold', 'on-hold': 'b-hold', resolved: 'b-resolved', closed: 'b-closed' };
+const ST_CLS: Record<string, string> = { new: 'b-new', 'in-progress': 'b-progress', 'waiting-on-requester': 'b-waiting', 'waiting-on-admin': 'b-hold', 'on-hold': 'b-hold', resolved: 'b-resolved', closed: 'b-closed' };
 const PR_CLS: Record<string, string> = { low: 'b-low', medium: 'b-medium', high: 'b-high', urgent: 'b-urgent' };
 const Chev = () => <svg className="chev ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>;
 const SendIco = () => <svg className="ico" width="13" height="13" viewBox="0 0 24 24"><polyline points="22 2 15 22 11 13 2 9 22 2" /></svg>;

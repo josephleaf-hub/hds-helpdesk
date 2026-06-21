@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { error: insertError } = await supabase.from('tickets').insert([{
     id: ticketId, category, sub_type: subType, priority, subject, description,
     requester_name: requesterName, requester_email: emailNorm, department,
-    location: location || null, affected_user: affectedUser || null, status: 'open',
+    location: location || null, affected_user: affectedUser || null, status: 'new',
   }]);
   if (insertError) {
     console.error('Insert error:', insertError);

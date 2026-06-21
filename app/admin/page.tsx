@@ -128,10 +128,10 @@ export default function AdminPage() {
   const kpi = useMemo(() => {
     const A = allTickets.filter(t => !t.deleted_at);
     return {
-      open: A.filter(t => t.status === 'open').length,
+      newCount: A.filter(t => t.status === 'new').length,
       prog: A.filter(t => t.status === 'in-progress').length,
       hold: A.filter(t => t.status === 'on-hold').length,
-      hiUrg: A.filter(t => ['urgent', 'high'].includes(t.priority) && ['open', 'in-progress'].includes(t.status)).length,
+      hiUrg: A.filter(t => ['urgent', 'high'].includes(t.priority) && ['new', 'in-progress'].includes(t.status)).length,
       done: A.filter(t => ['resolved', 'closed'].includes(t.status)).length,
     };
   }, [allTickets]);
@@ -215,7 +215,7 @@ export default function AdminPage() {
         <div className="page-content">
           <div className="kpi-wrap">
             <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-              <div className="kpi-card hds"><div className="kpi-lbl">Open</div><div className="kpi-val">{kpi.open}</div><div className="kpi-sub">Awaiting action</div></div>
+              <div className="kpi-card hds"><div className="kpi-lbl">New</div><div className="kpi-val">{kpi.newCount}</div><div className="kpi-sub">Awaiting action</div></div>
               <div className="kpi-card wrn"><div className="kpi-lbl">In Progress</div><div className="kpi-val">{kpi.prog}</div><div className="kpi-sub">Being worked on</div></div>
               <div className="kpi-card"><div className="kpi-lbl">On Hold</div><div className="kpi-val" style={{ color: '#4A5568' }}>{kpi.hold}</div><div className="kpi-sub">Awaiting info</div></div>
               <div className="kpi-card err"><div className="kpi-lbl">High / Urgent</div><div className="kpi-val">{kpi.hiUrg}</div><div className="kpi-sub">Active escalations</div></div>
@@ -227,7 +227,7 @@ export default function AdminPage() {
             <span className="filter-lbl">Filter:</span>
             <input className="input" type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tickets…" style={{ minWidth: 180 }} />
             <select className="input" value={fStatus} onChange={(e) => setFStatus(e.target.value)} style={{ width: 130 }}>
-              <option value="">All Statuses</option><option value="open">Open</option><option value="in-progress">In Progress</option><option value="waiting-on-admin">Waiting on Admin</option><option value="waiting-on-requester">Waiting on Requester</option><option value="on-hold">On Hold</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
+              <option value="">All Statuses</option><option value="new">New</option><option value="in-progress">In Progress</option><option value="waiting-on-admin">Waiting on Admin</option><option value="waiting-on-requester">Waiting on Requester</option><option value="on-hold">On Hold</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
             </select>
             <select className="input" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: 150 }}>
               <option value="">All Categories</option><option value="access">Access Request</option><option value="hardware">Hardware</option><option value="account">Account Setup</option><option value="support">IT Support</option>

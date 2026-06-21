@@ -1,7 +1,7 @@
 import { STATUS_LABEL, PRI_LABEL } from '@/lib/constants';
 
 const STATUS_CLS: Record<string, string> = {
-  open: 'b-open', 'in-progress': 'b-progress', 'waiting-on-admin': 'b-waiting-admin',
+  new: 'b-new', 'in-progress': 'b-progress', 'waiting-on-admin': 'b-waiting-admin',
   'waiting-on-requester': 'b-waiting', 'on-hold': 'b-hold', resolved: 'b-resolved', closed: 'b-closed',
 };
 const PRI_CLS: Record<string, string> = { low: 'b-low', medium: 'b-medium', high: 'b-high', urgent: 'b-urgent' };

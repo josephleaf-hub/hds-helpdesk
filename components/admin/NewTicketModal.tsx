@@ -8,7 +8,7 @@ import { useToast } from '@/components/Toast';
 
 const NOTIFY_ON = 'Requester gets a secure link to view and reply in the portal. The conversation moves onto the platform.';
 const NOTIFY_OFF = 'No email sent — logged internally only. Use this for issues you’ve already handled or are tracking yourself.';
-const NT_STATUS: [string, string][] = [['open', 'Open'], ['in-progress', 'In Progress'], ['on-hold', 'On Hold'], ['resolved', 'Resolved']];
+const NT_STATUS: [string, string][] = [['new', 'New'], ['in-progress', 'In Progress'], ['on-hold', 'On Hold'], ['resolved', 'Resolved']];
 
 export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onReload: () => Promise<void> }) {
   const toast = useToast();

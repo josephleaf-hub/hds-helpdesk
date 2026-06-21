@@ -1,5 +1,5 @@
 export type TicketStatus =
-  | 'open' | 'in-progress' | 'waiting-on-admin' | 'waiting-on-requester' | 'on-hold' | 'resolved' | 'closed';
+  | 'new' | 'in-progress' | 'waiting-on-admin' | 'waiting-on-requester' | 'on-hold' | 'resolved' | 'closed';
 export type NoteType = 'outbound' | 'inbound' | 'internal';
 
 export interface Note {

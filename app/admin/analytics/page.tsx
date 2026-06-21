@@ -19,7 +19,7 @@ const baseScales = {
 } as const;
 const tooltip = { backgroundColor: '#0F1C2E', titleFont: { ...chartFont, weight: 600 as const, size: 12 }, bodyFont: chartFont, padding: 10, cornerRadius: 6 };
 
-const ACTIVE = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold'];
+const ACTIVE = ['new', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold'];
 const ms = (s: string) => new Date(s).getTime();
 
 export default function AnalyticsPage() {
@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
   const total = tickets.length;
   const now = Date.now();
   const active = tickets.filter(t => ACTIVE.includes(t.status));
-  const awaitIT = tickets.filter(t => ['open', 'in-progress', 'waiting-on-admin'].includes(t.status)).length;
+  const awaitIT = tickets.filter(t => ['new', 'in-progress', 'waiting-on-admin'].includes(t.status)).length;
   const awaitReq = tickets.filter(t => t.status === 'waiting-on-requester').length;
   const onHold = tickets.filter(t => t.status === 'on-hold').length;
   const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
@@ -279,8 +279,8 @@ const Charts = {
   },
   Status({ refEl, tickets }: { refEl: React.RefObject<HTMLCanvasElement>; tickets: ARow[] }) {
     return useChart(refEl, () => {
-      const order = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
-      const colors: Record<string, string> = { 'open': '#1C64F2', 'in-progress': '#93AEED', 'waiting-on-admin': '#6D28D9', 'waiting-on-requester': '#B45309', 'on-hold': '#8A97A8', 'resolved': '#2E7D52', 'closed': '#0D1B2E' };
+      const order = ['new', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
+      const colors: Record<string, string> = { 'new': '#1C64F2', 'in-progress': '#93AEED', 'waiting-on-admin': '#6D28D9', 'waiting-on-requester': '#B45309', 'on-hold': '#8A97A8', 'resolved': '#2E7D52', 'closed': '#0D1B2E' };
       const counts: Record<string, number> = {}; order.forEach(s => counts[s] = 0);
       tickets.forEach(t => { if (counts[t.status] != null) counts[t.status]++; });
       return new Chart(refEl.current!, {

@@ -10,7 +10,7 @@ import { siteUrl } from '@/lib/site';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const VALID_STATUSES = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
+const VALID_STATUSES = ['new', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
 const VALID_CATEGORIES = ['access', 'hardware', 'account', 'support'];
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const ALLOWED_DOMAINS = ['homedelivery.com.au', 'hdsau.com'];

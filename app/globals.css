@@ -312,7 +312,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
   padding: 3px 10px; border-radius: 10px;
   font-size: 12px; font-weight: 600; white-space: nowrap;
 }
-.b-open     { background: #EBF2FF; color: #1C64F2; }
+.b-new      { background: #EBF2FF; color: #1C64F2; }
 .b-progress { background: #FEF3C7; color: #B45309; }
 .b-waiting  { background: #FFF3EF; color: #C24824; }
 .b-waiting-admin { background: #6D28D9; color: #fff; font-weight: 600; }

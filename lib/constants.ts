@@ -5,7 +5,7 @@ export const CAT_LABEL: Record<string, string> = {
 };
 
 export const STATUS_LABEL: Record<string, string> = {
-  open: 'Open', 'in-progress': 'In Progress', 'waiting-on-admin': 'Waiting on Admin',
+  new: 'New', 'in-progress': 'In Progress', 'waiting-on-admin': 'Waiting on Admin',
   'waiting-on-requester': 'Waiting on Requester', 'on-hold': 'On Hold', resolved: 'Resolved', closed: 'Closed',
 };
 
@@ -30,7 +30,7 @@ export const SUB_TYPES: Record<string, string[]> = {
 };
 
 export const STATUS_ORDER: Record<string, number> = {
-  open: 0, 'in-progress': 1, 'waiting-on-admin': 2, 'waiting-on-requester': 3, 'on-hold': 4, resolved: 5, closed: 6,
+  new: 0, 'in-progress': 1, 'waiting-on-admin': 2, 'waiting-on-requester': 3, 'on-hold': 4, resolved: 5, closed: 6,
 };
 export const PRI_ORDER: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
 

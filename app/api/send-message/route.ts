@@ -9,7 +9,7 @@ import { siteUrl } from '@/lib/site';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const VALID_STATUSES = ['open', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
+const VALID_STATUSES = ['new', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold', 'resolved', 'closed'];
 
 export async function POST(req: NextRequest) {
   const SITE_URL = siteUrl(req);
