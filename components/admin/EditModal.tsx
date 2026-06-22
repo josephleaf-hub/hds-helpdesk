@@ -227,7 +227,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     : tab === 'log' ? 'Logging a reply that came via email — no email will be sent'
     : <>Emailed to <strong>{ticket.requester_email}</strong> with a secure link · they view &amp; respond in the portal</>;
   const sendLabel = busy ? (tab === 'internal' ? 'Saving…' : tab === 'log' ? 'Logging…' : 'Sending…')
-    : tab === 'internal' ? 'Add Internal Note' : tab === 'log' ? 'Log Reply' : <>Send Email Reply <SendIco /></>;
+    : tab === 'internal' ? 'Add Internal Note' : tab === 'log' ? 'Log Reply' : <>Send Reply <SendIco /></>;
   const placeholder = tab === 'internal' ? 'Add an internal note (IT team only)…' : tab === 'log' ? `Paste ${reqFirst}'s emailed reply…` : `Type your reply to ${reqFirst}…`;
 
   // Enter sends; Shift+Enter inserts a newline. Ignore while an IME is composing.
@@ -338,7 +338,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           {attMap['_unlinked']?.length ? (
             <div className="field"><div className="field-label">Submitted photo</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                {attMap['_unlinked'].map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
+                {attMap['_unlinked'].map((a, i) => <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
               </div>
             </div>
           ) : null}
@@ -416,7 +416,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <div className="field">
                     <div className="field-label">Submitted photo</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                      {attMap['_unlinked'].map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
+                      {attMap['_unlinked'].map((a, i) => <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 120, width: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
                     </div>
                   </div>
                 </>) : null}
@@ -448,7 +448,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   {polishPanel}
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
-                    <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>
+                    <button type="button" className="btn-ghost attach-btn" onClick={() => fileRef.current?.click()}><Paperclip /> Attach</button>
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
                       <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, height: 32, padding: '0 10px', fontSize: 12 }}>
@@ -459,7 +459,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                         <option value="resolved">Resolved</option>
                       </select>
                     </div>
-                    <button type="button" className="btn-ghost attach-btn" onClick={() => fileRef.current?.click()}><Paperclip /> Attach</button>
+                    <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>
                     <button className={`btn ${tab === 'internal' ? 'btn-internal' : 'btn-send'}`} onClick={submitComposer} disabled={busy}>{sendLabel}</button>
                   </div>
                   <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />

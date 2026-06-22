@@ -23,7 +23,7 @@ function Thumbs({ list }: { list?: AttachItem[] }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
       {list.map((a, i) => (
-        <img key={i} src={a.url} alt={a.name} title={a.name}
+        <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name}
           onClick={() => lightbox(a.url, a.name)}
           style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />
       ))}
