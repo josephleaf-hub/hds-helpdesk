@@ -809,14 +809,14 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .pt-logo { height: 32px; width: auto; display: block; }
 .portal-shell .page-content { padding-top: 36px; }
 
-#detailView, #submitView { max-width: 1180px; margin: 0 auto; }
+#detailView, #submitView { max-width: 1320px; margin: 0 auto; }
 .detail-back { margin: 0 0 14px -10px; }
 .detail-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .detail-topbar .detail-back { margin: 0 0 0 -10px; }
 .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
 .dh-meta { font-size: 12px; color: var(--caption); margin-top: 4px; }
 .detail-statusrow { display: flex; gap: 40px; flex-wrap: wrap; }
-.detail-grid2 { display: grid; grid-template-columns: 36fr 64fr; gap: 24px; align-items: start; }
+.detail-grid2 { display: grid; grid-template-columns: 42fr 58fr; gap: 24px; align-items: start; }
 .detail-left, .detail-right { min-width: 0; }
 .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
 .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 20px 24px; }
