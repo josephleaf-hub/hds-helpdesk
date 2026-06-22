@@ -9,13 +9,15 @@ const BUCKET = 'ticket-attachments';
 export async function loadAttachmentMap(ticketId: string): Promise<AttachMap> {
   const map: AttachMap = {};
   const { data, error } = await sb.from('ticket_attachments').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
-  if (error || !data) return map;
+  if (error || !data || !data.length) return map;
+  // Sign every URL in a single request (was one round-trip per image → slow).
+  const urlByPath: Record<string, string> = {};
+  try {
+    const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(data.map(a => a.storage_path), 3600);
+    for (const s of signed || []) { if (s.signedUrl && s.path) urlByPath[s.path] = s.signedUrl; }
+  } catch { /* leave unsigned */ }
   for (const a of data) {
-    let url = '';
-    try {
-      const { data: s } = await sb.storage.from(BUCKET).createSignedUrl(a.storage_path, 3600);
-      url = s?.signedUrl || '';
-    } catch { /* skip unsignable */ }
+    const url = urlByPath[a.storage_path];
     if (!url) continue;
     const key = a.note_id || '_unlinked';
     (map[key] = map[key] || []).push({ url, name: a.file_name, mime: a.mime_type });

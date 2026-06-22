@@ -316,7 +316,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .b-new      { background: #EBF2FF; color: #1C64F2; }
 .b-progress { background: #FEF3C7; color: #B45309; }
 .b-waiting  { background: #FFF3EF; color: #C24824; }
-.b-waiting-admin { background: #6D28D9; color: #fff; font-weight: 600; }
+.b-waiting-admin { background: #EFE9FC; color: #6D28D9; }
 .b-hold     { background: #F3F4F6; color: #4A5568; }
 .b-resolved { background: #E8F5EE; color: #2E7D52; }
 .b-closed   { background: #F3F4F6; color: #6B7280; }
@@ -1029,3 +1029,8 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.25s; }
 .thumb-box-load { position: absolute; inset: 0; animation: thumb-pulse 1.4s ease-in-out infinite; }
 .lightbox-spinner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+/* Rows needing attention (admin: new / waiting-on-admin; portal: waiting-on-requester)
+   get a faded-yellow highlight, like an unread row. */
+tr.row-attention { background: #FEF9E7; }
+tr.row-attention:hover { background: #FCF3CF; }

@@ -358,7 +358,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                         <thead><tr><th>Ticket</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Updated</th></tr></thead>
                         <tbody>
                           {tickets.map((t) => (
-                            <tr key={t.id} onClick={() => openTicket(t.id)} style={{ cursor: 'pointer' }}>
+                            <tr key={t.id} onClick={() => openTicket(t.id)} className={t.status === 'waiting-on-requester' ? 'row-attention' : undefined} style={{ cursor: 'pointer' }}>
                               <td data-label="Ticket">{t.id}</td>
                               <td data-label="Subject">{t.subject}</td>
                               <td data-label="Category">{(CAT_LABEL[t.category] || t.category)} — {t.sub_type}</td>

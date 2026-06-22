@@ -215,11 +215,11 @@ export default function AdminPage() {
         <div className="page-content">
           <div className="kpi-wrap">
             <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-              <div className="kpi-card hds"><div className="kpi-lbl">New</div><div className="kpi-val">{kpi.newCount}</div><div className="kpi-sub">Awaiting action</div></div>
-              <div className="kpi-card wrn"><div className="kpi-lbl">In Progress</div><div className="kpi-val">{kpi.prog}</div><div className="kpi-sub">Being worked on</div></div>
-              <div className="kpi-card"><div className="kpi-lbl">On Hold</div><div className="kpi-val" style={{ color: '#4A5568' }}>{kpi.hold}</div><div className="kpi-sub">Awaiting info</div></div>
-              <div className="kpi-card err"><div className="kpi-lbl">High / Urgent</div><div className="kpi-val">{kpi.hiUrg}</div><div className="kpi-sub">Active escalations</div></div>
-              <div className="kpi-card grn"><div className="kpi-lbl">Resolved</div><div className="kpi-val">{kpi.done}</div><div className="kpi-sub">All time</div></div>
+              <div className="kpi-card hds"><div className="kpi-lbl">New</div><div className="kpi-val">{kpi.newCount}</div></div>
+              <div className="kpi-card wrn"><div className="kpi-lbl">In Progress</div><div className="kpi-val">{kpi.prog}</div></div>
+              <div className="kpi-card"><div className="kpi-lbl">On Hold</div><div className="kpi-val" style={{ color: '#4A5568' }}>{kpi.hold}</div></div>
+              <div className="kpi-card err"><div className="kpi-lbl">High / Urgent</div><div className="kpi-val">{kpi.hiUrg}</div></div>
+              <div className="kpi-card grn"><div className="kpi-lbl">Resolved</div><div className="kpi-val">{kpi.done}</div></div>
             </div>
           </div>
 
@@ -267,7 +267,7 @@ export default function AdminPage() {
                   ) : filtered.map(t => {
                     const archived = !!t.deleted_at;
                     return (
-                      <tr key={t.id} onClick={() => setActiveId(t.id)} style={archived ? { opacity: 0.55, cursor: 'pointer' } : { cursor: 'pointer' }}>
+                      <tr key={t.id} onClick={() => setActiveId(t.id)} className={!archived && ['new', 'waiting-on-admin'].includes(t.status) ? 'row-attention' : undefined} style={archived ? { opacity: 0.55, cursor: 'pointer' } : { cursor: 'pointer' }}>
                         <td>{t.id}</td>
                         <td><div className="cell-subject"><span className="cell-ellipsis">{t.subject}</span>{archived && <span className="badge b-closed">Archived</span>}</div></td>
                         <td>{CAT_LABEL[t.category] || t.category}</td>
