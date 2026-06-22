@@ -450,7 +450,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   {polishPanel}
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
-                    <button type="button" className="btn-ghost attach-btn" onClick={() => fileRef.current?.click()}><Paperclip /> Attach</button>
+                    <button type="button" className="btn-secondary" style={{ fontSize: 12, height: 32, padding: '0 14px' }} onClick={() => fileRef.current?.click()}><Paperclip /> Attach</button>
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
                       <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, height: 32, padding: '0 10px', fontSize: 12 }}>
@@ -461,8 +461,8 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                         <option value="resolved">Resolved</option>
                       </select>
                     </div>
-                    <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>
-                    <button className={`btn ${tab === 'internal' ? 'btn-internal' : 'btn-send'}`} onClick={submitComposer} disabled={busy}>{sendLabel}</button>
+                    <button type="button" className="btn-secondary" style={{ fontSize: 12, height: 32, padding: '0 14px' }} onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>
+                    <button className={`btn ${tab === 'internal' ? 'btn-internal' : 'btn-send'}`} style={{ height: 32 }} onClick={submitComposer} disabled={busy}>{sendLabel}</button>
                   </div>
                   <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
                 </div>

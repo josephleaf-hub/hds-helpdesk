@@ -196,12 +196,12 @@ export default function AdminPage() {
       <main className="main main-wide">
         <header className="topbar">
           <div className="topbar-left">
+            <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
+            <div className="logo-divider-line" />
             <div className="topbar-title">{isAdmin ? 'IT Admin Dashboard' : `${user?.department} — My Team's Tickets`}</div>
           </div>
           <div className="topbar-right">
             <UserMenu label={`${user?.full_name} · ${isAdmin ? 'IT Admin' : 'Manager'}`} variant="admin" manager={!isAdmin} redirectTo="/login" />
-            <div className="logo-divider-line" />
-            <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
           </div>
         </header>
 

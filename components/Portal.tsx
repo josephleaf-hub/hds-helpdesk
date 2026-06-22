@@ -325,12 +325,14 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
     <div className="portal-shell">
       <main className="main">
         <header className="portal-topbar">
-          <div className="pt-title">{authed ? 'My IT tickets' : 'IT Helpdesk'}</div>
+          <div className="pt-left">
+            <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="pt-logo" />
+            <div className="pt-divider" />
+            <div className="pt-title">{authed ? 'My IT tickets' : 'IT Helpdesk'}</div>
+          </div>
           <div className="pt-right">
             {!authed && <a href="#" className="btn-secondary" style={{ fontSize: 12 }} onClick={(e) => { e.preventDefault(); setSignInOpen(true); setAuthSent(false); }}>Already have tickets? Sign in →</a>}
             {authed && <UserMenu label={user?.email || ''} variant="portal" />}
-            <div className="pt-divider" />
-            <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="pt-logo" />
           </div>
         </header>
 
@@ -380,7 +382,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
 
           {view === 'submit' && (
             <div id="submitView">
-              {authed && <button className="btn-ghost" style={{ marginBottom: 8 }} onClick={() => setView('list')}>← Back to my tickets</button>}
+              {authed && <button className="btn-secondary" style={{ marginBottom: 8 }} onClick={() => setView('list')}>← Back to my tickets</button>}
               {success ? (
                 <div className="success-panel show">
                   <div className="success-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto', flexShrink: 0, color: '#2E7D52' }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></div>
@@ -404,7 +406,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
             <div id="detailView">
               {!activeTicket ? (
                 detailError
-                  ? <><button className="btn-ghost" style={{ marginBottom: 8 }} onClick={() => setView('list')}>← Back to my tickets</button><div className="empty-state"><div className="empty-text" style={{ color: '#C0392B' }}>{detailError}</div></div></>
+                  ? <><button className="btn-secondary" style={{ marginBottom: 8 }} onClick={() => setView('list')}>← Back to my tickets</button><div className="empty-state"><div className="empty-text" style={{ color: '#C0392B' }}>{detailError}</div></div></>
                   : <div className="spinner" />
               ) : (() => {
                 const t = activeTicket;
@@ -412,7 +414,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                 return (
                   <>
                     <div className="detail-topbar">
-                      <button className="btn-ghost detail-back" onClick={() => { setView('list'); window.history.replaceState(null, '', '/'); }}>← Back to my tickets</button>
+                      <button className="btn-secondary detail-back" onClick={() => { setView('list'); window.history.replaceState(null, '', '/'); }}>← Back to my tickets</button>
                       <button className="btn-secondary" style={{ fontSize: 12 }} onClick={() => openTicket(t.id)} title="Refresh ticket"><RefreshIcon />Refresh</button>
                     </div>
                     <div className="detail-grid2">
