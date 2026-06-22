@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
   const hasDept = Object.keys(deptCounts).length > 0;
 
   return (
-    <main className="main main-wide">
+    <main className="main analytics-main">
       <header className="topbar">
         <div className="topbar-left">
           <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />

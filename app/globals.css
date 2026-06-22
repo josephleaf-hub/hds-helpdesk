@@ -63,8 +63,10 @@ body {
   margin: 0 auto;
   width: 100%;
 }
-/* Admin + analytics use the full screen width (portal keeps the 1800 cap). */
+/* Admin uses the full screen width (portal keeps the 1800 cap). */
 .main-wide { max-width: none; }
+/* Analytics caps narrower so the charts don't stretch too wide. */
+.analytics-main { max-width: 1600px; }
 
 /* ── TOPBAR ───────────────────────────────────── */
 .topbar {
