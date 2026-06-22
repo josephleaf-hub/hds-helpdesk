@@ -193,7 +193,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 
   const composeMeta = tab === 'internal' ? 'Visible to IT team only — does not email the requester'
     : tab === 'log' ? 'Logging a reply that came via email — no email will be sent'
-    : <>Email sent from <strong>helpdesk@homedelivery.com.au</strong> to <strong>{ticket.requester_email}</strong> · they can reply directly to it</>;
+    : <>Emailed to <strong>{ticket.requester_email}</strong> with a secure link · they view &amp; respond in the portal</>;
   const sendLabel = busy ? (tab === 'internal' ? 'Saving…' : tab === 'log' ? 'Logging…' : 'Sending…')
     : tab === 'internal' ? 'Add Internal Note' : tab === 'log' ? 'Log Reply' : <>Send Email Reply <SendIco /></>;
   const placeholder = tab === 'internal' ? 'Add an internal note (IT team only)…' : tab === 'log' ? `Paste ${reqFirst}'s emailed reply…` : `Type your reply to ${reqFirst}…`;
@@ -293,7 +293,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <div className="compose-actions">
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
-                      <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, padding: '6px 10px', fontSize: 12 }}>
+                      <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, height: 32, padding: '0 10px', fontSize: 12 }}>
                         <option value="">No change</option>
                         <option value="waiting-on-requester">On requester</option>
                         <option value="waiting-on-admin">On me</option>
