@@ -6,6 +6,7 @@ import { CAT_LABEL, STATUS_ORDER, PRI_ORDER } from '@/lib/constants';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { FloatingMenu } from '@/components/admin/FloatingMenu';
+import { UserMenu } from '@/components/UserMenu';
 import { EditModal } from '@/components/admin/EditModal';
 import { NewTicketModal } from '@/components/admin/NewTicketModal';
 import { useToast } from '@/components/Toast';
@@ -58,7 +59,6 @@ export default function AdminPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [rowMenu, setRowMenu] = useState<{ id: string; rect: DOMRect } | null>(null);
-  const [userMenu, setUserMenu] = useState<DOMRect | null>(null);
 
   const activeRef = useRef<string | null>(null); activeRef.current = activeId;
   const userRef = useRef<AdminUser | null>(null); userRef.current = user;
@@ -96,7 +96,6 @@ export default function AdminPage() {
     setAllTickets(list => list.map(t => t.id === id ? { ...t, ...partial } : t));
   }
 
-  async function signOut() { await sb.auth.signOut(); window.location.href = '/login'; }
 
   function sortBy(key: string) {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -192,11 +191,7 @@ export default function AdminPage() {
             <div className="topbar-meta">{isAdmin ? 'All tickets across the business' : `Manager view — ${user?.department} department`}</div>
           </div>
           <div className="topbar-right">
-            <div className="admin-user-pill" style={{ cursor: 'pointer' }} onClick={(e) => setUserMenu(m => m ? null : e.currentTarget.getBoundingClientRect())}>
-              <span className={`admin-role-dot${isAdmin ? '' : ' mgr'}`} />
-              <span>{user?.full_name} · {isAdmin ? 'IT Admin' : 'Manager'}</span>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 2, color: '#8A97A8' }}><polyline points="6 9 12 15 18 9" /></svg>
-            </div>
+            <UserMenu label={`${user?.full_name} · ${isAdmin ? 'IT Admin' : 'Manager'}`} variant="admin" manager={!isAdmin} redirectTo="/login" />
             <div className="logo-divider-line" />
             <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
           </div>
@@ -317,9 +312,6 @@ export default function AdminPage() {
             ? { label: 'Restore ticket', color: 'var(--blue)', onClick: () => archiveFromRow(t.id) }
             : { label: 'Archive ticket', color: '#C0392B', onClick: () => archiveFromRow(t.id) }]} />;
       })()}
-
-      {userMenu && <FloatingMenu rect={userMenu} minWidth={150} align="right" onClose={() => setUserMenu(null)}
-        items={[{ label: 'Sign out', color: '#C0392B', onClick: () => { setUserMenu(null); signOut(); } }]} />}
 
       {activeTicket && user && <EditModal ticket={activeTicket} user={user} onClose={() => setActiveId(null)} onReload={() => loadTickets(true)} patchTicket={patchTicket} />}
       {newOpen && <NewTicketModal onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}

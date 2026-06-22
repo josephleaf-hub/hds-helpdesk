@@ -11,6 +11,7 @@ import { Conversation } from '@/components/Conversation';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import { useLightbox } from '@/components/Lightbox';
+import { UserMenu } from '@/components/UserMenu';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 const LOCATIONS = ['Melbourne HQ', 'Sydney', 'Brisbane', 'Adelaide', 'Perth', 'Remote'];
@@ -93,7 +94,6 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
     }
   }
 
-  async function signOut() { await sb.auth.signOut(); }
 
   // ── My Tickets (RLS-scoped) ──
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
@@ -326,8 +326,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
           <div className="pt-title">{authed ? 'My IT tickets' : 'IT Helpdesk'}</div>
           <div className="pt-right">
             {!authed && <a href="#" className="btn-secondary" style={{ fontSize: 12 }} onClick={(e) => { e.preventDefault(); setSignInOpen(true); setAuthSent(false); }}>Already have tickets? Sign in →</a>}
-            {authed && <span className="user-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg> <span className="pt-email">{user?.email}</span></span>}
-            {authed && <button className="btn-ghost" style={{ fontSize: 12 }} onClick={signOut}>Sign out</button>}
+            {authed && <UserMenu label={user?.email || ''} variant="portal" />}
             <div className="pt-divider" />
             <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="pt-logo" />
           </div>

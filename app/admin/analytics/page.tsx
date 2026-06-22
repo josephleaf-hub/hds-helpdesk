@@ -5,6 +5,7 @@ import Chart from 'chart.js/auto';
 import { sb } from '@/lib/supabase';
 import { CAT_LABEL, STATUS_LABEL, PRI_LABEL } from '@/lib/constants';
 import { fmtDur, median } from '@/lib/format';
+import { UserMenu } from '@/components/UserMenu';
 
 type ARow = {
   id: string; category: string; sub_type: string; priority: string;
@@ -125,11 +126,7 @@ export default function AnalyticsPage() {
           <div className="topbar-meta">{`All ${total} ticket${total === 1 ? '' : 's'} since launch · updated just now`}</div>
         </div>
         <div className="topbar-right">
-          <div className="admin-user-pill">
-            <span className={`admin-role-dot${isMgr ? ' mgr' : ''}`} />
-            <span>{userLabel}</span>
-          </div>
-          <button className="btn-ghost" onClick={async () => { await sb.auth.signOut(); window.location.href = '/login'; }}>Sign Out</button>
+          <UserMenu label={userLabel} variant="admin" manager={isMgr} redirectTo="/login" />
           <div className="logo-divider-line" />
           <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
         </div>
