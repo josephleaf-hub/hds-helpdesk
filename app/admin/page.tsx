@@ -27,13 +27,19 @@ const SORT_KEYS: Record<string, (t: Ticket) => string | number> = {
   active: t => +new Date(t.updated_at || t.created_at),
 };
 const SORT_DEFAULT_DESC = new Set(['submitted', 'active']);
-const COLS: { key?: string; label: string; width: string }[] = [
+const COLS: { key?: string; label: string; width: string; photo?: boolean }[] = [
   { key: 'id', label: 'Ticket ID', width: '8%' }, { key: 'subject', label: 'Subject', width: '11%' },
   { key: 'category', label: 'Category', width: '9%' }, { key: 'requester', label: 'Requester', width: '10%' },
   { key: 'department', label: 'Department', width: '8%' }, { key: 'priority', label: 'Priority', width: '8%' },
   { key: 'status', label: 'Status', width: '10%' }, { key: 'submitted', label: 'Submitted', width: '9%' },
-  { key: 'active', label: 'Last Active', width: '15%' }, { label: '', width: '4%' },
+  { key: 'active', label: 'Last Active', width: '13%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
 ];
+
+// Total attachments on a ticket, from the list query's ticket_attachments(count).
+const photoCount = (t: Ticket) => t.ticket_attachments?.[0]?.count ?? 0;
+const PhotoIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, verticalAlign: -2 }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+);
 
 export default function AdminPage() {
   const toast = useToast();
@@ -78,7 +84,7 @@ export default function AdminPage() {
 
   async function loadTickets(silent: boolean, u: AdminUser | null = userRef.current) {
     if (!u) return;
-    let q = sb.from('tickets').select('*, ticket_notes(id, added_by, note_text, note_type, created_at)').order('created_at', { ascending: false });
+    let q = sb.from('tickets').select('*, ticket_notes(id, added_by, note_text, note_type, created_at), ticket_attachments(count)').order('created_at', { ascending: false });
     if (u.role === 'manager' && u.department) q = q.eq('department', u.department);
     const { data, error } = await q;
     if (error) { if (!silent) toast('Failed to load tickets: ' + error.message); return; }
@@ -257,12 +263,12 @@ export default function AdminPage() {
                       <th key={i} className={`th-sort${sortKey === c.key ? ' sorted' : ''}`} style={{ width: c.width }} onClick={() => sortBy(c.key!)}>
                         {c.label} <span className={`sort-arrow${sortKey === c.key ? '' : ' dim'}`}>{sortKey === c.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
                       </th>
-                    ) : <th key={i} style={{ width: c.width }} />)}
+                    ) : <th key={i} style={{ width: c.width, textAlign: 'center' }} title={c.photo ? 'Attached images' : undefined}>{c.photo ? <PhotoIcon /> : null}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {!filtered.length ? (
-                    <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>No tickets match your filters.</td></tr>
+                    <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>No tickets match your filters.</td></tr>
                   ) : filtered.map(t => {
                     const archived = !!t.deleted_at;
                     return (
@@ -276,6 +282,13 @@ export default function AdminPage() {
                         <td><StatusBadge status={t.status} /></td>
                         <td>{fmtShort(t.created_at)}</td>
                         <td>{fmtDate(t.updated_at || t.created_at)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          {photoCount(t) > 0 && (
+                            <span title={`${photoCount(t)} image${photoCount(t) > 1 ? 's' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 12, fontWeight: 600 }}>
+                              <PhotoIcon />{photoCount(t)}
+                            </span>
+                          )}
+                        </td>
                         <td onClick={(e) => e.stopPropagation()}>
                           {isAdmin && (
                             <button className="kebab-btn" aria-label="Ticket actions" title="Actions"

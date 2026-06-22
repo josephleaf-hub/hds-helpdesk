@@ -30,6 +30,7 @@ export interface Ticket {
   resolved_at: string | null;
   deleted_at?: string | null;
   ticket_notes?: Note[];
+  ticket_attachments?: { count: number }[];
 }
 
 export interface AttachItem { url: string; name: string; mime: string; }
