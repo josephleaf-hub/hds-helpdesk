@@ -9,6 +9,7 @@ import { Conversation } from '@/components/Conversation';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
+import { useLightbox } from '@/components/Lightbox';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
@@ -26,6 +27,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 }) {
   const toast = useToast();
   const confirm = useConfirm();
+  const lightbox = useLightbox();
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [tab, setTab] = useState<Tab>('reply');
   const [text, setText] = useState('');
@@ -258,7 +260,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <div className="field">
                     <div className="field-label">Submitted photo</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                      {attMap['_unlinked'].map((a, i) => <a key={i} href={a.url} target="_blank" rel="noopener" title={a.name}><img src={a.url} alt={a.name} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block' }} /></a>)}
+                      {attMap['_unlinked'].map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
                     </div>
                   </div>
                 </>) : null}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 import { ConfirmProvider } from '@/components/Confirm';
+import { LightboxProvider } from '@/components/Lightbox';
 
 export const metadata: Metadata = {
   title: 'IT Helpdesk — HDS',
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body><ToastProvider><ConfirmProvider>{children}</ConfirmProvider></ToastProvider></body>
+      <body><ToastProvider><ConfirmProvider><LightboxProvider>{children}</LightboxProvider></ConfirmProvider></ToastProvider></body>
     </html>
   );
 }

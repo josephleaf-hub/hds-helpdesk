@@ -10,6 +10,7 @@ import { StatusBadge, PriBadge } from '@/components/Badges';
 import { Conversation } from '@/components/Conversation';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
+import { useLightbox } from '@/components/Lightbox';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 const LOCATIONS = ['Melbourne HQ', 'Sydney', 'Brisbane', 'Adelaide', 'Perth', 'Remote'];
@@ -20,6 +21,7 @@ const RefreshIcon = () => (
 export default function Portal({ initialTicketId }: { initialTicketId?: string }) {
   const toast = useToast();
   const confirm = useConfirm();
+  const lightbox = useLightbox();
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
@@ -423,7 +425,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                         </div>
                         <hr className="divider-line" />
                         <div className="field"><div className="field-label">Description</div><div className="desc-block">{t.description}</div></div>
-                        {attMap['_unlinked']?.length ? (<><hr className="divider-line" /><div className="field"><div className="field-label">Attached photo</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>{attMap['_unlinked'].map((a, i) => <a key={i} href={a.url} target="_blank" rel="noopener" title={a.name}><img src={a.url} alt={a.name} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block' }} /></a>)}</div></div></>) : null}
+                        {attMap['_unlinked']?.length ? (<><hr className="divider-line" /><div className="field"><div className="field-label">Attached photo</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>{attMap['_unlinked'].map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}</div></div></>) : null}
                         <hr className="divider-line" />
                         <div className="field"><div className="field-label">Department / Location</div><div className="field-val">{t.department}{t.location ? ' · ' + t.location : ''}</div></div>
                         <div className="field" style={{ marginBottom: 0 }}><div className="field-label">Assigned to</div><div className="field-val">{t.assigned_to || <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>Pending assignment</span>}</div></div>
