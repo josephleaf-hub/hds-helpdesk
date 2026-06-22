@@ -296,7 +296,7 @@ export default function AdminPage() {
                             </span>
                           )}
                         </td>
-                        <td onClick={(e) => e.stopPropagation()}>
+                        <td onClick={(e) => e.stopPropagation()} style={{ textAlign: 'right' }}>
                           {isAdmin && (
                             <button className="kebab-btn" aria-label="Ticket actions" title="Actions"
                               onMouseEnter={(e) => hoverRow(t.id, e.currentTarget)} onMouseLeave={leaveRow}
