@@ -228,7 +228,6 @@ export default function AdminPage() {
           </div>
 
           <div className="filter-bar">
-            <span className="filter-lbl">Filter:</span>
             <input className="input" type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tickets…" style={{ minWidth: 180 }} />
             <select className="input" value={fStatus} onChange={(e) => setFStatus(e.target.value)} style={{ width: 130 }}>
               <option value="">All Statuses</option><option value="new">New</option><option value="in-progress">In Progress</option><option value="waiting-on-admin">Waiting on Admin</option><option value="waiting-on-requester">Waiting on Requester</option><option value="on-hold">On Hold</option><option value="resolved">Resolved</option><option value="closed">Closed</option>
