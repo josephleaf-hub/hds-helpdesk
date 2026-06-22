@@ -729,7 +729,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
     .admin-user-pill {
       background: #FFFFFF;
       border: 1px solid #E2E8EF;
-      border-radius: 20px; padding: 5px 12px;
+      border-radius: 20px; height: 34px; padding: 0 14px;
       font-size: 12px; color: #0F1C2E; font-weight: 600;
       display: flex; align-items: center; gap: 7px;
       box-shadow: var(--shadow-card);
@@ -787,7 +787,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .auth-err:empty { display: none; }
 .auth-check-icon { color: var(--success); margin-bottom: 14px; }
 
-.user-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--text-1); }
+.user-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 20px; height: 34px; padding: 0 14px; font-size: 12px; font-weight: 500; color: var(--text-1); }
 
 .portal-hero { background: #EEF4FF; border-radius: 20px; padding: 20px 24px 20px 28px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; position: relative; overflow: hidden; }
 .portal-hero::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--blue); border-radius: 10px 0 0 10px; }
