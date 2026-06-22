@@ -28,7 +28,7 @@ const SORT_KEYS: Record<string, (t: Ticket) => string | number> = {
 };
 const SORT_DEFAULT_DESC = new Set(['submitted', 'active']);
 const COLS: { key?: string; label: string; width: string; photo?: boolean }[] = [
-  { key: 'id', label: 'Ticket ID', width: '8%' }, { key: 'subject', label: 'Subject', width: '11%' },
+  { key: 'id', label: 'Ticket ID', width: '8%' }, { key: 'subject', label: 'Subject', width: 'auto' },
   { key: 'category', label: 'Category', width: '9%' }, { key: 'requester', label: 'Requester', width: '10%' },
   { key: 'department', label: 'Department', width: '8%' }, { key: 'priority', label: 'Priority', width: '8%' },
   { key: 'status', label: 'Status', width: '10%' }, { key: 'submitted', label: 'Submitted', width: '9%' },
