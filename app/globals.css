@@ -65,8 +65,11 @@ body {
 }
 /* Admin uses the full screen width (portal keeps the 1800 cap). */
 .main-wide { max-width: none; }
-/* Analytics caps narrower so the charts don't stretch too wide. */
-.analytics-main { max-width: 1600px; }
+/* Analytics: the nav/topbar spans full width, but the tab bar + content sit in a
+   centered 1600px column so the charts don't stretch too wide. */
+.analytics-main { max-width: none; }
+.analytics-main .tab-bar-wrap,
+.analytics-main .page-content { max-width: 1600px; width: 100%; margin-left: auto; margin-right: auto; }
 
 /* ── TOPBAR ───────────────────────────────────── */
 .topbar {
