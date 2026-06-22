@@ -59,6 +59,7 @@ export default function AdminPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [rowMenu, setRowMenu] = useState<{ id: string; rect: DOMRect } | null>(null);
 
   const activeRef = useRef<string | null>(null); activeRef.current = activeId;
@@ -112,6 +113,38 @@ export default function AdminPage() {
     else { setSortKey(key); setSortDir(SORT_DEFAULT_DESC.has(key) ? 'desc' : 'asc'); }
   }
   function clearFilters() { setSearch(''); setFStatus(''); setFCat(''); setFPri(''); setFAssign(''); setShowArchived(false); }
+
+  // Export the current filtered view to CSV (server re-runs the same filters).
+  async function exportCsv() {
+    if (exporting) return;
+    if (!filtered.length) { toast('No tickets match the current filters'); return; }
+    setExporting(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch('/api/export-tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ search, status: fStatus, category: fCat, priority: fPri, assignee: fAssign, showArchived }),
+      });
+      if (res.headers.get('content-type')?.includes('application/json')) {
+        const j = await res.json().catch(() => ({}));
+        toast(j.message || j.error || 'Export failed'); return;
+      }
+      if (!res.ok) { toast('Export failed'); return; }
+      const blob = await res.blob();
+      const cd = res.headers.get('content-disposition') || '';
+      const name = /filename="([^"]+)"/.exec(cd)?.[1] || 'hds-tickets.csv';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click();
+      a.remove(); URL.revokeObjectURL(url);
+    } catch (err) {
+      toast('Export failed: ' + (err as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   // ── Filter + sort ──
   const filtered = useMemo(() => {
@@ -248,6 +281,10 @@ export default function AdminPage() {
               <option value="">All Assignees</option><option value="__unassigned__">Unassigned</option><option value="IT Level 1">IT Level 1</option><option value="IT Level 2">IT Level 2</option><option value="Senior Engineer">Senior Engineer</option><option value="IT Manager">IT Manager</option>
             </select>
             <button className="btn-ghost" onClick={clearFilters} style={{ fontSize: 12 }}>Clear</button>
+            <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
             {isAdmin && (
               <label className="arch-toggle">
                 <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
