@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import { sb } from '@/lib/supabase';
 import { CAT_LABEL, STATUS_LABEL, PRI_LABEL } from '@/lib/constants';
@@ -22,14 +22,26 @@ const tooltip = { backgroundColor: '#0F1C2E', titleFont: { ...chartFont, weight:
 
 const ACTIVE = ['new', 'in-progress', 'waiting-on-admin', 'waiting-on-requester', 'on-hold'];
 const ms = (s: string) => new Date(s).getTime();
+const DAY = 24 * 60 * 60 * 1000;
+
+// Date-range presets (filter by ticket created date). 'all' / 'custom' handled separately.
+const PRESETS: { key: string; label: string; days: number | null }[] = [
+  { key: '7d', label: '7 days', days: 7 },
+  { key: '30d', label: '30 days', days: 30 },
+  { key: '90d', label: '90 days', days: 90 },
+  { key: 'all', label: 'All time', days: null },
+];
 
 export default function AnalyticsPage() {
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [errMsg, setErrMsg] = useState('');
   const [userLabel, setUserLabel] = useState('Loading…');
   const [isMgr, setIsMgr] = useState(false);
-  const [tickets, setTickets] = useState<ARow[]>([]);
+  const [allTickets, setAllTickets] = useState<ARow[]>([]);
   const [firstOut, setFirstOut] = useState<FirstOut>({});
+  const [range, setRange] = useState('all');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
 
   // ── Auth bounce (exactly like /admin) + data load ──
   useEffect(() => {
@@ -60,12 +72,32 @@ export default function AnalyticsPage() {
       for (const n of (outNotes || [])) if (!fo[n.ticket_id]) fo[n.ticket_id] = n.created_at;
 
       if (!mounted) return;
-      setTickets((trows as ARow[]) || []);
+      setAllTickets((trows as ARow[]) || []);
       setFirstOut(fo);
       setPhase('ready');
     })();
     return () => { mounted = false; };
   }, []);
+
+  // Date-range bounds (filter by created_at). Snapped to day boundaries so the
+  // value is stable across renders — keeps the chart memos from rebuilding.
+  const [fromMs, toMs] = useMemo<[number, number]>(() => {
+    if (range === 'custom') {
+      const f = customFrom ? new Date(customFrom + 'T00:00:00').getTime() : -Infinity;
+      const t = customTo ? new Date(customTo + 'T23:59:59.999').getTime() : Infinity;
+      return [f, t];
+    }
+    const p = PRESETS.find(x => x.key === range);
+    if (!p || p.days == null) return [-Infinity, Infinity];
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    return [start.getTime() - (p.days - 1) * DAY, Infinity];
+  }, [range, customFrom, customTo]);
+
+  // The whole page derives from `tickets`; filtering here scopes everything.
+  const tickets = useMemo(
+    () => allTickets.filter(t => { const c = ms(t.created_at); return c >= fromMs && c <= toMs; }),
+    [allTickets, fromMs, toMs]
+  );
 
   if (phase === 'loading' || phase === 'error') {
     return (
@@ -124,7 +156,7 @@ export default function AnalyticsPage() {
         <div className="topbar-left">
           <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
           <div className="logo-divider-line" />
-          <div className="topbar-title">IT Admin Analytics</div>
+          <div className="topbar-title">IT Admin Helpdesk</div>
         </div>
         <div className="topbar-right">
           <UserMenu label={userLabel} variant="admin" manager={isMgr} redirectTo="/login" />
@@ -140,6 +172,24 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="page-content">
+        {/* DATE RANGE */}
+        <div className="analytics-range">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#6B7280', flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+          <div className="tab-bar" role="group" aria-label="Date range">
+            {PRESETS.map(p => (
+              <button key={p.key} className={`tab-btn${range === p.key ? ' active' : ''}`} onClick={() => setRange(p.key)}>{p.label}</button>
+            ))}
+            <button className={`tab-btn${range === 'custom' ? ' active' : ''}`} onClick={() => setRange('custom')}>Custom</button>
+          </div>
+          {range === 'custom' && (
+            <div className="range-custom">
+              <label className="range-field">From <input type="date" className="input" value={customFrom} max={customTo || undefined} onChange={(e) => setCustomFrom(e.target.value)} /></label>
+              <label className="range-field">To <input type="date" className="input" value={customTo} min={customFrom || undefined} onChange={(e) => setCustomTo(e.target.value)} /></label>
+            </div>
+          )}
+          <span className="range-count">{tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'}</span>
+        </div>
+
         {/* SNAPSHOT */}
         <div className="section-title">Snapshot <span className="section-title-badge">Live</span></div>
         <div className="kpi-wrap"><div className="kpi-grid">
