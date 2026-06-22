@@ -11,7 +11,7 @@ import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import { useLightbox } from '@/components/Lightbox';
-import type { Ticket, Note, AttachMap, AttachItem } from '@/lib/types';
+import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
 type Tab = 'reply' | 'internal' | 'log';
@@ -215,18 +215,6 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     log: <svg className="tdm-ico" viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4" /><path d="M20 20v-7a4 4 0 0 0-4-4H4" /></svg>,
   };
 
-  const bubble = (key: string, kind: 'requester' | 'it' | 'note', who: string, date: string, body: string, atts?: AttachItem[]) => (
-    <div key={key} className={`tdm-msg tdm-${kind}`}>
-      {kind === 'note'
-        ? <div className="tdm-note-tag"><svg className="tdm-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Internal note · {who} · {fmtShort(date)}</div>
-        : <div className="tdm-msg-meta">{who} · {fmtDate(date)}</div>}
-      <div className="tdm-bubble">
-        {body ? <span style={{ whiteSpace: 'pre-wrap' }}>{body}</span> : null}
-        {atts?.length ? <div className="tdm-thumbs">{atts.map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} />)}</div> : null}
-      </div>
-    </div>
-  );
-
   const mobileView = (
     <div className="tdm" onMouseDown={(e) => e.stopPropagation()}>
       {/* Compact header */}
@@ -248,8 +236,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
         <>
           {/* Thread — the only scrolling region */}
           <div className="tdm-thread" ref={convRef}>
-            {bubble('desc', 'requester', ticket.requester_name, ticket.created_at, ticket.description, attMap['_unlinked'])}
-            {notes.map(n => bubble(n.id, n.note_type === 'outbound' ? 'it' : n.note_type === 'internal' ? 'note' : 'requester', n.added_by, n.created_at, n.note_text, attMap[n.id]))}
+            <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} bubbles />
           </div>
 
           {/* Pinned composer */}
@@ -290,6 +277,15 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
             <span className="pill-label">Assigned</span>
             <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{ticket.assigned_to || 'Unassigned'}<Chev /></button>
           </div>
+          <hr className="divider-line" />
+          <div className="field"><div className="field-label">Description</div><div className="desc-block">{ticket.description}</div></div>
+          {attMap['_unlinked']?.length ? (
+            <div className="field"><div className="field-label">Submitted photo</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                {attMap['_unlinked'].map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
+              </div>
+            </div>
+          ) : null}
           <hr className="divider-line" />
           <div className="field"><div className="field-label">Requester</div><div className="field-val">{ticket.requester_name}</div><div className="field-sub">{ticket.requester_email}</div></div>
           <div className="field"><div className="field-label">Department / Location</div><div className="field-val">{ticket.department}{ticket.location ? ' · ' + ticket.location : ''}</div></div>
@@ -382,7 +378,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                 </div>
 
                 <div className="conv-scroll" ref={convRef}>
-                  <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} />
+                  <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} bubbles />
                 </div>
 
                 <div className="composer">

@@ -33,12 +33,37 @@ function Thumbs({ list }: { list?: AttachItem[] }) {
 
 /** Mirrors shared.js renderConversation. `maskStaff` (portal) hides the individual
  *  IT staff name on outbound/internal notes — the requester sees "HDS IT Helpdesk". */
-export function Conversation({ notes, reqFirst, attMap = {}, maskStaff = false }: {
-  notes: Note[]; reqFirst: string; attMap?: AttachMap; maskStaff?: boolean;
+export function Conversation({ notes, reqFirst, attMap = {}, maskStaff = false, bubbles = false }: {
+  notes: Note[]; reqFirst: string; attMap?: AttachMap; maskStaff?: boolean; bubbles?: boolean;
 }) {
   if (!notes || !notes.length) {
     return <div style={{ color: '#9CA3AF', fontSize: 12, fontStyle: 'italic', marginBottom: 8 }}>No conversation yet.</div>;
   }
+
+  // Bubble (chat) rendering — used by both the desktop modal and mobile so they match.
+  if (bubbles) {
+    return (
+      <div className="chat-thread">
+        {notes.map((n) => {
+          const kind = n.note_type === 'outbound' ? 'it' : n.note_type === 'internal' ? 'note' : 'requester';
+          const isStaff = n.note_type === 'outbound' || n.note_type === 'internal';
+          const who = maskStaff && isStaff ? 'HDS IT Helpdesk' : n.added_by;
+          return (
+            <div key={n.id} className={`chat-msg chat-${kind}`}>
+              {kind === 'note'
+                ? <div className="chat-note-tag"><svg className="chat-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Internal note · {who} · {fmtDate(n.created_at)}</div>
+                : <div className="chat-msg-meta">{who} · {fmtDate(n.created_at)}</div>}
+              <div className="chat-bubble">
+                {n.note_text ? <span style={{ whiteSpace: 'pre-wrap' }}>{n.note_text}</span> : null}
+                <Thumbs list={attMap[n.id]} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   const labelFor = (type: NoteType) =>
     type === 'outbound' ? `Sent to ${reqFirst}` : type === 'inbound' ? `Reply from ${reqFirst}` : 'Internal note';
 
