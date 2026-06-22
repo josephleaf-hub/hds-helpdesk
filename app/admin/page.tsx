@@ -32,7 +32,7 @@ const COLS: { key?: string; label: string; width: string; photo?: boolean }[] = 
   { key: 'id', label: 'Ticket ID', width: '8%' }, { key: 'subject', label: 'Subject', width: 'auto' },
   { key: 'category', label: 'Category', width: '9%' }, { key: 'requester', label: 'Requester', width: '10%' },
   { key: 'department', label: 'Department', width: '8%' }, { key: 'priority', label: 'Priority', width: '8%' },
-  { key: 'status', label: 'Status', width: '10%' }, { key: 'submitted', label: 'Submitted', width: '9%' },
+  { key: 'status', label: 'Status', width: '13%' }, { key: 'submitted', label: 'Submitted', width: '9%' },
   { key: 'active', label: 'Last Active', width: '13%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
 ];
 
@@ -273,8 +273,8 @@ export default function AdminPage() {
                         <td>{CAT_LABEL[t.category] || t.category}</td>
                         <td>{t.requester_name}</td>
                         <td>{t.department}</td>
-                        <td><PriBadge priority={t.priority} /></td>
-                        <td><StatusBadge status={t.status} /></td>
+                        <td className="cell-badge"><PriBadge priority={t.priority} /></td>
+                        <td className="cell-badge"><StatusBadge status={t.status} /></td>
                         <td>{fmtShort(t.created_at)}</td>
                         <td>{fmtDate(t.updated_at || t.created_at)}</td>
                         <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '12px 8px', overflow: 'visible' }}>

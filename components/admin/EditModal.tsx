@@ -21,6 +21,7 @@ const PR_CLS: Record<string, string> = { low: 'b-low', medium: 'b-medium', high:
 const Chev = () => <svg className="chev ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>;
 const SendIco = () => <svg className="ico" width="13" height="13" viewBox="0 0 24 24"><polyline points="22 2 15 22 11 13 2 9 22 2" /></svg>;
 const Paperclip = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -2 }}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>;
+const Wand = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, verticalAlign: -2 }}><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>;
 
 export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   ticket: Ticket; user: AdminUser; onClose: () => void;
@@ -41,6 +42,9 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const [busy, setBusy] = useState(false);
   const [archiveBusy, setArchiveBusy] = useState(false);
   const [refreshBusy, setRefreshBusy] = useState(false);
+  const [polishBusy, setPolishBusy] = useState(false);
+  const [polishResult, setPolishResult] = useState<string | null>(null);
+  const [polishNote, setPolishNote] = useState('');
   const convRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const prevCount = useRef(0);
@@ -136,6 +140,31 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     }
   }
 
+  // Claude copy-edit of the reply draft — suggests only; admin accepts/dismisses.
+  async function polish() {
+    const t = text.trim();
+    if (!t) return;
+    setPolishBusy(true); setPolishNote(''); setPolishResult(null);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Session expired');
+      const res = await fetch('/api/polish-reply', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ text: t }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      const polished = (data.polished || '').trim();
+      if (!polished || polished === t) setPolishNote('Looks good already.');
+      else setPolishResult(polished);
+    } catch {
+      setPolishNote('Couldn’t polish — your text is unchanged.');
+    } finally {
+      setPolishBusy(false);
+    }
+  }
+
+  // Polish is reply-only; clear any preview when the mode changes.
+  useEffect(() => { setPolishResult(null); setPolishNote(''); }, [tab]);
+
   function openPill(field: 'status' | 'priority' | 'assigned', e: React.MouseEvent) {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPill(p => (p && p.field === field) ? null : { field, rect });
@@ -209,6 +238,23 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     }
   };
 
+  // Polish preview (before/after): the draft stays in the textarea; this shows the suggestion.
+  const polishPanel = (
+    <>
+      {polishResult && (
+        <div className="polish-panel">
+          <div className="polish-panel-head"><Wand /> Polished suggestion</div>
+          <div className="polish-panel-text">{polishResult}</div>
+          <div className="polish-panel-actions">
+            <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={() => setPolishResult(null)}>Keep mine</button>
+            <button type="button" className="btn-primary" style={{ fontSize: 12 }} onClick={() => { setText(polishResult); setPolishResult(null); }}>Use this</button>
+          </div>
+        </div>
+      )}
+      {polishNote && <div className="polish-note">{polishNote}</div>}
+    </>
+  );
+
   // ─────────────── Mobile layout (≤900px) — desktop is untouched ───────────────
   const MODE: Record<Tab, { label: string; ph: string; hint: string; btn: string; flip: string; accent: string; bg: string }> = {
     reply: { label: `Reply to ${reqFirst}`, ph: `Type your reply to ${reqFirst}…`, hint: `Emailed to ${ticket.requester_email} with a secure link — they respond in the portal.`, btn: 'Send reply', flip: '→ moves to Waiting on Requester', accent: '#FF6B43', bg: '#FFF1EC' },
@@ -265,9 +311,11 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
               </div>
             )}
             <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={cfg.ph} />
+            {polishPanel}
             {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
             <div className="tdm-send-row">
               <span className="tdm-send-hint">{cfg.hint}</span>
+              {tab === 'reply' && <button type="button" className="tdm-attach" onClick={polish} disabled={polishBusy || !text.trim()} aria-label="Polish reply" title="Polish">{polishBusy ? '…' : <Wand />}</button>}
               <button type="button" className="tdm-attach" onClick={() => fileRef.current?.click()} aria-label="Attach image"><Paperclip /></button>
               <button className="tdm-send" style={{ background: cfg.accent }} onClick={submitComposer} disabled={busy}>{busy ? busyLabel : cfg.btn}</button>
             </div>
@@ -397,8 +445,10 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   </div>
                   <div className="compose-meta">{composeMeta}</div>
                   <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={placeholder} />
+                  {polishPanel}
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
+                    {tab === 'reply' && <button type="button" className="btn-ghost attach-btn" onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>}
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
                       <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, height: 32, padding: '0 10px', fontSize: 12 }}>
