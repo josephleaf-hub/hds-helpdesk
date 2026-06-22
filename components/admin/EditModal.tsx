@@ -246,8 +246,8 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           <div className="polish-panel-head"><Wand /> Polished suggestion</div>
           <div className="polish-panel-text">{polishResult}</div>
           <div className="polish-panel-actions">
-            <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={() => setPolishResult(null)}>Keep mine</button>
-            <button type="button" className="btn-primary" style={{ fontSize: 12 }} onClick={() => { setText(polishResult); setPolishResult(null); }}>Use this</button>
+            <button type="button" className="polish-act polish-dismiss" onClick={() => setPolishResult(null)} aria-label="Keep mine" title="Keep mine"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+            <button type="button" className="polish-act polish-accept" onClick={() => { setText(polishResult); setPolishResult(null); }} aria-label="Use this" title="Use this"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></button>
           </div>
         </div>
       )}
@@ -315,7 +315,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
             {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
             <div className="tdm-send-row">
               <span className="tdm-send-hint">{cfg.hint}</span>
-              {tab === 'reply' && <button type="button" className="tdm-attach" onClick={polish} disabled={polishBusy || !text.trim()} aria-label="Polish reply" title="Polish">{polishBusy ? '…' : <Wand />}</button>}
+              <button type="button" className="tdm-polish" onClick={polish} disabled={polishBusy || !text.trim()} aria-label="Polish" title="Polish">{polishBusy ? '…' : <Wand />}</button>
               <button type="button" className="tdm-attach" onClick={() => fileRef.current?.click()} aria-label="Attach image"><Paperclip /></button>
               <button className="tdm-send" style={{ background: cfg.accent }} onClick={submitComposer} disabled={busy}>{busy ? busyLabel : cfg.btn}</button>
             </div>
@@ -448,7 +448,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   {polishPanel}
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
-                    {tab === 'reply' && <button type="button" className="btn-ghost attach-btn" onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>}
+                    <button type="button" className="btn-secondary" style={{ fontSize: 12 }} onClick={polish} disabled={polishBusy || !text.trim()}><Wand /> {polishBusy ? 'Polishing…' : 'Polish'}</button>
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
                       <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, height: 32, padding: '0 10px', fontSize: 12 }}>

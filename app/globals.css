@@ -1010,3 +1010,13 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .polish-panel-text { font-size: 13px; color: var(--text-1); line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
 .polish-panel-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .polish-note { font-size: 12px; color: #6B7280; margin: 6px 0 2px; }
+
+/* Polish preview accept/dismiss as icon buttons + mobile polish button border */
+.polish-act { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border-strong); background: #fff; }
+.polish-act svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.polish-dismiss { color: #6B7280; }
+.polish-dismiss:hover { background: #F4F6F8; }
+.polish-accept { background: var(--blue); border-color: var(--blue); color: #fff; }
+.polish-accept:hover { background: var(--blue-hover); }
+.tdm-polish { display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--border-strong); color: #6B7280; border-radius: 8px; padding: 6px 8px; cursor: pointer; flex-shrink: 0; }
+.tdm-polish:disabled { opacity: 0.5; }
