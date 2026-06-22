@@ -88,7 +88,7 @@ type ReplyTicket = { id: string; subject: string; requester_name: string; reques
 
 async function notifyIT(opts: { ticket: ReplyTicket; message: string; resolved: boolean; reopened: boolean; attachCount: number; SITE_URL: string; EMAIL_FROM: string; IT_SUPPORT_EMAIL: string }) {
   const { ticket, message, resolved, reopened, attachCount, SITE_URL, EMAIL_FROM, IT_SUPPORT_EMAIL } = opts;
-  const adminLink = `${SITE_URL}/admin#${ticket.id}`;
+  const adminLink = `${SITE_URL}/admin?ticket=${ticket.id}`;
   const who = ticket.requester_name || ticket.requester_email;
   const subject = `Re: [${ticket.id}] ${ticket.subject}`;
   const bodyHtml = message ? esc(message).replace(/\n/g, '<br>') : '<em style="color:#6B7280;">(No message — open the ticket in the dashboard.)</em>';

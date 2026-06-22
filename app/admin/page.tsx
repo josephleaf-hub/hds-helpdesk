@@ -67,6 +67,8 @@ export default function AdminPage() {
   // ── Auth bounce + initial load + auto-refresh ──
   useEffect(() => {
     let mounted = true;
+    // Deep link: /admin?ticket=HDS-NNNN opens that ticket (email "view ticket" link).
+    const deepTicket = new URLSearchParams(window.location.search).get('ticket');
     (async () => {
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { window.location.href = '/login'; return; }
@@ -76,12 +78,19 @@ export default function AdminPage() {
       const u: AdminUser = { id: session.user.id, email: session.user.email!, role: role.role, department: role.department, full_name: role.full_name };
       setUser(u);
       await loadTickets(false, u);
-      setPhase('ready');
+      if (mounted) { setPhase('ready'); if (deepTicket) setActiveId(deepTicket); }
     })();
     const iv = setInterval(() => { if (!document.hidden && userRef.current) loadTickets(true, userRef.current); }, 60 * 1000);
     return () => { mounted = false; clearInterval(iv); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Reflect the open ticket in the URL so it's shareable / refresh-safe and the
+  // email "view ticket" link (/admin?ticket=HDS-NNNN) opens it directly.
+  useEffect(() => {
+    if (phase !== 'ready') return;
+    window.history.replaceState(null, '', activeId ? `/admin?ticket=${encodeURIComponent(activeId)}` : '/admin');
+  }, [activeId, phase]);
 
   async function loadTickets(silent: boolean, u: AdminUser | null = userRef.current) {
     if (!u) return;
