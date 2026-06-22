@@ -1,7 +1,7 @@
 'use client';
 
 import { fmtDate } from '@/lib/format';
-import { useLightbox } from '@/components/Lightbox';
+import { Thumb } from '@/components/Thumb';
 import type { Note, NoteType, AttachItem, AttachMap } from '@/lib/types';
 
 const NOTE_STYLE: Record<NoteType, { color: string; bg: string; border: string }> = {
@@ -18,15 +18,10 @@ function NoteIcon({ type, color }: { type: NoteType; color: string }) {
 }
 
 function Thumbs({ list }: { list?: AttachItem[] }) {
-  const lightbox = useLightbox();
   if (!list || !list.length) return null;
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-      {list.map((a, i) => (
-        <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name}
-          onClick={() => lightbox(a.url, a.name)}
-          style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />
-      ))}
+      {list.map((a, i) => <Thumb key={i} url={a.url} name={a.name} />)}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { Conversation } from '@/components/Conversation';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
-import { useLightbox } from '@/components/Lightbox';
+import { Thumb } from '@/components/Thumb';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
@@ -29,7 +29,6 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 }) {
   const toast = useToast();
   const confirm = useConfirm();
-  const lightbox = useLightbox();
   const isMobile = useIsMobile(900);
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [tab, setTab] = useState<Tab>('reply');
@@ -340,7 +339,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           {attMap['_unlinked']?.length ? (
             <div className="field"><div className="field-label">Submitted photo</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                {attMap['_unlinked'].map((a, i) => <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 74, width: 74, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
+                {attMap['_unlinked'].map((a, i) => <Thumb key={i} url={a.url} name={a.name} />)}
               </div>
             </div>
           ) : null}
@@ -418,7 +417,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <div className="field">
                     <div className="field-label">Submitted photo</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                      {attMap['_unlinked'].map((a, i) => <img key={i} className="thumb" src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} style={{ height: 120, width: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #C8D4DF', display: 'block', cursor: 'zoom-in' }} />)}
+                      {attMap['_unlinked'].map((a, i) => <Thumb key={i} url={a.url} name={a.name} size={120} />)}
                     </div>
                   </div>
                 </>) : null}
