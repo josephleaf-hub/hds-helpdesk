@@ -655,7 +655,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
   .topbar-right { order: -1; width: 100%; justify-content: space-between; }
   .topbar-left { width: 100%; }
 
-  .tab-bar-wrap { padding: 0 16px 8px; overflow-x: auto; }
+  .tab-bar-wrap { padding: 8px 16px; overflow-x: auto; }
   .tab-bar { width: max-content; }
   .tab-btn { padding: 7px 14px; font-size: 12px; }
 
