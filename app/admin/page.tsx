@@ -7,6 +7,7 @@ import { fmtDate, fmtShort } from '@/lib/format';
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { FloatingMenu } from '@/components/admin/FloatingMenu';
 import { UserMenu } from '@/components/UserMenu';
+import { RealtimeAlertsProvider, MuteToggle } from '@/components/RealtimeAlerts';
 import { EditModal } from '@/components/admin/EditModal';
 import { NewTicketModal } from '@/components/admin/NewTicketModal';
 import { useToast } from '@/components/Toast';
@@ -192,7 +193,7 @@ export default function AdminPage() {
   }
 
   return (
-    <>
+    <RealtimeAlertsProvider surface="admin" enabled onView={(id) => setActiveId(id)} onActivity={() => loadTickets(true)}>
       <main className="main main-wide">
         <header className="topbar">
           <div className="topbar-left">
@@ -201,6 +202,7 @@ export default function AdminPage() {
             <div className="topbar-title">{isAdmin ? 'IT Admin Dashboard' : `${user?.department} — My Team's Tickets`}</div>
           </div>
           <div className="topbar-right">
+            <MuteToggle />
             <UserMenu label={`${user?.full_name} · ${isAdmin ? 'IT Admin' : 'Manager'}`} variant="admin" manager={!isAdmin} redirectTo="/login" />
           </div>
         </header>
@@ -323,6 +325,6 @@ export default function AdminPage() {
 
       {activeTicket && user && <EditModal ticket={activeTicket} user={user} onClose={() => setActiveId(null)} onReload={() => loadTickets(true)} patchTicket={patchTicket} />}
       {newOpen && <NewTicketModal onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}
-    </>
+    </RealtimeAlertsProvider>
   );
 }

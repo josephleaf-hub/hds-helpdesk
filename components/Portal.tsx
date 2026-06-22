@@ -12,6 +12,7 @@ import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import { Thumb } from '@/components/Thumb';
 import { UserMenu } from '@/components/UserMenu';
+import { RealtimeAlertsProvider, MuteToggle } from '@/components/RealtimeAlerts';
 import type { Ticket, Note, AttachMap } from '@/lib/types';
 
 const LOCATIONS = ['Melbourne HQ', 'Sydney', 'Brisbane', 'Adelaide', 'Perth', 'Remote'];
@@ -322,6 +323,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const reqFirst = (activeTicket?.requester_name || '').split(' ')[0] || 'there';
 
   return (
+    <RealtimeAlertsProvider surface="requester" enabled={authed === true} onView={(id) => openTicket(id)} onActivity={() => { if (viewRef.current === 'detail') refreshOpenTicket(); else loadMyTickets(true); }}>
     <div className="portal-shell">
       <main className="main">
         <header className="portal-topbar">
@@ -332,6 +334,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
           </div>
           <div className="pt-right">
             {!authed && <a href="#" className="btn-secondary" style={{ fontSize: 12 }} onClick={(e) => { e.preventDefault(); setSignInOpen(true); setAuthSent(false); }}>Already have tickets? Sign in →</a>}
+            {authed && <MuteToggle />}
             {authed && <UserMenu label={user?.email || ''} variant="portal" />}
           </div>
         </header>
@@ -467,6 +470,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
         </div>
       </main>
     </div>
+    </RealtimeAlertsProvider>
   );
 }
 

@@ -810,7 +810,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .pt-logo { height: 32px; width: auto; display: block; }
 .portal-shell .page-content { padding-top: 36px; }
 
-#detailView, #submitView { max-width: 1400px; margin: 0 auto; }
+#detailView, #submitView { max-width: 1200px; margin: 0 auto; }
 .detail-back { margin: 0 0 14px 0; }
 .detail-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .detail-topbar .detail-back { margin: 0; }
@@ -1043,3 +1043,27 @@ tr.row-attention:hover { background: #FCF3CF; }
 
 /* Mobile: topbar scrolls (the tab bar is the sticky one); avoids a double-pin. */
 @media (max-width: 900px) { .topbar { position: static; } }
+
+/* ── In-page real-time alerts ── */
+.alert-toasts { position: fixed; right: 20px; bottom: 20px; z-index: 1600; display: flex; flex-direction: column; gap: 10px; width: 340px; max-width: calc(100vw - 24px); pointer-events: none; }
+.alert-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 12px; padding: 11px 12px; box-shadow: 0 8px 28px rgba(0,0,0,0.16); animation: alert-in 0.22s ease-out; }
+@keyframes alert-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.alert-toast-body { flex: 1; min-width: 0; }
+.alert-toast-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.alert-toast-text { font-size: 12px; color: #6B7280; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alert-toast-view { flex-shrink: 0; align-self: center; background: var(--blue); color: #fff; border: none; border-radius: 7px; padding: 6px 11px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.alert-toast-x { flex-shrink: 0; background: none; border: none; color: #9CA3AF; font-size: 15px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+.alert-new   { border-left-color: #1C64F2; } .alert-new   .alert-toast-view { background: #1C64F2; }
+.alert-reply { border-left-color: #6D28D9; } .alert-reply .alert-toast-view { background: #6D28D9; }
+.alert-it    { border-left-color: #2E7D52; } .alert-it    .alert-toast-view { background: #2E7D52; }
+
+.alert-awaybar { position: fixed; top: 0; left: 0; right: 0; z-index: 1590; display: flex; align-items: center; justify-content: center; gap: 14px; background: #6D28D9; color: #fff; font-size: 13px; font-weight: 500; padding: 9px 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
+.alert-awaybar button { background: rgba(255,255,255,0.18); border: none; color: #fff; width: 22px; height: 22px; border-radius: 6px; cursor: pointer; line-height: 1; }
+
+.mute-toggle { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-strong); background: #fff; color: #6B7280; cursor: pointer; flex-shrink: 0; }
+.mute-toggle:hover { background: #F4F6F8; color: var(--text-1); }
+
+/* Mobile: toasts at the top so they never cover the pinned composer. */
+@media (max-width: 900px) {
+  .alert-toasts { top: 12px; bottom: auto; left: 12px; right: 12px; width: auto; }
+}
