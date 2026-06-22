@@ -817,6 +817,8 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .detail-left, .detail-right { min-width: 0; }
 .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
 .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 20px 24px; }
+/* Conversation scrolls inside a capped area rather than growing the page. */
+.detail-conv-scroll { max-height: 52vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
 .portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 18px 24px; }
 .portal-composer textarea { width: 100%; min-height: 90px; padding: 10px 12px; font-size: 13px; font-family: inherit; background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px; resize: vertical; color: var(--text-1); }
 .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }

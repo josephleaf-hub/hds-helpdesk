@@ -40,7 +40,11 @@ export function Conversation({ notes, reqFirst, attMap = {}, maskStaff = false, 
     return (
       <div className="chat-thread">
         {notes.map((n) => {
-          const kind = n.note_type === 'outbound' ? 'it' : n.note_type === 'internal' ? 'note' : 'requester';
+          // "Mine" (the viewer's own messages) sits on the right. The viewer is
+          // IT in the admin modal, or the requester in the portal (maskStaff).
+          const isNote = n.note_type === 'internal';
+          const mine = maskStaff ? n.note_type === 'inbound' : n.note_type === 'outbound';
+          const kind = isNote ? 'note' : (mine ? 'it' : 'requester');
           const isStaff = n.note_type === 'outbound' || n.note_type === 'internal';
           const who = maskStaff && isStaff ? 'HDS IT Helpdesk' : n.added_by;
           return (

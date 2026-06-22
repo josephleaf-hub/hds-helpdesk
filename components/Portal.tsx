@@ -108,6 +108,9 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   // ── Ticket detail ──
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
+  const portalConvRef = useRef<HTMLDivElement>(null);
+  // Keep the conversation scrolled to the latest message.
+  useEffect(() => { const el = portalConvRef.current; if (el) el.scrollTop = el.scrollHeight; }, [notes]);
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [detailError, setDetailError] = useState('');
   const [replyText, setReplyText] = useState('');
@@ -431,7 +434,9 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                       <div className="detail-right">
                         <div className="detail-conv">
                           <div className="field-label" style={{ marginBottom: 10 }}>Conversation</div>
-                          <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} maskStaff />
+                          <div className="detail-conv-scroll" ref={portalConvRef}>
+                            <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} maskStaff bubbles />
+                          </div>
                         </div>
                         {isClosed ? (
                           <div className="resolved-notice">This ticket is {(STATUS_LABEL[t.status] || t.status).toLowerCase()}. If your issue isn&apos;t fixed, please submit a new ticket.</div>
