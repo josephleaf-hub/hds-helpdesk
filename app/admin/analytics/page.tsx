@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
         <div className="topbar-left">
           <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" className="topbar-hds-logo" />
           <div className="logo-divider-line" />
-          <div className="topbar-title">IT Helpdesk — Analytics</div>
+          <div className="topbar-title">IT Admin Analytics</div>
         </div>
         <div className="topbar-right">
           <UserMenu label={userLabel} variant="admin" manager={isMgr} redirectTo="/login" />
