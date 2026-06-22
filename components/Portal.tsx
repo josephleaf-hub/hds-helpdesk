@@ -447,7 +447,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                           <div className="resolved-notice">This ticket is {(STATUS_LABEL[t.status] || t.status).toLowerCase()}. If your issue isn&apos;t fixed, please submit a new ticket.</div>
                         ) : (
                           <div className="portal-composer">
-                            <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Type your reply to the IT team…" />
+                            <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (!replyBusy) sendPortalReply(); } }} placeholder="Type your reply to the IT team…" />
                             {replyFiles.length > 0 && <div className="attach-preview">{replyFiles.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setReplyFiles(replyFiles.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                             <div className="composer-actions">
                               <label className="btn-ghost attach-btn" style={{ cursor: 'pointer' }}>
