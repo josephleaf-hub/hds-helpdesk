@@ -244,10 +244,12 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       {polishResult && (
         <div className="polish-panel">
           <div className="polish-panel-head"><Wand /> Polished suggestion</div>
-          <div className="polish-panel-text">{polishResult}</div>
-          <div className="polish-panel-actions">
-            <button type="button" className="polish-act polish-dismiss" onClick={() => setPolishResult(null)} aria-label="Keep mine" title="Keep mine"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
-            <button type="button" className="polish-act polish-accept" onClick={() => { setText(polishResult); setPolishResult(null); }} aria-label="Use this" title="Use this"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></button>
+          <div className="polish-panel-row">
+            <div className="polish-panel-text">{polishResult}</div>
+            <div className="polish-panel-actions">
+              <button type="button" className="polish-act polish-dismiss" onClick={() => setPolishResult(null)} aria-label="Keep mine" title="Keep mine"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+              <button type="button" className="polish-act polish-accept" onClick={() => { setText(polishResult); setPolishResult(null); }} aria-label="Use this" title="Use this"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg></button>
+            </div>
           </div>
         </div>
       )}

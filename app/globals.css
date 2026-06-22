@@ -1007,8 +1007,9 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 /* "Polish" (AI copy-edit) preview in the composer */
 .polish-panel { margin: 8px 0; padding: 10px 12px; background: #F4F8FF; border: 1px solid #DBE6FB; border-radius: 10px; }
 .polish-panel-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--blue); margin-bottom: 6px; }
-.polish-panel-text { font-size: 13px; color: var(--text-1); line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
-.polish-panel-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.polish-panel-row { display: flex; align-items: flex-start; gap: 10px; }
+.polish-panel-text { flex: 1; min-width: 0; font-size: 13px; color: var(--text-1); line-height: 1.5; white-space: pre-wrap; }
+.polish-panel-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .polish-note { font-size: 12px; color: #6B7280; margin: 6px 0 2px; }
 
 /* Polish preview accept/dismiss as icon buttons + mobile polish button border */
