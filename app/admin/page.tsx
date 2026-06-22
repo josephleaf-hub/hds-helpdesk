@@ -263,7 +263,7 @@ export default function AdminPage() {
                       <th key={i} className={`th-sort${sortKey === c.key ? ' sorted' : ''}`} style={{ width: c.width }} onClick={() => sortBy(c.key!)}>
                         {c.label} <span className={`sort-arrow${sortKey === c.key ? '' : ' dim'}`}>{sortKey === c.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
                       </th>
-                    ) : <th key={i} style={{ width: c.width, textAlign: 'center' }} title={c.photo ? 'Attached images' : undefined}>{c.photo ? <PhotoIcon /> : null}</th>)}
+                    ) : <th key={i} style={c.photo ? { width: '1%', whiteSpace: 'nowrap', textAlign: 'center', padding: '12px 10px' } : { width: c.width }} title={c.photo ? 'Attached images' : undefined}>{c.photo ? 'Images' : null}</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -282,7 +282,7 @@ export default function AdminPage() {
                         <td><StatusBadge status={t.status} /></td>
                         <td>{fmtShort(t.created_at)}</td>
                         <td>{fmtDate(t.updated_at || t.created_at)}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '12px 10px' }}>
                           {photoCount(t) > 0 && (
                             <span title={`${photoCount(t)} image${photoCount(t) > 1 ? 's' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 12, fontWeight: 600 }}>
                               <PhotoIcon />{photoCount(t)}
