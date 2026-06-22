@@ -201,6 +201,14 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     : tab === 'internal' ? 'Add Internal Note' : tab === 'log' ? 'Log Reply' : <>Send Email Reply <SendIco /></>;
   const placeholder = tab === 'internal' ? 'Add an internal note (IT team only)…' : tab === 'log' ? `Paste ${reqFirst}'s emailed reply…` : `Type your reply to ${reqFirst}…`;
 
+  // Enter sends; Shift+Enter inserts a newline. Ignore while an IME is composing.
+  const onComposerKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      if (!busy) submitComposer();
+    }
+  };
+
   // ─────────────── Mobile layout (≤900px) — desktop is untouched ───────────────
   const MODE: Record<Tab, { label: string; ph: string; hint: string; btn: string; flip: string; accent: string; bg: string }> = {
     reply: { label: `Reply to ${reqFirst}`, ph: `Type your reply to ${reqFirst}…`, hint: `Emailed to ${ticket.requester_email} with a secure link — they respond in the portal.`, btn: 'Send reply', flip: '→ moves to Waiting on Requester', accent: '#FF6B43', bg: '#FFF1EC' },
@@ -256,7 +264,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                 ))}
               </div>
             )}
-            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={cfg.ph} />
+            <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={cfg.ph} />
             {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
             <div className="tdm-send-row">
               <span className="tdm-send-hint">{cfg.hint}</span>
@@ -388,7 +396,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                     <button className={`compose-tab tab-log${tab === 'log' ? ' active' : ''}`} onClick={() => setTab('log')}><svg className="ico" width="13" height="13" viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" /></svg> Log their email reply</button>
                   </div>
                   <div className="compose-meta">{composeMeta}</div>
-                  <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} />
+                  <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={placeholder} />
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
                     <div className="status-radio-row">
