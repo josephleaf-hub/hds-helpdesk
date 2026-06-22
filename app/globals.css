@@ -926,4 +926,9 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
     background: #F4F6F8;
     border-bottom: 1px solid #E2E8EF;
   }
+  /* Mobile: let columns size to their content (no fixed-width clipping) — the
+     table is in an overflow-x:auto wrapper, so it just scrolls sideways. */
+  .data-table { table-layout: auto; }
+  .data-table th, .data-table td { overflow: visible; text-overflow: clip; }
+  .cell-subject .cell-ellipsis { overflow: visible; text-overflow: clip; }
 }
