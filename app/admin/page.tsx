@@ -283,9 +283,9 @@ export default function AdminPage() {
             <button className="btn-ghost" onClick={clearFilters} style={{ fontSize: 12 }}>Clear</button>
             {isAdmin && (
               <label className="arch-toggle">
+                Show archived
                 <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
                 <span className="arch-track"><span className="arch-thumb" /></span>
-                Show archived
               </label>
             )}
             <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
