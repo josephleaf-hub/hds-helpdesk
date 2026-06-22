@@ -72,7 +72,7 @@ body {
 .analytics-main .page-content { max-width: 1600px; width: 100%; margin-left: auto; margin-right: auto; }
 
 /* Analytics date-range control */
-.analytics-range { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.analytics-range { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; box-shadow: var(--shadow-card); }
 .analytics-range .tab-bar { padding: 5px; }
 .analytics-range .tab-btn { padding: 6px 14px; }
 .range-custom { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
