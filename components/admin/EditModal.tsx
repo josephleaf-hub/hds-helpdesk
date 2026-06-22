@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
 import { CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM } from '@/lib/constants';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
+import { matchGuide, incrementUsage, type HelpGuide } from '@/lib/guides';
 import { Conversation } from '@/components/Conversation';
+import { GuideRail } from '@/components/admin/GuideRail';
+import { GuideEditor } from '@/components/admin/GuideEditor';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
@@ -36,7 +39,14 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [statusRadio, setStatusRadio] = useState('');
-  const [pane, setPane] = useState<'chat' | 'ticket'>('chat');
+  const [pane, setPane] = useState<'chat' | 'ticket' | 'guide'>('chat');
+  const isAdmin = user.role === 'admin';
+  const [guide, setGuide] = useState<HelpGuide | null>(null);
+  const [guideLoading, setGuideLoading] = useState(true);
+  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [guideEditor, setGuideEditor] = useState<null | { guide?: HelpGuide | null; preset?: { category: string; sub_type: string | null } }>(null);
+  const [flash, setFlash] = useState(false);
+  const surfacedRef = useRef<string | null>(null);
   const [pill, setPill] = useState<{ field: 'status' | 'priority' | 'assigned'; rect: DOMRect } | null>(null);
   const [busy, setBusy] = useState(false);
   const [archiveBusy, setArchiveBusy] = useState(false);
@@ -56,6 +66,31 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     loadAttachmentMap(ticket.id).then(m => { if (on) setAttMap(m); });
     return () => { on = false; };
   }, [ticket.id, notes.length]);
+
+  // Match a help guide to this ticket's category/sub_type. Count the surfacing
+  // once per ticket (best-effort) and optimistically bump the visible counter.
+  const loadGuide = useCallback(async (count: boolean) => {
+    setGuideLoading(true);
+    const g = await matchGuide(ticket.category, ticket.sub_type || null);
+    if (count && g && surfacedRef.current !== ticket.id) {
+      surfacedRef.current = ticket.id;
+      incrementUsage(g.id);
+      g.usage_count += 1;
+    }
+    setGuide(g);
+    setGuideLoading(false);
+  }, [ticket.id, ticket.category, ticket.sub_type]);
+
+  useEffect(() => { loadGuide(true); }, [loadGuide]);
+
+  // Tap-to-insert: append a clarifying question to the reply composer and flash it.
+  const insertGuideText = (q: string) => {
+    setTab('reply');
+    setPane('chat');   // mobile: surface the composer where the text lands
+    setText(prev => prev.trim() ? prev.replace(/\s*$/, '') + '\n' + q : q);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 700);
+  };
 
   // Auto-scroll to newest message on open and when a new note arrives.
   useEffect(() => {
@@ -286,9 +321,19 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       <div className="tdm-tabs">
         <button className={`tdm-tab${pane === 'chat' ? ' active' : ''}`} onClick={() => setPane('chat')}>Conversation</button>
         <button className={`tdm-tab${pane === 'ticket' ? ' active' : ''}`} onClick={() => setPane('ticket')}>Ticket details</button>
+        <button className={`tdm-tab${pane === 'guide' ? ' active' : ''}`} onClick={() => setPane('guide')}>Guide</button>
       </div>
 
-      {pane === 'chat' ? (
+      {pane === 'guide' ? (
+        <div className="tdm-guide">
+          <GuideRail
+            guide={guide} loading={guideLoading} category={ticket.category} isAdmin={isAdmin}
+            variant="panel" onInsert={insertGuideText}
+            onEdit={() => setGuideEditor({ guide })}
+            onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
+          />
+        </div>
+      ) : pane === 'chat' ? (
         <>
           {/* Thread — the only scrolling region */}
           <div className="tdm-thread" ref={convRef}>
@@ -312,7 +357,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                 ))}
               </div>
             )}
-            <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={cfg.ph} />
+            <textarea className={flash ? 'composer-flash' : ''} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={cfg.ph} />
             {polishPanel}
             {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
             <div className="tdm-send-row">
@@ -378,7 +423,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
               <button type="button" className={`hmt-btn${pane === 'chat' ? ' active' : ''}`} onClick={() => setPane('chat')}>Conversation</button>
               <button type="button" className={`hmt-btn${pane === 'ticket' ? ' active' : ''}`} onClick={() => setPane('ticket')}>Ticket details</button>
             </div>
-            <div className={`h-body ${pane === 'chat' ? 'show-chat' : 'show-ticket'}`}>
+            <div className={`h-body has-guide ${pane === 'chat' ? 'show-chat' : 'show-ticket'}${railCollapsed ? ' guide-collapsed' : ''}`}>
 
               {/* LEFT: read-only ticket context */}
               <div className="h-left">
@@ -446,7 +491,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                     <button className={`compose-tab tab-log${tab === 'log' ? ' active' : ''}`} onClick={() => setTab('log')}><svg className="ico" width="13" height="13" viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7" /><path d="M20 18v-2a4 4 0 0 0-4-4H4" /></svg> Log their email reply</button>
                   </div>
                   <div className="compose-meta">{composeMeta}</div>
-                  <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={placeholder} />
+                  <textarea className={flash ? 'composer-flash' : ''} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onComposerKey} placeholder={placeholder} />
                   {polishPanel}
                   {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                   <div className="compose-actions">
@@ -467,6 +512,15 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
                 </div>
               </div>
+
+              {/* GUIDE: help-guide rail (3rd column, collapsible) */}
+              <GuideRail
+                guide={guide} loading={guideLoading} category={ticket.category} isAdmin={isAdmin}
+                variant="rail" collapsed={railCollapsed} onToggleCollapse={() => setRailCollapsed(c => !c)}
+                onInsert={insertGuideText}
+                onEdit={() => setGuideEditor({ guide })}
+                onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
+              />
             </div>
           </div>
 
@@ -483,6 +537,16 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       </div>
 
       {pill && <FloatingMenu rect={pill.rect} items={pillItems()} onClose={() => setPill(null)} />}
+
+      {guideEditor && (
+        <GuideEditor
+          guide={guideEditor.guide}
+          preset={guideEditor.preset}
+          userName={user.full_name || user.email}
+          onClose={() => setGuideEditor(null)}
+          onSaved={async () => { setGuideEditor(null); await loadGuide(false); }}
+        />
+      )}
     </>
   );
 }

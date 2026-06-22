@@ -22,6 +22,21 @@ export function fmtDur(ms: number | null): string {
   return rh ? `${d}d ${rh}h` : `${d}d`;
 }
 
+// Relative time: "just now", "5m ago", "3h ago", "2d ago", else a short date.
+export function fmtRelative(s?: string | null): string {
+  if (!s) return '—';
+  const diff = Date.now() - new Date(s).getTime();
+  if (isNaN(diff)) return '—';
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return fmtShort(s);
+}
+
 export function median(nums: number[]): number | null {
   const a = (nums || []).filter((n) => n != null && !isNaN(n)).sort((x, y) => x - y);
   if (!a.length) return null;

@@ -1083,3 +1083,115 @@ tr.row-attention:hover { background: #FCF3CF; }
 @media (max-width: 900px) {
   .alert-toasts { top: 12px; bottom: auto; left: 12px; right: 12px; width: auto; }
 }
+
+/* ── HELP GUIDE RAIL (v1.6) ───────────────────────────────────────────── */
+/* Ticket modal becomes 3 columns: context | conversation | guide rail. */
+.h-body.has-guide { grid-template-columns: 288px minmax(0, 1fr) 330px; }
+.h-body.has-guide.guide-collapsed { grid-template-columns: 288px minmax(0, 1fr) 46px; }
+
+.guide-rail { display: flex; flex-direction: column; min-height: 0; background: var(--bg-alt); border-left: 1px solid var(--border); }
+.guide-rail-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 14px; border-bottom: 1px solid var(--border); background: #fff; }
+.guide-rail-head-ico { color: var(--blue); flex-shrink: 0; margin-top: 1px; }
+.guide-rail-head-main { flex: 1; min-width: 0; }
+.guide-rail-title { font-size: 14px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.guide-rail-meta { font-size: 11px; color: var(--caption); margin-top: 3px; }
+.guide-collapse-btn { flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: #F4F6F8; border: none; border-radius: 7px; color: #6B7280; cursor: pointer; }
+.guide-collapse-btn:hover { background: #E2E8EF; color: var(--text-1); }
+.guide-collapse-btn svg { width: 15px; height: 15px; }
+.guide-rail-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Collapsed strip */
+.guide-rail-min { align-items: center; padding: 14px 0; cursor: pointer; gap: 12px; }
+.guide-rail-min:hover { background: #EEF1F5; }
+.guide-strip-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid var(--border); border-radius: 8px; color: var(--blue); cursor: pointer; }
+.guide-strip-btn svg { width: 15px; height: 15px; }
+.guide-strip-label { writing-mode: vertical-rl; text-orientation: mixed; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--caption); }
+
+/* Collapsible sections (blue + phase-2 purple) */
+.guide-section { border: 1px solid var(--border); border-radius: 12px; background: #fff; overflow: hidden; }
+.guide-section-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; background: none; border: none; cursor: pointer; font-family: inherit; }
+.guide-section-title { font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.guide-section .guide-chev { width: 15px; height: 15px; transition: transform 0.15s; flex-shrink: 0; }
+.guide-section-body { padding: 0 12px 12px; }
+.guide-blue .guide-section-head { color: var(--blue); }
+.guide-blue { border-color: #CFE0FB; }
+.guide-blue .guide-section-head { background: #F2F7FF; }
+.guide-purple .guide-section-head { color: #6D28D9; background: #F5F1FE; }
+.guide-purple { border-color: #DDD2F5; }
+
+/* Phase-2 placeholder */
+.guide-phase2 { padding-top: 10px; }
+.guide-phase2-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6D28D9; background: #EFE8FC; padding: 3px 8px; border-radius: 10px; }
+.guide-phase2 p { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-top: 8px; }
+
+/* Tap-to-insert questions */
+.guide-q-hint { font-size: 11px; color: var(--caption); margin: 8px 0 8px; }
+.guide-qs { display: flex; flex-direction: column; gap: 6px; }
+.guide-q { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; padding: 9px 10px; background: #F8FAFD; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 12.5px; line-height: 1.45; color: var(--text-1); cursor: pointer; transition: background 0.12s, border-color 0.12s; }
+.guide-q:hover { background: #EBF2FF; border-color: var(--blue); }
+.guide-q-plus { width: 14px; height: 14px; flex-shrink: 0; color: var(--blue); margin-top: 1px; }
+
+/* Numbered resolution steps (no checkboxes) */
+.guide-steps { margin: 8px 0 0; padding-left: 0; list-style: none; counter-reset: gstep; display: flex; flex-direction: column; gap: 8px; }
+.guide-steps li { position: relative; counter-increment: gstep; padding-left: 30px; font-size: 12.5px; line-height: 1.5; color: var(--text-1); }
+.guide-steps li::before { content: counter(gstep); position: absolute; left: 0; top: 0; width: 21px; height: 21px; background: var(--blue); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* Footer */
+.guide-footer { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; font-size: 11px; color: var(--caption); }
+.guide-edit-link { align-self: flex-start; background: none; border: none; padding: 0; color: var(--blue); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.guide-edit-link:hover { text-decoration: underline; }
+.guide-loading { font-size: 12px; color: var(--caption); padding: 8px; }
+
+/* Empty state */
+.guide-empty { text-align: center; padding: 28px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.guide-empty-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.guide-empty-sub { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 6px; }
+
+/* Mobile guide tab */
+.tdm-guide { flex: 1; min-height: 0; overflow-y: auto; }
+.guide-panel { border-left: none; background: #fff; }
+.guide-panel .guide-rail-head { background: var(--bg-alt); }
+
+/* Composer flash when a question is inserted */
+.composer-flash { animation: composer-flash-anim 0.7s ease-out; }
+@keyframes composer-flash-anim {
+  0% { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(28,100,242,0.18); }
+  100% { border-color: var(--border); box-shadow: none; }
+}
+
+/* ── GUIDE EDITOR repeatable rows ─────────────────────────────────────── */
+.ge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ge-row-num { flex-shrink: 0; width: 22px; height: 22px; background: var(--blue); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.ge-row .nt-input { flex: 1; }
+.ge-row-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.ge-row-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: #F4F6F8; border: 1px solid var(--border); border-radius: 7px; color: #6B7280; cursor: pointer; }
+.ge-row-btn:hover:not(:disabled) { background: #E2E8EF; color: var(--text-1); }
+.ge-row-btn:disabled { opacity: 0.4; cursor: default; }
+.ge-row-btn svg { width: 14px; height: 14px; }
+.ge-row-del:hover:not(:disabled) { background: #FDECEA; color: #C0392B; border-color: #F1B0A8; }
+.ge-add { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; background: none; border: 1px dashed var(--border-strong); border-radius: 8px; padding: 8px 14px; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--blue); cursor: pointer; }
+.ge-add:hover { background: #EBF2FF; border-color: var(--blue); }
+.ge-add svg { width: 14px; height: 14px; }
+
+/* ── GUIDES LIBRARY page ──────────────────────────────────────────────── */
+.guides-cat-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--caption); margin-bottom: 10px; }
+.guides-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.guide-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 15px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 10px; }
+.guide-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.guide-card-title { font-size: 14px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.guide-card-tag { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--blue); background: #EBF2FF; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+.guide-card-stats { display: flex; flex-wrap: wrap; gap: 7px; font-size: 12px; color: var(--text-2); }
+.guide-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 2px; }
+.guide-card-updated { font-size: 11px; color: var(--caption); }
+.guide-card-actions { display: flex; gap: 12px; flex-shrink: 0; }
+.guide-card-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--blue); cursor: pointer; }
+.guide-card-link:hover { text-decoration: underline; }
+.guide-card-del { color: #C0392B; }
+.guides-empty { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.guides-empty-title { font-size: 16px; font-weight: 600; color: var(--text-1); }
+.guides-empty-sub { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+
+/* Guide rail stacks below the conversation if ever shown narrow */
+@media (max-width: 900px) {
+  .h-body.has-guide, .h-body.has-guide.guide-collapsed { grid-template-columns: 1fr; }
+}
