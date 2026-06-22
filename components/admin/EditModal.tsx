@@ -293,9 +293,13 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <div className="compose-actions">
                     <div className="status-radio-row">
                       <span className="label-strong">Status:</span>
-                      {[['', 'No change'], ['waiting-on-requester', 'On requester'], ['waiting-on-admin', 'On me'], ['in-progress', 'In progress'], ['resolved', 'Resolved']].map(([v, l]) => (
-                        <label key={v}><input type="radio" name="emComposeStatus" value={v} checked={statusRadio === v} onChange={() => setStatusRadio(v)} /> {l}</label>
-                      ))}
+                      <select className="input" value={statusRadio} onChange={(e) => setStatusRadio(e.target.value)} style={{ width: 'auto', minWidth: 140, padding: '6px 10px', fontSize: 12 }}>
+                        <option value="">No change</option>
+                        <option value="waiting-on-requester">On requester</option>
+                        <option value="waiting-on-admin">On me</option>
+                        <option value="in-progress">In progress</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
                     </div>
                     <button type="button" className="btn-ghost attach-btn" onClick={() => fileRef.current?.click()}><Paperclip /> Attach</button>
                     <button className={`btn ${tab === 'internal' ? 'btn-internal' : 'btn-send'}`} onClick={submitComposer} disabled={busy}>{sendLabel}</button>
