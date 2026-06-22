@@ -63,11 +63,14 @@ body {
   margin: 0 auto;
   width: 100%;
 }
+/* Admin + analytics use the full screen width (portal keeps the 1800 cap). */
+.main-wide { max-width: none; }
 
 /* ── TOPBAR ───────────────────────────────────── */
 .topbar {
-  background: transparent;
-  padding: 40px 32px 20px;
+  background: #F4F6F8;
+  position: sticky; top: 0; z-index: 60;
+  padding: 22px 32px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -817,8 +820,8 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .detail-left, .detail-right { min-width: 0; }
 .detail-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 24px; }
 .detail-conv { background: #fff; border-radius: 20px 20px 0 0; box-shadow: var(--shadow-card); padding: 20px 24px; }
-/* Conversation scrolls inside a capped area rather than growing the page. */
-.detail-conv-scroll { max-height: 52vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+/* Conversation is a fixed-height scroll area (full height from the start). */
+.detail-conv-scroll { height: 60vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
 .portal-composer { background: #fff; border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); border-top: 1px solid var(--border); padding: 18px 24px; }
 .portal-composer textarea { width: 100%; min-height: 90px; padding: 10px 12px; font-size: 13px; font-family: inherit; background: #F9FAFB; border: 1px solid var(--border-strong); border-radius: 8px; resize: vertical; color: var(--text-1); }
 .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
@@ -1036,3 +1039,6 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
    get a faded-yellow highlight, like an unread row. */
 tr.row-attention { background: #FEF9E7; }
 tr.row-attention:hover { background: #FCF3CF; }
+
+/* Mobile: topbar scrolls (the tab bar is the sticky one); avoids a double-pin. */
+@media (max-width: 900px) { .topbar { position: static; } }

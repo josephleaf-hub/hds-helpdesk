@@ -193,11 +193,10 @@ export default function AdminPage() {
 
   return (
     <>
-      <main className="main">
+      <main className="main main-wide">
         <header className="topbar">
           <div className="topbar-left">
             <div className="topbar-title">{isAdmin ? 'IT Admin Dashboard' : `${user?.department} — My Team's Tickets`}</div>
-            <div className="topbar-meta">{isAdmin ? 'All tickets across the business' : `Manager view — ${user?.department} department`}</div>
           </div>
           <div className="topbar-right">
             <UserMenu label={`${user?.full_name} · ${isAdmin ? 'IT Admin' : 'Manager'}`} variant="admin" manager={!isAdmin} redirectTo="/login" />

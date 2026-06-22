@@ -119,11 +119,10 @@ export default function AnalyticsPage() {
   const hasDept = Object.keys(deptCounts).length > 0;
 
   return (
-    <main className="main">
+    <main className="main main-wide">
       <header className="topbar">
         <div className="topbar-left">
           <div className="topbar-title">IT Helpdesk — Analytics</div>
-          <div className="topbar-meta">{`All ${total} ticket${total === 1 ? '' : 's'} since launch · updated just now`}</div>
         </div>
         <div className="topbar-right">
           <UserMenu label={userLabel} variant="admin" manager={isMgr} redirectTo="/login" />

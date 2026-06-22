@@ -46,7 +46,6 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const [polishNote, setPolishNote] = useState('');
   const convRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const prevCount = useRef(0);
 
   const notes: Note[] = (ticket.ticket_notes || []).slice().sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
   const reqFirst = (ticket.requester_name || '').split(' ')[0] || 'requester';
@@ -61,8 +60,10 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   // Auto-scroll to newest message on open and when a new note arrives.
   useEffect(() => {
     const c = convRef.current;
-    if (c && (notes.length > prevCount.current || prevCount.current === 0)) c.scrollTop = c.scrollHeight;
-    prevCount.current = notes.length;
+    if (!c) return;
+    // Always land on the latest message — on open and after images load (which
+    // change the height). rAF waits for layout so scrollHeight is final.
+    requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
   }, [notes.length, attMap]);
 
   // Escape closes the modal.
