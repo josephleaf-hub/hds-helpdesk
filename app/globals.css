@@ -1086,8 +1086,12 @@ tr.row-attention:hover { background: #FCF3CF; }
 
 /* ── HELP GUIDE RAIL (v1.6) ───────────────────────────────────────────── */
 /* Ticket modal becomes 3 columns: context | conversation | guide rail. */
-.h-body.has-guide { grid-template-columns: 400px minmax(0, 1fr) 400px; }
+.h-body.has-guide { grid-template-columns: 400px minmax(0, 1fr) 400px; transition: grid-template-columns 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
 .h-body.has-guide.guide-collapsed { grid-template-columns: 400px minmax(0, 1fr) 46px; }
+/* Rail clips its content during the slide so nothing spills while it narrows. */
+.guide-rail { overflow: hidden; }
+.guide-rail-body { animation: guide-fade-in 0.3s ease both; }
+@keyframes guide-fade-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
 
 .guide-rail { display: flex; flex-direction: column; min-height: 0; background: var(--bg-alt); border-left: 1px solid var(--border); }
 .guide-rail-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 14px; border-bottom: 1px solid var(--border); background: #fff; }
