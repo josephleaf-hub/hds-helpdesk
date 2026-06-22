@@ -393,7 +393,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .field-val { font-size: 13px; color: var(--text-1); font-weight: 500; }
 .field-sub { font-size: 12px; color: var(--caption); margin-top: 2px; }
 .desc-block {
-  background: var(--bg-surface); border-radius: 8px; padding: 12px 14px;
+  background: #F8F9FB; border-radius: 8px; padding: 12px 14px;
   border: 1px solid var(--border);
   font-size: 13px; line-height: 1.6; white-space: pre-wrap; color: var(--text-1);
 }
