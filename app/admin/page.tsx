@@ -7,7 +7,7 @@ import { fmtDate, fmtShort } from '@/lib/format';
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { FloatingMenu } from '@/components/admin/FloatingMenu';
 import { UserMenu } from '@/components/UserMenu';
-import { RealtimeAlertsProvider, MuteToggle } from '@/components/RealtimeAlerts';
+import { RealtimeAlertsProvider, MuteToggle, AwayBar } from '@/components/RealtimeAlerts';
 import { EditModal } from '@/components/admin/EditModal';
 import { NewTicketModal } from '@/components/admin/NewTicketModal';
 import { useToast } from '@/components/Toast';
@@ -256,6 +256,8 @@ export default function AdminPage() {
               </label>
             )}
           </div>
+
+          <AwayBar />
 
           <div className="section-title" style={{ marginTop: 0 }}>Tickets <span className="section-badge">{filtered.length}</span></div>
 

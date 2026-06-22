@@ -14,7 +14,7 @@ type AlertKind = 'new' | 'reply' | 'it';
 type Alert = { id: number; kind: AlertKind; title: string; body?: string; ticketId?: string };
 
 const MUTE_KEY = 'hds-alert-muted';
-const MuteCtx = createContext<{ muted: boolean; toggle: () => void }>({ muted: false, toggle: () => {} });
+const MuteCtx = createContext<{ muted: boolean; toggle: () => void; awayBar: number; clearAway: () => void }>({ muted: false, toggle: () => {}, awayBar: 0, clearAway: () => {} });
 export const useAlertMute = () => useContext(MuteCtx);
 
 // Short two-note chime (Web Audio). Low gain, fails silently if autoplay-blocked.
@@ -120,16 +120,11 @@ export function RealtimeAlertsProvider({ surface, enabled, onView, onActivity, c
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [surface]);
 
-  return (
-    <MuteCtx.Provider value={{ muted, toggle }}>
-      {children}
+  const clearAway = useCallback(() => setAwayBar(0), []);
 
-      {surface === 'admin' && awayBar > 0 && (
-        <div className="alert-awaybar">
-          <span>{awayBar} new {awayBar === 1 ? 'update' : 'updates'} while you were away</span>
-          <button onClick={() => setAwayBar(0)} aria-label="Dismiss">✕</button>
-        </div>
-      )}
+  return (
+    <MuteCtx.Provider value={{ muted, toggle, awayBar: surface === 'admin' ? awayBar : 0, clearAway }}>
+      {children}
 
       <div className="alert-toasts">
         {alerts.map(a => (
@@ -144,6 +139,20 @@ export function RealtimeAlertsProvider({ surface, enabled, onView, onActivity, c
         ))}
       </div>
     </MuteCtx.Provider>
+  );
+}
+
+// Inline banner — render it in the page content where you want it (e.g. above
+// the ticket table). Shows only after returning to a tab that had activity.
+export function AwayBar() {
+  const { awayBar, clearAway } = useAlertMute();
+  if (awayBar <= 0) return null;
+  return (
+    <div className="alert-awaybar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+      <span>{awayBar} new {awayBar === 1 ? 'update' : 'updates'} while you were away</span>
+      <button onClick={clearAway} aria-label="Dismiss">✕</button>
+    </div>
   );
 }
 
