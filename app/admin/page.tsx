@@ -281,10 +281,6 @@ export default function AdminPage() {
               <option value="">All Assignees</option><option value="__unassigned__">Unassigned</option><option value="IT Level 1">IT Level 1</option><option value="IT Level 2">IT Level 2</option><option value="Senior Engineer">Senior Engineer</option><option value="IT Manager">IT Manager</option>
             </select>
             <button className="btn-ghost" onClick={clearFilters} style={{ fontSize: 12 }}>Clear</button>
-            <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              {exporting ? 'Exporting…' : 'Export CSV'}
-            </button>
             {isAdmin && (
               <label className="arch-toggle">
                 <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
@@ -292,6 +288,10 @@ export default function AdminPage() {
                 Show archived
               </label>
             )}
+            <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
           </div>
 
           <AwayBar />
