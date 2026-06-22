@@ -92,7 +92,7 @@ body {
   padding: 7px 16px; font-size: 13px; font-weight: 500;
   color: #6B7280; background: transparent; border: none;
   border-radius: 5px; cursor: pointer; white-space: nowrap;
-  font-family: inherit;
+  font-family: inherit; text-decoration: none;
   transition: color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 .tab-btn:hover { color: #0F1C2E; }
