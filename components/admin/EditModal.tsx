@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
 import { CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM } from '@/lib/constants';
-import { fmtDate } from '@/lib/format';
+import { fmtDate, fmtShort } from '@/lib/format';
+import { useIsMobile } from '@/lib/useIsMobile';
 import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
 import { Conversation } from '@/components/Conversation';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import { useLightbox } from '@/components/Lightbox';
-import type { Ticket, Note, AttachMap } from '@/lib/types';
+import type { Ticket, Note, AttachMap, AttachItem } from '@/lib/types';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
 type Tab = 'reply' | 'internal' | 'log';
@@ -28,8 +29,10 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const toast = useToast();
   const confirm = useConfirm();
   const lightbox = useLightbox();
+  const isMobile = useIsMobile(900);
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [tab, setTab] = useState<Tab>('reply');
+  const [modeMenuOpen, setModeMenuOpen] = useState(false);
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [statusRadio, setStatusRadio] = useState('');
@@ -198,9 +201,110 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     : tab === 'internal' ? 'Add Internal Note' : tab === 'log' ? 'Log Reply' : <>Send Email Reply <SendIco /></>;
   const placeholder = tab === 'internal' ? 'Add an internal note (IT team only)…' : tab === 'log' ? `Paste ${reqFirst}'s emailed reply…` : `Type your reply to ${reqFirst}…`;
 
+  // ─────────────── Mobile layout (≤900px) — desktop is untouched ───────────────
+  const MODE: Record<Tab, { label: string; ph: string; hint: string; btn: string; flip: string; accent: string; bg: string }> = {
+    reply: { label: `Reply to ${reqFirst}`, ph: `Type your reply to ${reqFirst}…`, hint: `Emailed to ${ticket.requester_email} with a secure link — they respond in the portal.`, btn: 'Send reply', flip: '→ moves to Waiting on Requester', accent: '#FF6B43', bg: '#FFF1EC' },
+    internal: { label: 'Internal note', ph: 'Add an internal note (only visible to IT)…', hint: 'Private — only visible to IT staff. The requester never sees this.', btn: 'Save note', flip: '', accent: '#B45309', bg: '#FEF6E7' },
+    log: { label: 'Log their email reply', ph: `Paste ${reqFirst}'s email reply to log it on the ticket…`, hint: 'Records a reply they sent by email so the thread stays complete.', btn: 'Log reply', flip: '→ moves to Waiting on Admin', accent: '#475569', bg: '#EEF0F3' },
+  };
+  const cfg = MODE[tab];
+  const busyLabel = tab === 'internal' ? 'Saving…' : tab === 'log' ? 'Logging…' : 'Sending…';
+  const modeIco: Record<Tab, React.ReactNode> = {
+    reply: <svg className="tdm-ico" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
+    internal: <svg className="tdm-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+    log: <svg className="tdm-ico" viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4" /><path d="M20 20v-7a4 4 0 0 0-4-4H4" /></svg>,
+  };
+
+  const bubble = (key: string, kind: 'requester' | 'it' | 'note', who: string, date: string, body: string, atts?: AttachItem[]) => (
+    <div key={key} className={`tdm-msg tdm-${kind}`}>
+      {kind === 'note'
+        ? <div className="tdm-note-tag"><svg className="tdm-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Internal note · {who} · {fmtShort(date)}</div>
+        : <div className="tdm-msg-meta">{who} · {fmtDate(date)}</div>}
+      <div className="tdm-bubble">
+        {body ? <span style={{ whiteSpace: 'pre-wrap' }}>{body}</span> : null}
+        {atts?.length ? <div className="tdm-thumbs">{atts.map((a, i) => <img key={i} src={a.url} alt={a.name} title={a.name} onClick={() => lightbox(a.url, a.name)} />)}</div> : null}
+      </div>
+    </div>
+  );
+
+  const mobileView = (
+    <div className="tdm" onMouseDown={(e) => e.stopPropagation()}>
+      {/* Compact header */}
+      <div className="tdm-hdr">
+        <div className="tdm-hdr-main">
+          <div className="tdm-title">{ticket.subject}</div>
+          <div className="tdm-meta">{ticket.id} · {CAT_LABEL[ticket.category] || ticket.category} · {fmtShort(ticket.created_at)}</div>
+        </div>
+        <button className="tdm-x" onClick={onClose} aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+      </div>
+
+      {/* Tabs */}
+      <div className="tdm-tabs">
+        <button className={`tdm-tab${pane === 'chat' ? ' active' : ''}`} onClick={() => setPane('chat')}>Conversation</button>
+        <button className={`tdm-tab${pane === 'ticket' ? ' active' : ''}`} onClick={() => setPane('ticket')}>Ticket details</button>
+      </div>
+
+      {pane === 'chat' ? (
+        <>
+          {/* Thread — the only scrolling region */}
+          <div className="tdm-thread" ref={convRef}>
+            {bubble('desc', 'requester', ticket.requester_name, ticket.created_at, ticket.description, attMap['_unlinked'])}
+            {notes.map(n => bubble(n.id, n.note_type === 'outbound' ? 'it' : n.note_type === 'internal' ? 'note' : 'requester', n.added_by, n.created_at, n.note_text, attMap[n.id]))}
+          </div>
+
+          {/* Pinned composer */}
+          <div className="tdm-composer">
+            <div className="tdm-mode-row">
+              <button className="tdm-mode-pill" style={{ background: cfg.bg, color: cfg.accent }} onClick={() => setModeMenuOpen(o => !o)}>
+                {modeIco[tab]}<span>{cfg.label}</span><svg className="tdm-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+              </button>
+              {cfg.flip && <span className="tdm-autoflip">{cfg.flip}</span>}
+            </div>
+            {modeMenuOpen && (
+              <div className="tdm-mode-menu">
+                {(['reply', 'internal', 'log'] as Tab[]).map(m => (
+                  <button key={m} className={`tdm-mode-opt${tab === m ? ' sel' : ''}`} onClick={() => { setTab(m); setModeMenuOpen(false); }}>
+                    {modeIco[m]}{MODE[m].label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={cfg.ph} />
+            {files.length > 0 && <div className="attach-preview">{files.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
+            <div className="tdm-send-row">
+              <span className="tdm-send-hint">{cfg.hint}</span>
+              <button type="button" className="tdm-attach" onClick={() => fileRef.current?.click()} aria-label="Attach image"><Paperclip /></button>
+              <button className="tdm-send" style={{ background: cfg.accent }} onClick={submitComposer} disabled={busy}>{busy ? busyLabel : cfg.btn}</button>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
+          </div>
+        </>
+      ) : (
+        /* Ticket details tab */
+        <div className="tdm-details">
+          <div className="tdm-pills">
+            <span className="pill-label">Status</span>
+            <button className={`pill ${ST_CLS[ticket.status] || 'b-hold'}`} onClick={(e) => openPill('status', e)}>{STATUS_LABEL[ticket.status] || ticket.status}<Chev /></button>
+            <span className="pill-label">Priority</span>
+            <button className={`pill ${PR_CLS[ticket.priority] || 'b-low'}`} onClick={(e) => openPill('priority', e)}>{PRI_LABEL[ticket.priority] || ticket.priority}<Chev /></button>
+            <span className="pill-label">Assigned</span>
+            <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{ticket.assigned_to || 'Unassigned'}<Chev /></button>
+          </div>
+          <hr className="divider-line" />
+          <div className="field"><div className="field-label">Requester</div><div className="field-val">{ticket.requester_name}</div><div className="field-sub">{ticket.requester_email}</div></div>
+          <div className="field"><div className="field-label">Department / Location</div><div className="field-val">{ticket.department}{ticket.location ? ' · ' + ticket.location : ''}</div></div>
+          {ticket.affected_user && <div className="field"><div className="field-label">Affected user</div><div className="field-val">{ticket.affected_user}</div></div>}
+          <div className="field"><div className="field-label">Submitted</div><div className="field-val">{fmtDate(ticket.created_at)}</div></div>
+          {ticket.resolved_at && <div className="field"><div className="field-label">Resolved at</div><div className="field-val">{fmtDate(ticket.resolved_at)}</div></div>}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       <div className="modal-overlay open" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+        {isMobile ? mobileView : (
         <div className="modal">
           <div className="modal-header">
             <div>
@@ -319,6 +423,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
             <button className="btn btn-ghost" onClick={onClose}>Close</button>
           </div>
         </div>
+        )}
       </div>
 
       {pill && <FloatingMenu rect={pill.rect} items={pillItems()} onClose={() => setPill(null)} />}
