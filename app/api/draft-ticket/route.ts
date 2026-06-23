@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CAT_LABEL, SUB_TYPES, PRI_LABEL, DEPARTMENTS } from '@/lib/constants';
+import { fetchKnowledgeBlock } from '@/lib/orgKnowledge';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -85,6 +86,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI drafting is not configured.' }, { status: 503 });
   }
 
+  const knowledge = await fetchKnowledgeBlock(admin);
+
   try {
     const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -92,7 +95,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 600,
-        system: buildSystemPrompt(),
+        system: buildSystemPrompt() + knowledge,
         messages: [{ role: 'user', content: `Email thread:\n\n${thread}` }],
       }),
     });

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CAT_LABEL, SUB_TYPES } from '@/lib/constants';
+import { fetchKnowledgeBlock } from '@/lib/orgKnowledge';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -130,6 +131,10 @@ Description: ${ticket.description || '(none)'}`;
     userContent = `${catHeader}\n\nConversation so far:\n${convo || '(no messages yet)'}`;
   }
 
+  // House knowledge informs the questions (don't ask what's already convention).
+  // The lightweight category check stays lean and skips it.
+  const knowledge = mode === 'questions' ? await fetchKnowledgeBlock(admin) : '';
+
   try {
     const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -137,7 +142,7 @@ Description: ${ticket.description || '(none)'}`;
       body: JSON.stringify({
         model: MODEL,
         max_tokens: mode === 'category' ? 120 : 700,
-        system: mode === 'category' ? buildCategoryPrompt() : buildSystemPrompt(),
+        system: mode === 'category' ? buildCategoryPrompt() : buildSystemPrompt() + knowledge,
         messages: [{ role: 'user', content: userContent }],
       }),
     });

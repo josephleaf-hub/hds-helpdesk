@@ -7,6 +7,7 @@ import { fmtRelative } from '@/lib/format';
 import { listGuides, deleteGuide, type HelpGuide } from '@/lib/guides';
 import { UserMenu } from '@/components/UserMenu';
 import { GuideEditor } from '@/components/admin/GuideEditor';
+import { HouseKnowledge } from '@/components/admin/HouseKnowledge';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 
@@ -87,7 +88,9 @@ export default function GuidesPage() {
       </div>
 
       <div className="page-content">
-        <div className="section-title" style={{ marginTop: 0, fontSize: 22, fontWeight: 600 }}>Knowledge bank <span className="section-badge">{guides.length}</span></div>
+        <HouseKnowledge isAdmin={isAdmin} userName={userName} />
+
+        <div className="section-title" style={{ fontSize: 22, fontWeight: 600 }}>Knowledge bank <span className="section-badge">{guides.length}</span></div>
 
         {!guides.length ? (
           <div className="guides-empty">

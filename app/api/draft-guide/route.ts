@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CAT_LABEL, SUB_TYPES } from '@/lib/constants';
+import { fetchKnowledgeBlock } from '@/lib/orgKnowledge';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
   }
 
   const userContent = `Task to write a guide for:\n${prompt}${passedCategory ? `\n\n(Author tentatively filed under category "${passedCategory}"${passedSub ? `, sub-type "${passedSub}"` : ''}.)` : ''}`;
+  const knowledge = await fetchKnowledgeBlock(admin);
 
   try {
     const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 1200,
-        system: buildSystemPrompt(passedCategory),
+        system: buildSystemPrompt(passedCategory) + knowledge,
         messages: [{ role: 'user', content: userContent }],
       }),
     });
