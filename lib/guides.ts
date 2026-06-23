@@ -43,8 +43,19 @@ export async function matchGuide(category: string, subType: string | null): Prom
     .order('updated_at', { ascending: false });
   if (error || !data?.length) return null;
   const rows = data.map(normalise);
-  const exact = subType ? rows.find(g => g.sub_type === subType) : null;
-  return exact || rows.find(g => g.sub_type == null) || null;
+  // 1. Exact sub-type match wins.
+  if (subType) {
+    const exact = rows.find(g => g.sub_type === subType);
+    if (exact) return exact;
+  }
+  // 2. A category-wide guide (no sub-type set).
+  const categoryWide = rows.find(g => g.sub_type == null);
+  if (categoryWide) return categoryWide;
+  // 3. Ticket has no sub-type → surface the category's guide anyway (most recent).
+  //    If it has a specific sub-type with no matching guide, don't show an
+  //    unrelated sub-type's guide (could mislead).
+  if (!subType) return rows[0] || null;
+  return null;
 }
 
 // Count a surfacing. Best-effort: a failure here must never block the rail.
