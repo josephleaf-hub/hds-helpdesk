@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { siteUrl } from '@/lib/site';
+import { emailLogoImgs, emailLogoWhite, EMAIL_HEAD_STYLE } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -125,8 +126,8 @@ async function sendEmail(ticketId: string, ticket: Ticket, SITE_URL: string) {
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1;">HDS IT Helpdesk</div>
-                <div style="color:#8A97A8;font-size:12px;margin-top:5px;">New Support Ticket</div>
+                ${emailLogoWhite(26)}
+                <div style="color:#8A97A8;font-size:12px;margin-top:8px;">New Support Ticket</div>
               </td>
               <td align="right" valign="middle">
                 <span style="background:${color};color:#ffffff;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">${ticket.priority}</span>
@@ -225,13 +226,13 @@ async function sendConfirmationEmail(
   const fromAddr = process.env.EMAIL_FROM || 'helpdesk@homedelivery.com.au';
 
   const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
+<html><head><meta charset="utf-8">${EMAIL_HEAD_STYLE}</head>
 <body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:32px 16px;">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
       <tr><td align="left" style="padding:20px 28px;background:#fff;border-bottom:1px solid #E2E8EF;">
-        <img src="https://cdn.prod.website-files.com/69d48f8f8f01871806e7f641/69e03c21c28ca297a9031891_Teritary-positive.png" alt="HDS" height="32" style="height:32px;width:auto;display:block;border:0;" />
+        ${emailLogoImgs(30)}
       </td></tr>
       <tr><td style="padding:24px 28px 16px;">
         <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">HDS IT Helpdesk · Ticket ${escEmail(ticketId)}</div>

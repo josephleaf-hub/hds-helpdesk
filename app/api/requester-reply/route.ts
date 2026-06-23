@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { siteUrl } from '@/lib/site';
+import { emailLogoRow, EMAIL_HEAD_STYLE } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -97,11 +98,12 @@ async function notifyIT(opts: { ticket: ReplyTicket; message: string; resolved: 
     : '';
 
   const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title></head>
+<html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title>${EMAIL_HEAD_STYLE}</head>
 <body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:32px 16px;">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+      ${emailLogoRow()}
       <tr><td style="padding:24px 28px 16px;border-bottom:1px solid #E2E8EF;">
         <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">HDS IT Helpdesk · Ticket ${esc(ticket.id)}</div>
         <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">${esc(who)} replied${resolved ? ' and marked this resolved' : (reopened ? ' (ticket reopened)' : '')}</div>
