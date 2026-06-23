@@ -1199,3 +1199,50 @@ tr.row-attention:hover { background: #FCF3CF; }
 @media (max-width: 900px) {
   .h-body.has-guide, .h-body.has-guide.guide-collapsed { grid-template-columns: 1fr; }
 }
+
+/* ── PHASE 2 — AI on the rail ─────────────────────────────────────────── */
+.guide-ai-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; background: #F5F1FE; color: #6D28D9; }
+.guide-ai-spark { color: #6D28D9; }
+.guide-ai-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #fff; background: #6D28D9; padding: 2px 7px; border-radius: 9px; }
+.guide-ai-intro { font-size: 12px; color: var(--text-2); line-height: 1.5; margin: 10px 0 10px; }
+.guide-ai-btn { display: inline-flex; align-items: center; gap: 7px; width: 100%; justify-content: center; padding: 9px 12px; background: #6D28D9; color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.guide-ai-btn:hover:not(:disabled) { background: #5B21B6; }
+.guide-ai-btn:disabled { opacity: 0.7; cursor: default; }
+.guide-ai-btn svg { width: 14px; height: 14px; }
+.guide-ai-dots { opacity: 0.95; }
+.guide-ai-err { font-size: 12px; color: #C0392B; margin: 8px 0; line-height: 1.45; }
+.guide-ai-complete { font-size: 12.5px; color: var(--text-2); line-height: 1.5; padding: 8px 10px; background: #F5F1FE; border-radius: 8px; margin-top: 10px; }
+.guide-ai-rerun { align-self: flex-start; margin-top: 10px; background: none; border: none; padding: 0; color: #6D28D9; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.guide-ai-rerun:hover { text-decoration: underline; }
+/* AI tap-to-insert questions — purple to mark the ticket-specific layer */
+.guide-q-ai { background: #F8F5FE; }
+.guide-q-ai:hover { background: #EFE8FC; border-color: #6D28D9; }
+.guide-q-ai .guide-q-plus { color: #6D28D9; }
+/* Re-check nudge */
+.guide-ai-recheck { display: inline-flex; align-items: center; gap: 7px; width: 100%; justify-content: center; margin-bottom: 10px; padding: 8px 10px; background: #fff; border: 1px solid #DDD2F5; border-radius: 8px; color: #6D28D9; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.guide-ai-recheck:hover { background: #F5F1FE; }
+.guide-ai-recheck svg { width: 14px; height: 14px; }
+/* Category mismatch on the rail */
+.guide-ai-mismatch { background: #FEF6E7; border: 1px solid #F3D9A4; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 12px; color: #92500E; line-height: 1.5; }
+.guide-ai-mismatch-actions { display: flex; gap: 8px; margin-top: 8px; }
+.guide-ai-switch { background: #B45309; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.guide-ai-keep { background: none; border: 1px solid #E2C893; color: #92500E; border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+
+/* ── PHASE 2 — AI in the guide editor ─────────────────────────────────── */
+.ge-ai-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: none; color: #6D28D9; background: #EFE8FC; padding: 3px 9px; border-radius: 10px; }
+.ge-ai-pill svg { width: 11px; height: 11px; }
+.ge-mismatch { display: flex; gap: 9px; background: #FEF6E7; border: 1px solid #F3D9A4; border-radius: 10px; padding: 11px 13px; margin-bottom: 12px; color: #92500E; }
+.ge-mismatch svg { color: #B45309; margin-top: 1px; }
+.ge-mismatch-main { flex: 1; font-size: 12.5px; line-height: 1.5; }
+.ge-mismatch-actions { display: flex; gap: 8px; margin-top: 9px; }
+.ge-mismatch-actions button { background: #B45309; color: #fff; border: none; border-radius: 7px; padding: 7px 12px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.ge-mismatch-keep { background: #fff !important; border: 1px solid #E2C893 !important; color: #92500E !important; }
+/* Bracketed HDS-specific gaps in step inputs */
+.ge-input-gap { border-color: #E0A82E !important; background: #FFFBF0 !important; }
+.ge-input-gap:focus { outline: 2px solid #E0A82E; }
+/* Flash filled fields after an AI draft */
+.ge-flash { animation: ge-flash-anim 1.2s ease-out; }
+@keyframes ge-flash-anim {
+  0% { background: #EFE8FC; border-color: #6D28D9; }
+  100% { background: #fff; border-color: var(--border); }
+}

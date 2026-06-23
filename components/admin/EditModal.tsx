@@ -83,6 +83,20 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 
   useEffect(() => { loadGuide(true); }, [loadGuide]);
 
+  // One-tap category switch from the rail's AI mismatch nudge. Optimistic + persisted.
+  async function switchCategory(categoryKey: string) {
+    patchTicket(ticket.id, { category: categoryKey });
+    try {
+      const { error } = await sb.from('tickets').update({ category: categoryKey }).eq('id', ticket.id);
+      if (error) throw error;
+      toast(`Category changed to ${CAT_LABEL[categoryKey] || categoryKey}`);
+      await onReload();
+    } catch (err) {
+      toast('Failed: ' + (err as Error).message);
+      await onReload();
+    }
+  }
+
   // Tap-to-insert: append a clarifying question to the reply composer and flash it.
   const insertGuideText = (q: string) => {
     setTab('reply');
@@ -327,8 +341,8 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       {pane === 'guide' ? (
         <div className="tdm-guide">
           <GuideRail
-            guide={guide} loading={guideLoading} category={ticket.category} isAdmin={isAdmin}
-            variant="panel" onInsert={insertGuideText}
+            guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
+            variant="panel" onInsert={insertGuideText} onSwitchCategory={switchCategory}
             onEdit={() => setGuideEditor({ guide })}
             onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
           />
@@ -515,9 +529,9 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 
               {/* GUIDE: help-guide rail (3rd column, collapsible) */}
               <GuideRail
-                guide={guide} loading={guideLoading} category={ticket.category} isAdmin={isAdmin}
+                guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
                 variant="rail" collapsed={railCollapsed} onToggleCollapse={() => setRailCollapsed(c => !c)}
-                onInsert={insertGuideText}
+                onInsert={insertGuideText} onSwitchCategory={switchCategory}
                 onEdit={() => setGuideEditor({ guide })}
                 onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
               />

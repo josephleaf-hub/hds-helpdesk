@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { CAT_LABEL } from '@/lib/constants';
 import { fmtRelative } from '@/lib/format';
+import { GuideAISection } from '@/components/admin/GuideAISection';
 import type { HelpGuide } from '@/lib/guides';
+import type { Note } from '@/lib/types';
 
 /* The help-guide rail in the admin ticket modal. Phase 1: static, editable
    knowledge bank — clarifying questions (tap-to-insert) + numbered resolution
@@ -31,15 +33,18 @@ function Section({ title, accent, defaultOpen = true, children }: { title: React
   );
 }
 
-export function GuideRail({ guide, loading, category, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onEdit, onCreate }: {
+export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onSwitchCategory, onEdit, onCreate }: {
   guide: HelpGuide | null;
   loading: boolean;
+  ticketId: string;
   category: string;
+  notes: Note[];
   isAdmin: boolean;
   variant?: 'rail' | 'panel';
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onInsert: (text: string) => void;
+  onSwitchCategory: (categoryKey: string) => void;
   onEdit: () => void;
   onCreate: () => void;
 }) {
@@ -77,24 +82,21 @@ export function GuideRail({ guide, loading, category, isAdmin, variant = 'rail',
       <div className="guide-rail-body">
         {loading ? (
           <div className="guide-loading">Loading guide…</div>
-        ) : !guide ? (
-          // Empty state — common early on.
-          <div className="guide-empty">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#8A97A8' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-            <div className="guide-empty-title">No guide yet for {catLabel}</div>
-            <div className="guide-empty-sub">Capture the questions to ask and the steps to resolve it — the next person (or you) will thank you.</div>
-            {isAdmin && <button className="btn-primary" style={{ fontSize: 12 }} onClick={onCreate}>Write the first guide</button>}
-          </div>
         ) : (
           <>
-            {/* PHASE 2 slot — AI "For this ticket" suggestions. Layout only for now. */}
-            <Section accent="purple" title={<>For this ticket</>} defaultOpen={false}>
-              <div className="guide-phase2">
-                <span className="guide-phase2-badge">Coming soon</span>
-                <p>AI will read this ticket and its conversation, then suggest clarifying questions specific to it.</p>
-              </div>
-            </Section>
+            {/* AI "For this ticket" — on-demand, ticket-specific (phase 2). */}
+            <GuideAISection ticketId={ticketId} category={category} notes={notes} onInsert={onInsert} onSwitchCategory={onSwitchCategory} />
 
+            {!guide ? (
+              // Empty state — no static guide yet (common early on).
+              <div className="guide-empty">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#8A97A8' }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+                <div className="guide-empty-title">No saved guide for {catLabel}</div>
+                <div className="guide-empty-sub">Capture the questions to ask and the steps to resolve it — the next person (or you) will thank you.</div>
+                {isAdmin && <button className="btn-primary" style={{ fontSize: 12 }} onClick={onCreate}>Write the first guide</button>}
+              </div>
+            ) : (
+          <>
             {/* Static clarifying questions — tap to insert into the reply composer. */}
             {guide.questions.length > 0 && (
               <Section accent="blue" title={<>Confirm before starting</>}>
@@ -123,6 +125,8 @@ export function GuideRail({ guide, loading, category, isAdmin, variant = 'rail',
               <span>Updated {fmtRelative(guide.updated_at)}{guide.updated_by ? ` · by ${guide.updated_by}` : ''}</span>
               {isAdmin && <button className="guide-edit-link" onClick={onEdit}>Edit guide →</button>}
             </div>
+          </>
+            )}
           </>
         )}
       </div>
