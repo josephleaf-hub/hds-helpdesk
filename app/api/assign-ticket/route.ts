@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { siteUrl } from '@/lib/site';
-import { emailLogoRow, EMAIL_HEAD_STYLE } from '@/lib/email';
+import { emailLogoWhite } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -108,15 +108,15 @@ function buildAssignHtml({ ticketId, subject, assigneeFirst, assignerName, hando
     ? `<div style="margin:16px 0;padding:12px 14px;background:#F8F9FB;border:1px solid #E2E8EF;border-radius:8px;font-size:14px;line-height:1.6;color:#0F1C2E;white-space:pre-wrap;"><div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#6B7280;margin-bottom:6px;">Handover note</div>${esc(handover)}</div>`
     : '';
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${esc(ticketId)}</title>${EMAIL_HEAD_STYLE}</head>
+<html><head><meta charset="utf-8"><title>${esc(ticketId)}</title></head>
 <body style="margin:0;padding:0;background:#F4F6F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;color:#0F1C2E;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6F8;padding:32px 16px;">
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-      ${emailLogoRow()}
-      <tr><td style="padding:24px 28px 16px;border-bottom:1px solid #E2E8EF;">
-        <div style="font-size:12px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">Ticket assigned · ${esc(ticketId)}</div>
-        <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">${esc(subject)}</div>
+      <tr><td style="background:#060D18;padding:22px 28px;">
+        ${emailLogoWhite(24)}
+        <div style="font-size:11px;color:#8A97A8;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-top:14px;">Ticket assigned · ${esc(ticketId)}</div>
+        <div style="font-size:18px;font-weight:600;color:#ffffff;margin-top:4px;">${esc(subject)}</div>
       </td></tr>
       <tr><td style="padding:22px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">
         <div style="margin-bottom:8px;">Hi ${esc(assigneeFirst)},</div>
