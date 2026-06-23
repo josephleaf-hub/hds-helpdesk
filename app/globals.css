@@ -1105,6 +1105,8 @@ tr.row-attention:hover { background: #FCF3CF; }
 .guide-collapse-btn:hover { background: #E2E8EF; color: var(--text-1); }
 .guide-collapse-btn svg { width: 15px; height: 15px; }
 .guide-rail-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+/* Keep sections at their natural height so the body scrolls instead of squashing/clipping them. */
+.guide-rail-body > * { flex-shrink: 0; }
 
 /* Collapsed strip */
 .guide-rail-min { align-items: center; padding: 14px 0; cursor: pointer; gap: 12px; }
@@ -1155,8 +1157,10 @@ tr.row-attention:hover { background: #FCF3CF; }
 
 /* Mobile guide tab */
 .tdm-guide { flex: 1; min-height: 0; overflow-y: auto; }
-.guide-panel { border-left: none; background: #fff; }
+.guide-panel { border-left: none; background: #fff; overflow: visible; }
 .guide-panel .guide-rail-head { background: var(--bg-alt); }
+/* Mobile: the tab area is the single scroll container — the body grows naturally. */
+.guide-panel .guide-rail-body { overflow: visible; flex: none; }
 
 /* Composer flash when a question is inserted */
 .composer-flash { animation: composer-flash-anim 0.7s ease-out; }
