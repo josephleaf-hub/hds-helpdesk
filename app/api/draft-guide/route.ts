@@ -27,7 +27,7 @@ Return ONLY a single JSON object — no prose, no markdown fences. Exactly these
 Rules:
 - title: a short, clear name for the guide (e.g. "New Starter Setup").
 - questions: array of clarifying questions the agent should ask the requester before starting. Concrete and useful; usually 2-5.
-- steps: array of ordered resolution steps in plain imperative sentences.
+- steps: array of ordered resolution steps in plain imperative sentences. Keep it concise: AT MOST 8 steps. Write for an experienced IT support person who already knows the basics, so do NOT spell out obvious actions (logging in, basic menu navigation, clicking standard buttons). Combine trivial sub-steps and focus on the decisions, the HDS-specific details, and the steps that actually matter.
 - HONEST GAPS: where a step depends on HDS-specific detail you cannot know (tenant, AD OUs, licence/SKU names, internal tool or system names, server paths), write the step with a placeholder in SQUARE BRACKETS, e.g. "Assign the licence ([confirm which licence HDS uses])". Never invent specifics — an honest gap is better than confident fiction.
 - suggested_category: MUST be one of these KEYS or "": ${cats}.
 - suggested_sub_type: MUST be one of the exact strings allowed for the chosen category, or "":
