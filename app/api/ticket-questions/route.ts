@@ -48,6 +48,23 @@ Other rules:
 - Return valid JSON only.`;
 }
 
+// Slim prompt for the lightweight category-fit check that auto-fires on open.
+function buildCategoryPrompt(): string {
+  const cats = Object.entries(CAT_LABEL).map(([k, l]) => `"${k}" (${l})`).join(', ');
+  return `You assess whether an IT helpdesk ticket is filed under the right category, from its subject and description.
+
+Return ONLY a single JSON object, no prose, no markdown fences. Exactly these keys:
+  category_fit (string: "good", "weak", or "mismatch"),
+  suggested_category (string)
+
+- "good": the content clearly fits the assigned category. suggested_category "".
+- "weak": the assigned category is plausible but the content points more towards another category, OR the ticket looks like it was categorised by a quick guess or default. suggested_category = the KEY it more likely belongs to.
+- "mismatch": the content plainly contradicts the assigned category. suggested_category = the KEY it clearly belongs to.
+- Most tickets are categorised by the requester at submission, often by a rough guess, so when the fit is not clearly good lean towards "weak" and offer a suggestion.
+- suggested_category MUST be one of these KEYS or "": ${cats}. It must differ from the assigned category.
+- Return valid JSON only.`;
+}
+
 type Note = { note_text: string | null; note_type: string; created_at: string };
 
 export async function POST(req: NextRequest) {
@@ -63,9 +80,11 @@ export async function POST(req: NextRequest) {
   if (roleErr) return NextResponse.json({ error: 'Role lookup failed: ' + roleErr.message }, { status: 500 });
   if (!roleRow || !['admin', 'manager'].includes(roleRow.role)) return NextResponse.json({ error: 'Account does not have IT staff access' }, { status: 403 });
 
-  let body: { ticketId?: string };
+  let body: { ticketId?: string; mode?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
   const ticketId = String(body.ticketId || '').trim();
+  // 'category' = cheap, auto-fired category-fit check (no question generation).
+  const mode = body.mode === 'category' ? 'category' : 'questions';
   if (!ticketId) return NextResponse.json({ error: 'ticketId is required' }, { status: 400 });
 
   const { data: ticket, error: tErr } = await admin
@@ -80,22 +99,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI suggestions are not configured.' }, { status: 503 });
   }
 
-  const { data: noteRows } = await admin
-    .from('ticket_notes').select('note_text, note_type, created_at').eq('ticket_id', ticketId).order('created_at', { ascending: true });
-  const convo = (noteRows as Note[] | null || [])
-    .map(n => {
-      const who = n.note_type === 'inbound' ? 'Requester' : n.note_type === 'internal' ? 'Internal note (IT)' : 'IT';
-      return `${who}: ${(n.note_text || '').trim()}`;
-    })
-    .filter(l => l.length > 12)
-    .join('\n');
-
-  const userContent = `Assigned category: "${ticket.category}" (${CAT_LABEL[ticket.category] || ticket.category})${ticket.sub_type ? ` / sub-type: "${ticket.sub_type}"` : ''}
+  const catHeader = `Assigned category: "${ticket.category}" (${CAT_LABEL[ticket.category] || ticket.category})${ticket.sub_type ? ` / sub-type: "${ticket.sub_type}"` : ''}
 Subject: ${ticket.subject}
-Description: ${ticket.description || '(none)'}
+Description: ${ticket.description || '(none)'}`;
 
-Conversation so far:
-${convo || '(no messages yet)'}`;
+  // Category mode skips the conversation fetch (subject + description are enough).
+  let userContent = catHeader;
+  if (mode === 'questions') {
+    const { data: noteRows } = await admin
+      .from('ticket_notes').select('note_text, note_type, created_at').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+    const convo = (noteRows as Note[] | null || [])
+      .map(n => {
+        const who = n.note_type === 'inbound' ? 'Requester' : n.note_type === 'internal' ? 'Internal note (IT)' : 'IT';
+        return `${who}: ${(n.note_text || '').trim()}`;
+      })
+      .filter(l => l.length > 12)
+      .join('\n');
+    userContent = `${catHeader}\n\nConversation so far:\n${convo || '(no messages yet)'}`;
+  }
 
   try {
     const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -103,8 +124,8 @@ ${convo || '(no messages yet)'}`;
       headers: { 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION, 'content-type': 'application/json' },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 700,
-        system: buildSystemPrompt(),
+        max_tokens: mode === 'category' ? 120 : 700,
+        system: mode === 'category' ? buildCategoryPrompt() : buildSystemPrompt(),
         messages: [{ role: 'user', content: userContent }],
       }),
     });
@@ -123,11 +144,6 @@ ${convo || '(no messages yet)'}`;
       return NextResponse.json({ error: 'Could not read the AI suggestions — ask manually.' }, { status: 502 });
     }
 
-    const questions = Array.isArray(parsed.questions)
-      ? parsed.questions.filter((q): q is string => typeof q === 'string').map(q => q.trim()).filter(Boolean).slice(0, 4)
-      : [];
-    const complete = parsed.complete === true || questions.length === 0;
-
     // Category fit: 'weak' (quiet suggestion) or 'mismatch' (firmer flag) surface
     // a one-tap suggestion; 'good' shows nothing. Never act on it, just surface.
     const fit = ['good', 'weak', 'mismatch'].includes(parsed.category_fit as string) ? parsed.category_fit as string : 'good';
@@ -136,6 +152,13 @@ ${convo || '(no messages yet)'}`;
     const mismatch = fit !== 'good' && validSuggestion
       ? { suggested, level: fit === 'mismatch' ? 'mismatch' : 'weak' }
       : null;
+
+    if (mode === 'category') return NextResponse.json({ ok: true, mismatch });
+
+    const questions = Array.isArray(parsed.questions)
+      ? parsed.questions.filter((q): q is string => typeof q === 'string').map(q => q.trim()).filter(Boolean).slice(0, 4)
+      : [];
+    const complete = parsed.complete === true || questions.length === 0;
 
     return NextResponse.json({ ok: true, questions, complete, mismatch });
   } catch (err) {

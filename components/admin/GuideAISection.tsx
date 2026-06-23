@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
 import { CAT_LABEL } from '@/lib/constants';
 import type { Note } from '@/lib/types';
@@ -36,6 +36,31 @@ export function GuideAISection({ ticketId, category, notes, onInsert, onSwitchCa
 
   const inboundCount = notes.filter(n => n.note_type === 'inbound').length;
   const showRecheck = status === 'done' && runInbound.current != null && inboundCount > runInbound.current;
+
+  // Lightweight category-fit check that fires automatically when a ticket opens,
+  // so a miscategorisation flags itself without tapping Suggest. Once per ticket;
+  // silent and best-effort (never blocks the rail). The full Suggest call later
+  // returns its own fit and overrides this.
+  const checkedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (checkedRef.current === ticketId) return;
+    checkedRef.current = ticketId;
+    let on = true;
+    (async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const token = session?.access_token;
+        if (!token) return;
+        const res = await fetch('/api/ticket-questions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ ticketId, mode: 'category' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (on && res.ok && data.ok && data.mismatch) { setMismatch(data.mismatch); setMismatchDismissed(false); }
+      } catch { /* silent — category hint is best-effort */ }
+    })();
+    return () => { on = false; };
+  }, [ticketId]);
 
   async function suggest() {
     setStatus('loading'); setError('');
