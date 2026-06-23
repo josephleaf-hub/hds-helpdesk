@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
-import { CAT_LABEL, PRI_LABEL, DEPARTMENTS, IT_TEAM, SUB_TYPES, ALLOWED_DOMAINS } from '@/lib/constants';
+import { CAT_LABEL, PRI_LABEL, DEPARTMENTS, SUB_TYPES, ALLOWED_DOMAINS } from '@/lib/constants';
+import type { AssignableUser } from '@/lib/users';
 import { uploadImages } from '@/lib/attachments';
 import { useToast } from '@/components/Toast';
 
@@ -10,7 +11,7 @@ const NOTIFY_ON = 'Requester gets a secure link to view and reply in the portal.
 const NOTIFY_OFF = 'No email sent — logged internally only. Use this for issues you’ve already handled or are tracking yourself.';
 const NT_STATUS: [string, string][] = [['new', 'New'], ['in-progress', 'In Progress'], ['on-hold', 'On Hold'], ['resolved', 'Resolved']];
 
-export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onReload: () => Promise<void> }) {
+export function NewTicketModal({ users, onClose, onReload }: { users: AssignableUser[]; onClose: () => void; onReload: () => Promise<void> }) {
   const toast = useToast();
   const [subject, setSubject] = useState('');
   const [name, setName] = useState('');
@@ -226,7 +227,7 @@ export function NewTicketModal({ onClose, onReload }: { onClose: () => void; onR
             <div className="nt-row-2">
               <div className="nt-field">
                 <label className="nt-label">Assign to</label>
-                <select className="nt-input" value={assign} onChange={(e) => setAssign(e.target.value)}><option value="">Unassigned</option>{IT_TEAM.map(m => <option key={m}>{m}</option>)}</select>
+                <select className="nt-input" value={assign} onChange={(e) => setAssign(e.target.value)}><option value="">Unassigned</option>{users.map(u => <option key={u.user_id} value={u.user_id}>{u.full_name}</option>)}</select>
               </div>
               <div className="nt-field">
                 <label className="nt-label">Initial status</label>

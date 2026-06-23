@@ -60,13 +60,20 @@ export async function POST(req: NextRequest) {
 
   if (!rows.length) return NextResponse.json({ empty: true, message: 'No tickets match the current filters' }, { status: 200 });
 
+  // assigned_to holds a user_id; map to a name for the export (fall back to the
+  // raw value for any legacy label-based assignment).
+  const { data: roleRows } = await admin.from('user_roles').select('user_id, full_name');
+  const nameById: Record<string, string> = {};
+  for (const r of roleRows || []) nameById[String(r.user_id)] = String(r.full_name || '');
+  const assignedName = (id: string | null) => id ? (nameById[id] || id) : '';
+
   const HEADERS = ['Ref', 'Subject', 'Category', 'Sub-type', 'Priority', 'Status', 'Requester name', 'Requester email', 'Department', 'Location', 'Affected user', 'Assigned to', 'Created', 'Resolved', 'Time to resolve (hours)'];
   const lines = [HEADERS.map(csvCell).join(',')];
   for (const t of rows) {
     lines.push([
       t.id, t.subject, t.category, t.sub_type, t.priority, t.status,
       t.requester_name, t.requester_email, t.department, t.location ?? '', t.affected_user ?? '',
-      t.assigned_to ?? '', fmtDateTime(t.created_at), fmtDateTime(t.resolved_at),
+      assignedName(t.assigned_to), fmtDateTime(t.created_at), fmtDateTime(t.resolved_at),
       hoursToResolve(t.created_at, t.resolved_at),
     ].map(csvCell).join(','));
   }

@@ -13,6 +13,7 @@ import { NewTicketModal } from '@/components/admin/NewTicketModal';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import type { Ticket } from '@/lib/types';
+import { fetchAssignableUsers, userNameMap, type AssignableUser } from '@/lib/users';
 
 type AdminUser = { id: string; email: string; role: 'admin' | 'manager'; department: string | null; full_name: string };
 
@@ -34,7 +35,7 @@ const COLS: { key?: string; label: string; width: string; photo?: boolean }[] = 
   { key: 'category', label: 'Category', width: '9%' }, { key: 'requester', label: 'Requester', width: '10%' },
   { key: 'department', label: 'Department', width: '8%' }, { key: 'priority', label: 'Priority', width: '8%' },
   { key: 'status', label: 'Status', width: '13%' }, { key: 'submitted', label: 'Submitted', width: '9%' },
-  { key: 'active', label: 'Last Active', width: '13%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
+  { key: 'active', label: 'Last Active', width: '11%' }, { label: 'Assignee', width: '11%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
 ];
 
 // Total attachments on a ticket, from the list query's ticket_attachments(count).
@@ -49,6 +50,7 @@ export default function AdminPage() {
   const [phase, setPhase] = useState<'loading' | 'ready'>('loading');
   const [user, setUser] = useState<AdminUser | null>(null);
   const [allTickets, setAllTickets] = useState<Ticket[]>([]);
+  const [users, setUsers] = useState<AssignableUser[]>([]);
   const [search, setSearch] = useState('');
   const [fStatus, setFStatus] = useState('');
   const [fCat, setFCat] = useState('');
@@ -79,6 +81,7 @@ export default function AdminPage() {
       if (!mounted) return;
       const u: AdminUser = { id: session.user.id, email: session.user.email!, role: role.role, department: role.department, full_name: role.full_name };
       setUser(u);
+      fetchAssignableUsers().then(list => { if (mounted) setUsers(list); });
       await loadTickets(false, u);
       if (mounted) { setPhase('ready'); if (deepTicket) setActiveId(deepTicket); }
     })();
@@ -113,6 +116,7 @@ export default function AdminPage() {
     else { setSortKey(key); setSortDir(SORT_DEFAULT_DESC.has(key) ? 'desc' : 'asc'); }
   }
   function clearFilters() { setSearch(''); setFStatus(''); setFCat(''); setFPri(''); setFAssign(''); setShowArchived(false); }
+  const nameMap = useMemo(() => userNameMap(users), [users]);
 
   // Export the current filtered view to CSV (server re-runs the same filters).
   async function exportCsv() {
@@ -279,7 +283,7 @@ export default function AdminPage() {
               <option value="">All Priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
             </select>
             <select className="input" value={fAssign} onChange={(e) => setFAssign(e.target.value)} style={{ width: 150 }}>
-              <option value="">All Assignees</option><option value="__unassigned__">Unassigned</option><option value="IT Level 1">IT Level 1</option><option value="IT Level 2">IT Level 2</option><option value="Senior Engineer">Senior Engineer</option><option value="IT Manager">IT Manager</option>
+              <option value="">All Assignees</option><option value="__unassigned__">Unassigned</option>{users.map(u => <option key={u.user_id} value={u.user_id}>{u.full_name}</option>)}
             </select>
             <button className="btn-ghost" onClick={clearFilters} style={{ fontSize: 12 }}>Clear</button>
             {isAdmin && (
@@ -308,12 +312,12 @@ export default function AdminPage() {
                       <th key={i} className={`th-sort${sortKey === c.key ? ' sorted' : ''}`} style={{ width: c.width }} onClick={() => sortBy(c.key!)}>
                         {c.label} <span className={`sort-arrow${sortKey === c.key ? '' : ' dim'}`}>{sortKey === c.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
                       </th>
-                    ) : <th key={i} style={c.photo ? { width: '80px', whiteSpace: 'nowrap', textAlign: 'center', padding: '12px 8px', overflow: 'visible' } : { width: c.width }} title={c.photo ? 'Attached images' : undefined}>{c.photo ? 'Images' : null}</th>)}
+                    ) : <th key={i} style={c.photo ? { width: '80px', whiteSpace: 'nowrap', textAlign: 'center', padding: '12px 8px', overflow: 'visible' } : { width: c.width }} title={c.photo ? 'Attached images' : undefined}>{c.photo ? 'Images' : c.label}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {!filtered.length ? (
-                    <tr><td colSpan={11} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>No tickets match your filters.</td></tr>
+                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>No tickets match your filters.</td></tr>
                   ) : filtered.map(t => {
                     const archived = !!t.deleted_at;
                     return (
@@ -327,6 +331,7 @@ export default function AdminPage() {
                         <td className="cell-badge"><StatusBadge status={t.status} /></td>
                         <td>{fmtShort(t.created_at)}</td>
                         <td>{fmtDate(t.updated_at || t.created_at)}</td>
+                        <td>{t.assigned_to ? (nameMap[t.assigned_to] || t.assigned_to) : <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>Unassigned</span>}</td>
                         <td style={{ textAlign: 'center', whiteSpace: 'nowrap', padding: '12px 8px', overflow: 'visible' }}>
                           {photoCount(t) > 0 && (
                             <span title={`${photoCount(t)} image${photoCount(t) > 1 ? 's' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 12, fontWeight: 600 }}>
@@ -363,8 +368,8 @@ export default function AdminPage() {
             : { label: 'Archive ticket', color: '#C0392B', onClick: () => archiveFromRow(t.id) }]} />;
       })()}
 
-      {activeTicket && user && <EditModal ticket={activeTicket} user={user} onClose={() => setActiveId(null)} onReload={() => loadTickets(true)} patchTicket={patchTicket} />}
-      {newOpen && <NewTicketModal onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}
+      {activeTicket && user && <EditModal ticket={activeTicket} user={user} users={users} onClose={() => setActiveId(null)} onReload={() => loadTickets(true)} patchTicket={patchTicket} />}
+      {newOpen && <NewTicketModal users={users} onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}
     </RealtimeAlertsProvider>
   );
 }

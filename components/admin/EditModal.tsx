@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sb, getAccessToken } from '@/lib/supabase';
-import { CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM } from '@/lib/constants';
+import { CAT_LABEL, STATUS_LABEL, PRI_LABEL } from '@/lib/constants';
+import { userNameMap, type AssignableUser } from '@/lib/users';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
@@ -26,13 +27,16 @@ const SendIco = () => <svg className="ico" width="13" height="13" viewBox="0 0 2
 const Paperclip = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -2 }}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>;
 const Wand = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, verticalAlign: -2 }}><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>;
 
-export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
-  ticket: Ticket; user: AdminUser; onClose: () => void;
+export function EditModal({ ticket, user, users, onClose, onReload, patchTicket }: {
+  ticket: Ticket; user: AdminUser; users: AssignableUser[]; onClose: () => void;
   onReload: () => Promise<void>; patchTicket: (id: string, partial: Partial<Ticket>) => void;
 }) {
   const toast = useToast();
   const confirm = useConfirm();
   const isMobile = useIsMobile(900);
+  // assigned_to holds a user_id; map it to a display name (fall back to the raw
+  // value for any legacy label-based assignment).
+  const assigneeName = (id: string | null) => id ? (userNameMap(users)[id] || id) : '';
   const [attMap, setAttMap] = useState<AttachMap>({});
   const [tab, setTab] = useState<Tab>('reply');
   const [modeMenuOpen, setModeMenuOpen] = useState(false);
@@ -306,7 +310,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     if (!pill) return [];
     if (pill.field === 'status') return Object.entries(STATUS_LABEL).map(([v, l]) => ({ label: l, selected: ticket.status === v, onClick: () => updateField('status', v) }));
     if (pill.field === 'priority') return Object.entries(PRI_LABEL).map(([v, l]) => ({ label: l, selected: ticket.priority === v, onClick: () => updateField('priority', v) }));
-    return [{ label: 'Unassigned', selected: !ticket.assigned_to, onClick: () => updateField('assigned', '') }, ...IT_TEAM.map(m => ({ label: m, selected: ticket.assigned_to === m, onClick: () => updateField('assigned', m) }))];
+    return [{ label: 'Unassigned', selected: !ticket.assigned_to, onClick: () => updateField('assigned', '') }, ...users.map(u => ({ label: u.full_name, selected: ticket.assigned_to === u.user_id, onClick: () => updateField('assigned', u.user_id) }))];
   };
 
   const composeMeta = tab === 'internal' ? 'Visible to IT team only — does not email the requester'
@@ -450,7 +454,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
             <span className="pill-label">Priority</span>
             <button className={`pill ${PR_CLS[ticket.priority] || 'b-low'}`} onClick={(e) => openPill('priority', e)}>{PRI_LABEL[ticket.priority] || ticket.priority}<Chev /></button>
             <span className="pill-label">Assigned</span>
-            <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{ticket.assigned_to || 'Unassigned'}<Chev /></button>
+            <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{assigneeName(ticket.assigned_to) || 'Unassigned'}<Chev /></button>
           </div>
           <hr className="divider-line" />
           <div className="field"><div className="field-label">Description</div><div className="desc-block">{ticket.description}</div></div>
@@ -551,7 +555,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
                   <span className="pill-label" style={{ marginLeft: 8 }}>Priority</span>
                   <button className={`pill ${PR_CLS[ticket.priority] || 'b-low'}`} onClick={(e) => openPill('priority', e)}>{PRI_LABEL[ticket.priority] || ticket.priority}<Chev /></button>
                   <span className="pill-label" style={{ marginLeft: 8 }}>Assigned</span>
-                  <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{ticket.assigned_to || 'Unassigned'}<Chev /></button>
+                  <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{assigneeName(ticket.assigned_to) || 'Unassigned'}<Chev /></button>
                 </div>
 
                 <div className="conv-scroll" ref={convRef}>
