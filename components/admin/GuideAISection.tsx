@@ -49,6 +49,7 @@ export function GuideAISection({ ticketId, notes, onInsert, onMismatch }: {
         const refreshed = (await sb.auth.refreshSession()).data.session?.access_token;
         if (refreshed) { token = refreshed; res = await call(token); }
       }
+      if (res.status === 401) throw new Error('Your session expired. Sign out and sign in again.');
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       setQuestions(Array.isArray(data.questions) ? data.questions : []);
