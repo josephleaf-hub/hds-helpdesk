@@ -20,15 +20,15 @@ function buildSystemPrompt(): string {
 
 You are given a ticket (subject, description, its assigned category) and the full conversation so far between the IT team and the requester.
 
-Return ONLY a single JSON object — no prose, no markdown fences. Exactly these keys:
+Return ONLY a single JSON object, no prose, no markdown fences. Exactly these keys:
   questions  (array of strings),
   complete   (boolean),
-  category_match (boolean),
+  category_fit (string: "good", "weak", or "mismatch"),
   suggested_category (string)
 
 Rules for "questions":
 - List up to 4 SPECIFIC clarifying questions the agent should still ask THIS requester to resolve the ticket faster.
-- Only surface genuinely missing or ambiguous information. Be concrete to this ticket — not generic.
+- Only surface genuinely missing or ambiguous information. Be concrete to this ticket, not generic.
 - Account for what has ALREADY been answered or corrected in the conversation. Never re-ask something the thread already covers.
 - Each question is a single, directly-askable sentence.
 - If the ticket already contains everything needed to proceed, return an empty array and set "complete" to true.
@@ -36,13 +36,16 @@ Rules for "questions":
 Rules for "complete":
 - true only when there is nothing useful left to ask; otherwise false.
 
-Rules for category assessment:
-- The ticket's assigned category is given. Judge whether the ticket CONTENT matches it.
-- category_match: true if the content fits the assigned category, false if it clearly belongs elsewhere.
-- suggested_category: if category_match is false, the category KEY it actually looks like (one of: ${cats}); otherwise "".
-- Only flag a mismatch when it is clear. When unsure, set category_match true and suggested_category "".
+Rules for category fit (assess how well the ticket CONTENT matches its assigned category):
+- "good": the content clearly fits the assigned category. Set suggested_category to "".
+- "weak": the assigned category is plausible but the content points more towards another category, OR the ticket looks like it was categorised by a quick guess or a default rather than deliberately. Set suggested_category to the KEY it more likely belongs to.
+- "mismatch": the content plainly contradicts the assigned category. Set suggested_category to the KEY it clearly belongs to.
+- Most tickets are categorised by the requester at submission, often by a rough guess, so when the fit is not clearly good lean towards "weak" and offer a suggestion rather than staying silent.
+- suggested_category MUST be one of these KEYS or "": ${cats}. It must differ from the assigned category.
 
-Return valid JSON only.`;
+Other rules:
+- NEVER use dashes in any question you write. No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. This is a hard rule. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine.
+- Return valid JSON only.`;
 }
 
 type Note = { note_text: string | null; note_type: string; created_at: string };
@@ -125,11 +128,14 @@ ${convo || '(no messages yet)'}`;
       : [];
     const complete = parsed.complete === true || questions.length === 0;
 
-    // Mismatch only when the model is confident AND the suggestion is a real,
-    // different category. Never act on it — just surface.
+    // Category fit: 'weak' (quiet suggestion) or 'mismatch' (firmer flag) surface
+    // a one-tap suggestion; 'good' shows nothing. Never act on it, just surface.
+    const fit = ['good', 'weak', 'mismatch'].includes(parsed.category_fit as string) ? parsed.category_fit as string : 'good';
     const suggested = typeof parsed.suggested_category === 'string' ? parsed.suggested_category.trim() : '';
     const validSuggestion = Object.keys(CAT_LABEL).includes(suggested) && suggested !== ticket.category;
-    const mismatch = parsed.category_match === false && validSuggestion ? { suggested } : null;
+    const mismatch = fit !== 'good' && validSuggestion
+      ? { suggested, level: fit === 'mismatch' ? 'mismatch' : 'weak' }
+      : null;
 
     return NextResponse.json({ ok: true, questions, complete, mismatch });
   } catch (err) {

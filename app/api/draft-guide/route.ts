@@ -32,6 +32,7 @@ Rules:
 - suggested_sub_type: MUST be one of the exact strings allowed for the chosen category, or "":
 ${subs}
 - If unsure of category/sub_type, return "".
+- NEVER use dashes in any text you write (title, questions, steps). No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. This is a hard rule. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine, and square-bracket placeholders are required as described above.
 ${passedCategory ? `- The author tentatively filed this under category "${passedCategory}". If the described task clearly belongs to a DIFFERENT category, set mismatch=true and mismatch_category to the KEY it actually belongs to. Do NOT contort the guide to fit "${passedCategory}". If it fits, mismatch=false and mismatch_category "".` : `- No category was provided. Set mismatch=false and mismatch_category "".`}
 - Return valid JSON only.`;
 }

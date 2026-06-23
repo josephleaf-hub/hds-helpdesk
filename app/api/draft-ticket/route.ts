@@ -37,6 +37,7 @@ ${subs}
 - priority: MUST be exactly one of: ${pris}.
 - department: MUST be exactly one of: ${depts}.
 - For category, sub_type, priority, department: if you are unsure, return an empty string "" for that field rather than guessing. Never invent a value outside the allowed lists.
+- NEVER use dashes in any text you write (subject, description). No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine.
 - Return valid JSON only.`;
 }
 

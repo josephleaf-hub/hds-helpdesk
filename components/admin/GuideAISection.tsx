@@ -11,7 +11,7 @@ import type { Note } from '@/lib/types';
    are tap-to-insert, the category mismatch is a one-tap suggestion. Fails to a
    quiet error — never blocks the rail. Copy says "AI", never "Claude". */
 
-type Mismatch = { suggested: string };
+type Mismatch = { suggested: string; level: 'weak' | 'mismatch' };
 type Status = 'idle' | 'loading' | 'done' | 'error';
 
 const Sparkle = ({ cls }: { cls?: string }) => (
@@ -68,15 +68,26 @@ export function GuideAISection({ ticketId, category, notes, onInsert, onSwitchCa
         <span className="guide-ai-tag">AI</span>
       </div>
       <div className="guide-section-body">
-        {/* Category mismatch — gentle, one-tap, never automatic. */}
+        {/* Category fit — one-tap, never automatic. 'weak' = quiet suggestion,
+            'mismatch' = firmer amber flag. */}
         {mismatch && !mismatchDismissed && (
-          <div className="guide-ai-mismatch">
-            <div>Filed under <strong>{CAT_LABEL[category] || category}</strong> but looks like <strong>{CAT_LABEL[mismatch.suggested] || mismatch.suggested}</strong>.</div>
-            <div className="guide-ai-mismatch-actions">
-              <button className="guide-ai-switch" onClick={() => { onSwitchCategory(mismatch.suggested); setMismatch(null); }}>Switch to {CAT_LABEL[mismatch.suggested] || mismatch.suggested}</button>
-              <button className="guide-ai-keep" onClick={() => setMismatchDismissed(true)}>Keep</button>
+          mismatch.level === 'mismatch' ? (
+            <div className="guide-ai-mismatch">
+              <div>Filed under <strong>{CAT_LABEL[category] || category}</strong> but looks like <strong>{CAT_LABEL[mismatch.suggested] || mismatch.suggested}</strong>.</div>
+              <div className="guide-ai-mismatch-actions">
+                <button className="guide-ai-switch" onClick={() => { onSwitchCategory(mismatch.suggested); setMismatch(null); }}>Switch to {CAT_LABEL[mismatch.suggested] || mismatch.suggested}</button>
+                <button className="guide-ai-keep" onClick={() => setMismatchDismissed(true)}>Keep</button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="guide-ai-suggest">
+              <span>This might fit better under <strong>{CAT_LABEL[mismatch.suggested] || mismatch.suggested}</strong>.</span>
+              <span className="guide-ai-suggest-actions">
+                <button className="guide-ai-suggest-switch" onClick={() => { onSwitchCategory(mismatch.suggested); setMismatch(null); }}>Switch</button>
+                <button className="guide-ai-suggest-keep" onClick={() => setMismatchDismissed(true)}>Dismiss</button>
+              </span>
+            </div>
+          )
         )}
 
         {status === 'idle' && (

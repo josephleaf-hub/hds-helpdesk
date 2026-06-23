@@ -20,7 +20,8 @@ Rules:
 - Preserve the tone and level of formality. Do not make it more formal or more casual; do not add greetings, sign-offs, or pleasantries that weren't there.
 - Preserve all technical content verbatim: system and product names, file paths (e.g. \\\\server\\share or /var/log), URLs, email addresses, ticket references (HDS-NNNN), commands, and any code or identifiers. Do NOT "correct" these.
 - Keep the original formatting and line breaks.
-- If the text is already clean, return it unchanged.
+- NEVER use dashes. Remove any em dashes (—), en dashes (–), or hyphens used as a dash or separator, and rewrite with commas, full stops, or parentheses. This is a hard rule. Ordinary hyphenated words such as "sign-in" or "sub-type" stay as they are.
+- If the text is already clean and dash-free, return it unchanged.
 - Output the corrected text and nothing else.`;
 
 export async function POST(req: NextRequest) {
