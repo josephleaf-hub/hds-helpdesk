@@ -28,6 +28,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const [signInOpen, setSignInOpen] = useState(false);
   const [signinExpired, setSigninExpired] = useState(false);
   const [view, setView] = useState<'list' | 'submit' | 'detail'>('list');
+  const [detailPane, setDetailPane] = useState<'chat' | 'ticket'>('chat');   // mobile detail tab
 
   // Refs so the 1-min interval reads live state without stale closures.
   const viewRef = useRef(view); viewRef.current = view;
@@ -120,7 +121,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const [resolveBusy, setResolveBusy] = useState(false);
 
   async function openTicket(id: string) {
-    setView('detail'); setDetailError(''); setActiveTicket(null);
+    setView('detail'); setDetailError(''); setActiveTicket(null); setDetailPane('chat');
     setReplyText(''); setReplyFiles([]);
     window.history.replaceState(null, '', '/t/' + id);
     try {
@@ -418,9 +419,13 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                   <>
                     <div className="detail-topbar">
                       <button className="btn-secondary detail-back" onClick={() => { setView('list'); window.history.replaceState(null, '', '/'); }}>← Back to my tickets</button>
-                      <button className="btn-secondary" style={{ fontSize: 12 }} onClick={() => openTicket(t.id)} title="Refresh ticket"><RefreshIcon />Refresh</button>
+                      <button className="btn-secondary pt-refresh-btn" style={{ fontSize: 12 }} onClick={() => openTicket(t.id)} title="Refresh ticket" aria-label="Refresh ticket"><RefreshIcon /><span className="pt-refresh-label">Refresh</span></button>
                     </div>
-                    <div className="detail-grid2">
+                    <div className="ptd-tabs" role="tablist">
+                      <button className={`ptd-tab${detailPane === 'chat' ? ' active' : ''}`} onClick={() => setDetailPane('chat')}>Conversation</button>
+                      <button className={`ptd-tab${detailPane === 'ticket' ? ' active' : ''}`} onClick={() => setDetailPane('ticket')}>Ticket details</button>
+                    </div>
+                    <div className={`detail-grid2 ${detailPane === 'chat' ? 'show-chat' : 'show-ticket'}`}>
                       <div className="detail-left"><div className="detail-card">
                         <div className="dh-title">{t.subject}</div>
                         <div className="dh-meta">{t.id} · {(CAT_LABEL[t.category] || t.category)} — {t.sub_type} · Submitted {fmtDate(t.created_at)}</div>

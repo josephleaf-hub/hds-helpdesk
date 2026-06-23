@@ -827,6 +827,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 #detailView, #submitView { max-width: 1200px; margin: 0 auto; }
 .detail-back { margin: 0 0 14px 0; }
 .detail-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.ptd-tabs { display: none; }   /* mobile-only tab switcher (Conversation / Ticket details) */
 .detail-topbar .detail-back { margin: 0; }
 .dh-title { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.02em; }
 .dh-meta { font-size: 12px; color: var(--caption); margin-top: 4px; }
@@ -867,6 +868,28 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
   .portal-topbar { padding: 12px 16px; gap: 10px; }
   .pt-right { gap: 10px; }
   .portal-shell .page-content { padding-top: 24px; }
+
+  /* Mobile ticket detail: full-screen, tabbed (Conversation / Ticket details),
+     composer pinned to the bottom of the phone. */
+  #detailView { position: fixed; inset: 0; z-index: 1000; max-width: none; margin: 0; background: var(--bg-app); display: flex; flex-direction: column; }
+  #detailView .detail-topbar { margin: 0; padding: 11px 14px; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  #detailView .detail-topbar .detail-back { font-size: 12px; }
+  .ptd-tabs { display: flex; gap: 6px; padding: 10px 14px; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .ptd-tab { flex: 1; padding: 8px; border: 1px solid var(--border-strong); background: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); font-family: inherit; cursor: pointer; }
+  .ptd-tab.active { background: var(--blue-pale); border-color: var(--blue); color: var(--blue); }
+
+  #detailView .detail-grid2 { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 0; }
+  #detailView .detail-grid2.show-chat .detail-left { display: none; }
+  #detailView .detail-grid2.show-ticket .detail-right { display: none; }
+  #detailView .detail-grid2.show-ticket .detail-left { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; }
+
+  #detailView .detail-right { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #detailView .detail-conv { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; box-shadow: none; padding: 12px 16px 0; }
+  #detailView .detail-conv > .field-label { display: none; }
+  #detailView .detail-conv-scroll { height: auto; flex: 1; min-height: 0; }
+  #detailView .portal-composer { border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); flex-shrink: 0; padding: 12px 16px; }
+  #detailView .portal-composer textarea { min-height: 54px; }
+  #detailView .resolved-notice { border-radius: 0; flex-shrink: 0; }
 }
 @media (max-width: 400px) { .cat-grid { grid-template-columns: 1fr; } }
   
