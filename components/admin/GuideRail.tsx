@@ -33,8 +33,10 @@ function Section({ title, accent, defaultOpen = true, children }: { title: React
   );
 }
 
-export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onMismatch, onEdit, onCreate }: {
-  guide: HelpGuide | null;
+export function GuideRail({ guides, selectedId, onSelectGuide, loading, ticketId, category, notes, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onMismatch, onEdit, onCreate }: {
+  guides: HelpGuide[];
+  selectedId: string | null;
+  onSelectGuide: (id: string) => void;
   loading: boolean;
   ticketId: string;
   category: string;
@@ -49,6 +51,7 @@ export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, 
   onCreate: () => void;
 }) {
   const catLabel = CAT_LABEL[category] || category;
+  const guide = guides.find(g => g.id === selectedId) || guides[0] || null;
 
   // Collapsed strip (desktop only) — click anywhere to expand.
   if (variant === 'rail' && collapsed) {
@@ -67,9 +70,17 @@ export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, 
       <div className="guide-rail-head">
         <span className="guide-rail-head-ico"><Book /></span>
         <div className="guide-rail-head-main">
-          <div className="guide-rail-title">{guide ? guide.title : 'Help guide'}</div>
+          {guides.length > 1 ? (
+            <select className="guide-picker" value={selectedId ?? ''} onChange={(e) => onSelectGuide(e.target.value)} aria-label="Choose a guide">
+              {guides.map(g => <option key={g.id} value={g.id}>{g.title}{g.sub_type ? ` · ${g.sub_type}` : ' · category-wide'}</option>)}
+            </select>
+          ) : (
+            <div className="guide-rail-title">{guide ? guide.title : 'Help guide'}</div>
+          )}
           <div className="guide-rail-meta">
-            {guide ? <>{catLabel} · used on {guide.usage_count} {guide.usage_count === 1 ? 'ticket' : 'tickets'}</> : catLabel}
+            {guide
+              ? <>{catLabel} · used on {guide.usage_count} {guide.usage_count === 1 ? 'ticket' : 'tickets'}{guides.length > 1 ? ` · ${guides.length} guides` : ''}</>
+              : catLabel}
           </div>
         </div>
         {variant === 'rail' && onToggleCollapse && (

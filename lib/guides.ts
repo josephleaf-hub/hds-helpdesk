@@ -58,6 +58,24 @@ export async function matchGuide(category: string, subType: string | null): Prom
   return null;
 }
 
+// All guides relevant to a ticket, best match first, so the resolver can pick
+// when more than one fits. Order: exact sub-type matches, then category-wide,
+// then other sub-types in the category. Within a tier, most recently updated.
+export async function listGuidesForTicket(category: string, subType: string | null): Promise<HelpGuide[]> {
+  const { data, error } = await sb
+    .from('help_guides')
+    .select('*')
+    .eq('category', category)
+    .order('updated_at', { ascending: false });
+  if (error || !data?.length) return [];
+  const rows = data.map(normalise);
+  const rank = (g: HelpGuide) => (subType && g.sub_type === subType) ? 0 : (g.sub_type == null ? 1 : 2);
+  return rows
+    .map((g, i) => ({ g, i }))
+    .sort((a, b) => rank(a.g) - rank(b.g) || a.i - b.i)   // i preserves updated_at desc within a tier
+    .map(x => x.g);
+}
+
 // Count a surfacing. Best-effort: a failure here must never block the rail.
 export async function incrementUsage(guideId: string): Promise<void> {
   try { await sb.rpc('increment_guide_usage', { gid: guideId }); } catch { /* non-critical */ }

@@ -1100,6 +1100,8 @@ tr.row-attention:hover { background: #FCF3CF; }
 .guide-rail-head-ico { color: var(--blue); flex-shrink: 0; margin-top: 1px; }
 .guide-rail-head-main { flex: 1; min-width: 0; }
 .guide-rail-title { font-size: 14px; font-weight: 600; color: var(--text-1); line-height: 1.3; }
+.guide-picker { width: 100%; max-width: 100%; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text-1); background: #fff; border: 1px solid var(--border-strong); border-radius: 8px; padding: 6px 28px 6px 10px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; }
+.guide-picker:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(28,100,242,0.12); }
 .guide-rail-meta { font-size: 11px; color: var(--caption); margin-top: 3px; }
 .guide-collapse-btn { flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: #F4F6F8; border: none; border-radius: 7px; color: #6B7280; cursor: pointer; }
 .guide-collapse-btn:hover { background: #E2E8EF; color: var(--text-1); }

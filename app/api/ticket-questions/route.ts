@@ -47,6 +47,7 @@ Rules for category fit (assess how well the ticket CONTENT matches its assigned 
 - suggested_sub_type: when you suggest a category, also pick the most likely request type within it (or "" if unsure). It MUST be one of the exact strings allowed for the suggested_category:
 ${subs}
   When category_fit is "good", set suggested_sub_type to "".
+- Distinguish similar request types carefully. For example "New Starter Setup" means full onboarding of a brand new employee across many systems, whereas "Email & Signature Setup" is only creating or configuring an email account and signature. If the ticket could reasonably be either, leave suggested_sub_type as "" and suggest the category only, rather than guessing.
 
 Other rules:
 - NEVER use dashes in any question you write. No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. This is a hard rule. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine.
@@ -72,6 +73,7 @@ Return ONLY a single JSON object, no prose, no markdown fences. Exactly these ke
 - suggested_sub_type: when you suggest a category, also pick the most likely request type within it (or "" if unsure). It MUST be one of the exact strings allowed for the suggested_category:
 ${subs}
   When category_fit is "good", set suggested_sub_type to "".
+- Distinguish similar request types carefully. For example "New Starter Setup" means full onboarding of a brand new employee across many systems, whereas "Email & Signature Setup" is only creating or configuring an email account and signature. If the ticket could reasonably be either, leave suggested_sub_type as "" and suggest the category only, rather than guessing.
 - Return valid JSON only.`;
 }
 

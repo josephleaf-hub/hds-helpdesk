@@ -6,7 +6,7 @@ import { CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM } from '@/lib/constants';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
-import { matchGuide, incrementUsage, type HelpGuide } from '@/lib/guides';
+import { listGuidesForTicket, incrementUsage, type HelpGuide } from '@/lib/guides';
 import { Conversation } from '@/components/Conversation';
 import { GuideRail } from '@/components/admin/GuideRail';
 import { GuideEditor } from '@/components/admin/GuideEditor';
@@ -41,12 +41,13 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const [statusRadio, setStatusRadio] = useState('');
   const [pane, setPane] = useState<'chat' | 'ticket' | 'guide'>('chat');
   const isAdmin = user.role === 'admin';
-  const [guide, setGuide] = useState<HelpGuide | null>(null);
+  const [guides, setGuides] = useState<HelpGuide[]>([]);
+  const [selectedGuideId, setSelectedGuideId] = useState<string | null>(null);
   const [guideLoading, setGuideLoading] = useState(true);
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [guideEditor, setGuideEditor] = useState<null | { guide?: HelpGuide | null; preset?: { category: string; sub_type: string | null } }>(null);
   const [flash, setFlash] = useState(false);
-  const surfacedRef = useRef<string | null>(null);
+  const incrementedRef = useRef<Set<string>>(new Set());   // guides counted this open
   // Category-fit nudge (shown as a top-bar banner). Auto-checked on open; the
   // rail's "Suggest questions" call also feeds this via onMismatch.
   const [catMismatch, setCatMismatch] = useState<{ suggested: string; suggestedSubType?: string; level: 'weak' | 'mismatch' } | null>(null);
@@ -72,21 +73,28 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     return () => { on = false; };
   }, [ticket.id, notes.length]);
 
-  // Match a help guide to this ticket's category/sub_type. Count the surfacing
-  // once per ticket (best-effort) and optimistically bump the visible counter.
-  const loadGuide = useCallback(async (count: boolean) => {
+  // Load every guide relevant to this ticket (best match first) so the resolver
+  // can pick when more than one fits. Default the selection to the best match.
+  const loadGuides = useCallback(async () => {
     setGuideLoading(true);
-    const g = await matchGuide(ticket.category, ticket.sub_type || null);
-    if (count && g && surfacedRef.current !== ticket.id) {
-      surfacedRef.current = ticket.id;
-      incrementUsage(g.id);
-      g.usage_count += 1;
-    }
-    setGuide(g);
+    const list = await listGuidesForTicket(ticket.category, ticket.sub_type || null);
+    setGuides(list);
+    setSelectedGuideId(prev => (prev && list.some(g => g.id === prev)) ? prev : (list[0]?.id ?? null));
     setGuideLoading(false);
-  }, [ticket.id, ticket.category, ticket.sub_type]);
+  }, [ticket.category, ticket.sub_type]);
 
-  useEffect(() => { loadGuide(true); }, [loadGuide]);
+  useEffect(() => { loadGuides(); }, [loadGuides]);
+
+  const selectedGuide = guides.find(g => g.id === selectedGuideId) || null;
+
+  // Count a surfacing once per guide per open (the default on open, plus any the
+  // resolver switches to). Optimistically bump the visible counter.
+  useEffect(() => {
+    if (!selectedGuideId || incrementedRef.current.has(selectedGuideId)) return;
+    incrementedRef.current.add(selectedGuideId);
+    incrementUsage(selectedGuideId);
+    setGuides(gs => gs.map(g => g.id === selectedGuideId ? { ...g, usage_count: g.usage_count + 1 } : g));
+  }, [selectedGuideId]);
 
   // Lightweight category-fit check on open (once per ticket) → top-bar banner.
   // Silent, best-effort; never blocks the modal.
@@ -392,9 +400,9 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
       {pane === 'guide' ? (
         <div className="tdm-guide">
           <GuideRail
-            guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
+            guides={guides} selectedId={selectedGuideId} onSelectGuide={setSelectedGuideId} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
             variant="panel" onInsert={insertGuideText} onMismatch={(m) => { setCatMismatch(m); setCatDismissed(false); }}
-            onEdit={() => setGuideEditor({ guide })}
+            onEdit={() => setGuideEditor({ guide: selectedGuide })}
             onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
           />
         </div>
@@ -582,10 +590,10 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 
               {/* GUIDE: help-guide rail (3rd column, collapsible) */}
               <GuideRail
-                guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
+                guides={guides} selectedId={selectedGuideId} onSelectGuide={setSelectedGuideId} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
                 variant="rail" collapsed={railCollapsed} onToggleCollapse={() => setRailCollapsed(c => !c)}
                 onInsert={insertGuideText} onMismatch={(m) => { setCatMismatch(m); setCatDismissed(false); }}
-                onEdit={() => setGuideEditor({ guide })}
+                onEdit={() => setGuideEditor({ guide: selectedGuide })}
                 onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
               />
             </div>
@@ -611,7 +619,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           preset={guideEditor.preset}
           userName={user.full_name || user.email}
           onClose={() => setGuideEditor(null)}
-          onSaved={async () => { setGuideEditor(null); await loadGuide(false); }}
+          onSaved={async () => { setGuideEditor(null); await loadGuides(); }}
         />
       )}
     </>
