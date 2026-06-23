@@ -348,7 +348,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                   <div className="portal-hero-sub">Submit a request, track its status, and reply — all in one place.</div>
                 </div>
                 <div className="portal-hero-actions">
-                  <button className="btn-secondary" style={{ fontSize: 12 }} onClick={() => loadMyTickets()} title="Refresh tickets"><RefreshIcon />Refresh</button>
+                  <button className="btn-secondary pt-refresh-btn" style={{ fontSize: 12 }} onClick={() => loadMyTickets()} title="Refresh tickets" aria-label="Refresh tickets"><RefreshIcon /><span className="pt-refresh-label">Refresh</span></button>
                   <button className="btn-primary" onClick={goSubmit}>+ Submit a new ticket</button>
                 </div>
               </div>
