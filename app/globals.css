@@ -855,7 +855,7 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
   /* Drop the white card wrapper on mobile so the grey page shows between rows. */
   #ticketList .table-card { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; margin-bottom: 0; }
   #ticketList .table-scroll { overflow-x: visible; border-radius: 0; }
-  #ticketList tbody tr { display: block; cursor: pointer; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-card); margin-bottom: 12px; padding: 6px 14px; }
+  #ticketList tbody tr { display: block; cursor: pointer; background: #fff; border: none; border-radius: 12px; box-shadow: var(--shadow-card); margin-bottom: 12px; padding: 6px 14px; }
   #ticketList tbody tr:last-child { margin-bottom: 0; }
   #ticketList td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: none; font-size: 13px; white-space: normal; }
   #ticketList td::before { content: attr(data-label); font-weight: 700; color: var(--caption); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
