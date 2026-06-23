@@ -1144,7 +1144,7 @@ tr.row-attention:hover { background: #FCF3CF; }
 /* Numbered resolution steps (no checkboxes) */
 .guide-steps { margin: 8px 0 0; padding-left: 0; list-style: none; counter-reset: gstep; display: flex; flex-direction: column; gap: 8px; }
 .guide-steps li { position: relative; counter-increment: gstep; padding-left: 30px; font-size: 12.5px; line-height: 1.5; color: var(--text-1); }
-.guide-steps li::before { content: counter(gstep); position: absolute; left: 0; top: 0; width: 21px; height: 21px; background: var(--blue); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.guide-steps li::before { content: counter(gstep); position: absolute; left: 0; top: 0; width: 21px; height: 21px; background: #EBF2FF; color: var(--blue); border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
 /* Footer */
 .guide-footer { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; font-size: 11px; color: var(--caption); }
