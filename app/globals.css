@@ -1173,7 +1173,7 @@ tr.row-attention:hover { background: #FCF3CF; }
 
 /* ── GUIDE EDITOR repeatable rows ─────────────────────────────────────── */
 .ge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.ge-row-num { flex-shrink: 0; width: 22px; height: 22px; background: var(--blue); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.ge-row-num { flex-shrink: 0; width: 22px; height: 22px; background: #EBF2FF; color: var(--blue); border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .ge-row .nt-input { flex: 1; }
 .ge-row-btns { display: flex; gap: 4px; flex-shrink: 0; }
 .ge-row-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: #F4F6F8; border: 1px solid var(--border); border-radius: 7px; color: #6B7280; cursor: pointer; }

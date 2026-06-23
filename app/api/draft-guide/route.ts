@@ -27,7 +27,7 @@ Return ONLY a single JSON object — no prose, no markdown fences. Exactly these
 Rules:
 - title: a short, clear name for the guide (e.g. "New Starter Setup").
 - questions: array of clarifying questions the agent should ask the requester before starting. Concrete and useful; usually 2-5.
-- steps: array of ordered resolution steps in plain imperative sentences. Keep it concise: AT MOST 8 steps. Write for an experienced IT support person who already knows the basics, so do NOT spell out obvious actions (logging in, basic menu navigation, clicking standard buttons). Combine trivial sub-steps and focus on the decisions, the HDS-specific details, and the steps that actually matter.
+- steps: array of ordered resolution steps in plain imperative sentences. HARD LIMIT: 8 steps maximum, never more. Write for an experienced IT support person who already knows the basics, so do NOT spell out obvious actions (logging in, basic menu navigation, clicking standard buttons). Merge trivial sub-steps so the 8 cover the whole task end to end, including the final handover or close step. If you find yourself with more than 8, combine the smaller ones.
 - HONEST GAPS: where a step depends on HDS-specific detail you cannot know (tenant, AD OUs, licence/SKU names, internal tool or system names, server paths), write the step with a placeholder in SQUARE BRACKETS, e.g. "Assign the licence ([confirm which licence HDS uses])". Never invent specifics — an honest gap is better than confident fiction.
 - suggested_category: MUST be one of these KEYS or "": ${cats}.
 - suggested_sub_type: MUST be one of the exact strings allowed for the chosen category, or "":
@@ -54,7 +54,7 @@ function sanitize(raw: Record<string, unknown>, passedCategory: string): DraftGu
   const mismatch = !!passedCategory && raw.mismatch === true && !!mmCat && mmCat !== passedCategory;
   return {
     title: str(raw.title), suggestedCategory: cat, suggestedSubType: sub,
-    questions: arr(raw.questions), steps: arr(raw.steps),
+    questions: arr(raw.questions), steps: arr(raw.steps).slice(0, 8),   // hard cap, backstop for the prompt
     mismatch, mismatchCategory: mismatch ? mmCat : '',
   };
 }
