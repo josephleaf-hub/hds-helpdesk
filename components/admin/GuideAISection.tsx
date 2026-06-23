@@ -52,7 +52,7 @@ export function GuideAISection({ ticketId, notes, onInsert, onMismatch }: {
       runInbound.current = inboundCount;
       setStatus('done');
     } catch (err) {
-      setError((err as Error).message || 'AI suggestions failed — ask manually.');
+      setError((err as Error).message || 'AI suggestions failed. Ask manually.');
       setStatus('error');
     }
   }
@@ -87,11 +87,11 @@ export function GuideAISection({ ticketId, notes, onInsert, onMismatch }: {
             {showRecheck && (
               <button className="guide-ai-recheck" onClick={suggest}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
-                New reply — re-check questions?
+                New reply, re-check questions?
               </button>
             )}
             {complete && !questions.length ? (
-              <p className="guide-ai-complete">Nothing obviously missing — this ticket looks complete.</p>
+              <p className="guide-ai-complete">Nothing obviously missing. This ticket looks complete.</p>
             ) : (
               <>
                 <div className="guide-q-hint">Tap a question to add it to your reply.</div>

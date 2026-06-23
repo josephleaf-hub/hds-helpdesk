@@ -30,14 +30,14 @@ Return ONLY a single JSON object, no prose, no markdown fences. Exactly these ke
   suggested_sub_type (string)
 
 Rules for "questions":
-- List up to 4 SPECIFIC clarifying questions the agent should still ask THIS requester to resolve the ticket faster.
-- Only surface genuinely missing or ambiguous information. Be concrete to this ticket, not generic.
-- Account for what has ALREADY been answered or corrected in the conversation. Never re-ask something the thread already covers.
+- Think like a senior engineer diagnosing or escalating THIS ticket. List up to 4 specific, useful questions to ask the requester that would speed resolution or help the dev team. Consider: environment and versions (application, browser, device, OS), scope (one user or many, one site or all), exact reproduction steps and the precise error message, concrete numbers or examples (how many, how often, since when), and any deadline or business impact.
+- Surface genuinely helpful questions even when the ticket reads as broadly understandable. A clear description usually still has useful diagnostic gaps worth asking about.
+- Be concrete to this ticket, not generic. Account for what the conversation already answers and never re-ask something it covers.
 - Each question is a single, directly-askable sentence.
-- If the ticket already contains everything needed to proceed, return an empty array and set "complete" to true.
+- Only fall back to "complete" when there is truly nothing useful left to ask AND the ticket is clearly actionable as it stands. This should be the exception, not the default.
 
 Rules for "complete":
-- true only when there is nothing useful left to ask; otherwise false.
+- true ONLY when the questions array is empty because nothing useful remains; otherwise false.
 
 Rules for category fit (assess how well the ticket CONTENT matches its assigned category):
 - "good": the content clearly fits the assigned category. Set suggested_category to "".
@@ -149,7 +149,7 @@ Description: ${ticket.description || '(none)'}`;
     if (!aiRes.ok) {
       const detail = (await aiRes.text().catch(() => '')).slice(0, 300);
       console.error('ticket-questions: Anthropic error', aiRes.status, detail);
-      return NextResponse.json({ error: 'AI suggestions failed — ask manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'AI suggestions failed. Ask manually.' }, { status: 502 });
     }
     const data = await aiRes.json();
     const text = (data?.content?.[0]?.text || '').trim();
@@ -158,7 +158,7 @@ Description: ${ticket.description || '(none)'}`;
     try { parsed = JSON.parse(cleaned); }
     catch {
       console.error('ticket-questions: JSON parse failed for:', cleaned.slice(0, 300));
-      return NextResponse.json({ error: 'Could not read the AI suggestions — ask manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'Could not read the AI suggestions. Ask manually.' }, { status: 502 });
     }
 
     // Category fit: 'weak' (quiet suggestion) or 'mismatch' (firmer flag) surface
@@ -183,6 +183,6 @@ Description: ${ticket.description || '(none)'}`;
     return NextResponse.json({ ok: true, questions, complete, mismatch });
   } catch (err) {
     console.error('ticket-questions: unexpected error', (err as Error).message);
-    return NextResponse.json({ error: 'AI suggestions failed — ask manually.' }, { status: 502 });
+    return NextResponse.json({ error: 'AI suggestions failed. Ask manually.' }, { status: 502 });
   }
 }
