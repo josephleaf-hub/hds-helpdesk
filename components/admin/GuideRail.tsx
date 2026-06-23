@@ -44,7 +44,7 @@ export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, 
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onInsert: (text: string) => void;
-  onMismatch: (m: { suggested: string; level: 'weak' | 'mismatch' } | null) => void;
+  onMismatch: (m: { suggested: string; suggestedSubType?: string; level: 'weak' | 'mismatch' } | null) => void;
   onEdit: () => void;
   onCreate: () => void;
 }) {

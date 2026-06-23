@@ -6,7 +6,7 @@
    degrades to the static guide + manual question-asking. */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { CAT_LABEL } from '@/lib/constants';
+import { CAT_LABEL, SUB_TYPES } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +16,7 @@ const MODEL = 'claude-sonnet-4-6';
 
 function buildSystemPrompt(): string {
   const cats = Object.entries(CAT_LABEL).map(([k, l]) => `"${k}" (${l})`).join(', ');
+  const subs = Object.entries(SUB_TYPES).map(([cat, list]) => `  - ${cat}: ${list.map(s => `"${s}"`).join(', ')}`).join('\n');
   return `You are an IT-helpdesk assistant helping a support agent resolve a ticket faster.
 
 You are given a ticket (subject, description, its assigned category) and the full conversation so far between the IT team and the requester.
@@ -24,7 +25,8 @@ Return ONLY a single JSON object, no prose, no markdown fences. Exactly these ke
   questions  (array of strings),
   complete   (boolean),
   category_fit (string: "good", "weak", or "mismatch"),
-  suggested_category (string)
+  suggested_category (string),
+  suggested_sub_type (string)
 
 Rules for "questions":
 - List up to 4 SPECIFIC clarifying questions the agent should still ask THIS requester to resolve the ticket faster.
@@ -42,6 +44,9 @@ Rules for category fit (assess how well the ticket CONTENT matches its assigned 
 - "mismatch": the content plainly contradicts the assigned category. Set suggested_category to the KEY it clearly belongs to.
 - Most tickets are categorised by the requester at submission, often by a rough guess, so when the fit is not clearly good lean towards "weak" and offer a suggestion rather than staying silent.
 - suggested_category MUST be one of these KEYS or "": ${cats}. It must differ from the assigned category.
+- suggested_sub_type: when you suggest a category, also pick the most likely request type within it (or "" if unsure). It MUST be one of the exact strings allowed for the suggested_category:
+${subs}
+  When category_fit is "good", set suggested_sub_type to "".
 
 Other rules:
 - NEVER use dashes in any question you write. No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. This is a hard rule. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine.
@@ -51,17 +56,22 @@ Other rules:
 // Slim prompt for the lightweight category-fit check that auto-fires on open.
 function buildCategoryPrompt(): string {
   const cats = Object.entries(CAT_LABEL).map(([k, l]) => `"${k}" (${l})`).join(', ');
-  return `You assess whether an IT helpdesk ticket is filed under the right category, from its subject and description.
+  const subs = Object.entries(SUB_TYPES).map(([cat, list]) => `  - ${cat}: ${list.map(s => `"${s}"`).join(', ')}`).join('\n');
+  return `You assess whether an IT helpdesk ticket is filed under the right category and request type, from its subject and description.
 
 Return ONLY a single JSON object, no prose, no markdown fences. Exactly these keys:
   category_fit (string: "good", "weak", or "mismatch"),
-  suggested_category (string)
+  suggested_category (string),
+  suggested_sub_type (string)
 
 - "good": the content clearly fits the assigned category. suggested_category "".
 - "weak": the assigned category is plausible but the content points more towards another category, OR the ticket looks like it was categorised by a quick guess or default. suggested_category = the KEY it more likely belongs to.
 - "mismatch": the content plainly contradicts the assigned category. suggested_category = the KEY it clearly belongs to.
 - Most tickets are categorised by the requester at submission, often by a rough guess, so when the fit is not clearly good lean towards "weak" and offer a suggestion.
 - suggested_category MUST be one of these KEYS or "": ${cats}. It must differ from the assigned category.
+- suggested_sub_type: when you suggest a category, also pick the most likely request type within it (or "" if unsure). It MUST be one of the exact strings allowed for the suggested_category:
+${subs}
+  When category_fit is "good", set suggested_sub_type to "".
 - Return valid JSON only.`;
 }
 
@@ -149,8 +159,11 @@ Description: ${ticket.description || '(none)'}`;
     const fit = ['good', 'weak', 'mismatch'].includes(parsed.category_fit as string) ? parsed.category_fit as string : 'good';
     const suggested = typeof parsed.suggested_category === 'string' ? parsed.suggested_category.trim() : '';
     const validSuggestion = Object.keys(CAT_LABEL).includes(suggested) && suggested !== ticket.category;
+    // Constrain the suggested request type to the real list for the suggested category.
+    const rawSub = typeof parsed.suggested_sub_type === 'string' ? parsed.suggested_sub_type.trim() : '';
+    const suggestedSubType = validSuggestion && (SUB_TYPES[suggested] || []).includes(rawSub) ? rawSub : '';
     const mismatch = fit !== 'good' && validSuggestion
-      ? { suggested, level: fit === 'mismatch' ? 'mismatch' : 'weak' }
+      ? { suggested, suggestedSubType, level: fit === 'mismatch' ? 'mismatch' : 'weak' }
       : null;
 
     if (mode === 'category') return NextResponse.json({ ok: true, mismatch });

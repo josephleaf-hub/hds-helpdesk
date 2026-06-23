@@ -11,7 +11,7 @@ import type { Note } from '@/lib/types';
    as a top-bar banner (the modal also auto-checks fit on open). Fails to a quiet
    error, never blocks the rail. Copy says "AI", never "Claude". */
 
-type Mismatch = { suggested: string; level: 'weak' | 'mismatch' };
+type Mismatch = { suggested: string; suggestedSubType?: string; level: 'weak' | 'mismatch' };
 type Status = 'idle' | 'loading' | 'done' | 'error';
 
 const Sparkle = ({ cls }: { cls?: string }) => (

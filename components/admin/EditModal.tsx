@@ -49,7 +49,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const surfacedRef = useRef<string | null>(null);
   // Category-fit nudge (shown as a top-bar banner). Auto-checked on open; the
   // rail's "Suggest questions" call also feeds this via onMismatch.
-  const [catMismatch, setCatMismatch] = useState<{ suggested: string; level: 'weak' | 'mismatch' } | null>(null);
+  const [catMismatch, setCatMismatch] = useState<{ suggested: string; suggestedSubType?: string; level: 'weak' | 'mismatch' } | null>(null);
   const [catDismissed, setCatDismissed] = useState(false);
   const catCheckedRef = useRef<string | null>(null);
   const [pill, setPill] = useState<{ field: 'status' | 'priority' | 'assigned'; rect: DOMRect } | null>(null);
@@ -111,15 +111,15 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   }, [ticket.id]);
 
   // One-tap category switch from the rail's AI mismatch nudge. Optimistic + persisted.
-  async function switchCategory(categoryKey: string) {
+  async function switchCategory(categoryKey: string, subType = '') {
     setCatMismatch(null);
-    // Clear the sub-type too — the old one belonged to the previous category and
-    // is invalid here (e.g. "VPN / Remote Access" under Account Setup).
-    patchTicket(ticket.id, { category: categoryKey, sub_type: '' });
+    // Apply the AI-suggested request type when we have one; otherwise clear the
+    // old sub-type (it belonged to the previous category and is now invalid).
+    patchTicket(ticket.id, { category: categoryKey, sub_type: subType });
     try {
-      const { error } = await sb.from('tickets').update({ category: categoryKey, sub_type: '' }).eq('id', ticket.id);
+      const { error } = await sb.from('tickets').update({ category: categoryKey, sub_type: subType }).eq('id', ticket.id);
       if (error) throw error;
-      toast(`Category changed to ${CAT_LABEL[categoryKey] || categoryKey}`);
+      toast(`Moved to ${CAT_LABEL[categoryKey] || categoryKey}${subType ? ' / ' + subType : ''}`);
       await onReload();
     } catch (err) {
       toast('Failed: ' + (err as Error).message);
@@ -337,6 +337,9 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   );
 
   // Category-fit banner in the modal top bar (one-tap, never auto-applied).
+  const suggestedLabel = catMismatch
+    ? (CAT_LABEL[catMismatch.suggested] || catMismatch.suggested) + (catMismatch.suggestedSubType ? ` / ${catMismatch.suggestedSubType}` : '')
+    : '';
   const catBanner = catMismatch && !catDismissed ? (
     <div className={`cat-banner cat-banner-${catMismatch.level}`}>
       {catMismatch.level === 'mismatch'
@@ -344,10 +347,10 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
         : <svg className="cat-banner-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>}
       <span className="cat-banner-msg">
         {catMismatch.level === 'mismatch'
-          ? <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong> but looks like <strong>{CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</strong>.</>
-          : <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong>. Might fit better under <strong>{CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</strong>.</>}
+          ? <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong> but looks like <strong>{suggestedLabel}</strong>.</>
+          : <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong>. Might fit better under <strong>{suggestedLabel}</strong>.</>}
       </span>
-      <button className="cat-banner-switch" onClick={() => switchCategory(catMismatch.suggested)}>Switch to {CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</button>
+      <button className="cat-banner-switch" onClick={() => switchCategory(catMismatch.suggested, catMismatch.suggestedSubType || '')}>Switch to {suggestedLabel}</button>
       <button className="cat-banner-keep" onClick={() => setCatDismissed(true)} aria-label="Dismiss">Keep</button>
     </div>
   ) : null;
