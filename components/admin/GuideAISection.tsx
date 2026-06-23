@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { sb } from '@/lib/supabase';
+import { sb, getAccessToken } from '@/lib/supabase';
 import type { Note } from '@/lib/types';
 
 /* The purple "For this ticket" section on the help-guide rail. On demand, asks
@@ -37,13 +37,18 @@ export function GuideAISection({ ticketId, notes, onInsert, onMismatch }: {
   async function suggest() {
     setStatus('loading'); setError('');
     try {
-      const { data: { session } } = await sb.auth.getSession();
-      const token = session?.access_token;
-      if (!token) throw new Error('Session expired');
-      const res = await fetch('/api/ticket-questions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      // Refresh the token if it's near expiry; retry once on a 401 (stale session).
+      let token = await getAccessToken();
+      if (!token) throw new Error('Please sign in again.');
+      const call = (tok: string) => fetch('/api/ticket-questions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
         body: JSON.stringify({ ticketId }),
       });
+      let res = await call(token);
+      if (res.status === 401) {
+        const refreshed = (await sb.auth.refreshSession()).data.session?.access_token;
+        if (refreshed) { token = refreshed; res = await call(token); }
+      }
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
       setQuestions(Array.isArray(data.questions) ? data.questions : []);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { sb } from '@/lib/supabase';
+import { sb, getAccessToken } from '@/lib/supabase';
 import { CAT_LABEL, STATUS_LABEL, PRI_LABEL, IT_TEAM } from '@/lib/constants';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { useIsMobile } from '@/lib/useIsMobile';
@@ -104,8 +104,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     let on = true;
     (async () => {
       try {
-        const { data: { session } } = await sb.auth.getSession();
-        const token = session?.access_token;
+        const token = await getAccessToken();
         if (!token) return;
         const res = await fetch('/api/ticket-questions', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
