@@ -1243,6 +1243,23 @@ tr.row-attention:hover { background: #FCF3CF; }
 .guide-ai-suggest-keep { background: none; border: none; padding: 0; color: var(--text-3); font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
 .guide-ai-suggest-keep:hover { color: var(--text-2); }
 
+/* Category-fit banner in the ticket modal top bar */
+.cat-banner { display: flex; align-items: center; gap: 10px; padding: 9px 24px; font-size: 12.5px; line-height: 1.4; border-bottom: 1px solid; }
+.cat-banner-ico { width: 15px; height: 15px; flex-shrink: 0; }
+.cat-banner-msg { flex: 1; min-width: 0; }
+.cat-banner-mismatch { background: #FEF6E7; border-bottom-color: #F3D9A4; color: #92500E; }
+.cat-banner-mismatch .cat-banner-ico { color: #B45309; }
+.cat-banner-mismatch strong { color: #6B4309; }
+.cat-banner-weak { background: var(--bg-alt); border-bottom-color: var(--border); color: var(--text-2); }
+.cat-banner-weak .cat-banner-ico { color: var(--text-3); }
+.cat-banner-weak strong { color: var(--text-1); }
+.cat-banner-switch { flex-shrink: 0; border: none; border-radius: 7px; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.cat-banner-mismatch .cat-banner-switch { background: #B45309; color: #fff; }
+.cat-banner-weak .cat-banner-switch { background: var(--blue); color: #fff; }
+.cat-banner-keep { flex-shrink: 0; background: none; border: 1px solid currentColor; border-radius: 7px; padding: 5px 11px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; opacity: 0.75; }
+.cat-banner-keep:hover { opacity: 1; }
+@media (max-width: 900px) { .cat-banner { padding: 9px 16px; flex-wrap: wrap; } .cat-banner-msg { flex-basis: 100%; } }
+
 /* ── PHASE 2 — AI in the guide editor ─────────────────────────────────── */
 /* Purple "Draft with AI" generator panel (matches the rail's AI theme) */
 .ge-gen { background: #F6F2FD; border: 1px solid #E0D4F7; border-radius: 14px; padding: 16px; margin-bottom: 20px; }

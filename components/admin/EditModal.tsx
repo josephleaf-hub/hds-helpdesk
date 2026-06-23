@@ -47,6 +47,11 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   const [guideEditor, setGuideEditor] = useState<null | { guide?: HelpGuide | null; preset?: { category: string; sub_type: string | null } }>(null);
   const [flash, setFlash] = useState(false);
   const surfacedRef = useRef<string | null>(null);
+  // Category-fit nudge (shown as a top-bar banner). Auto-checked on open; the
+  // rail's "Suggest questions" call also feeds this via onMismatch.
+  const [catMismatch, setCatMismatch] = useState<{ suggested: string; level: 'weak' | 'mismatch' } | null>(null);
+  const [catDismissed, setCatDismissed] = useState(false);
+  const catCheckedRef = useRef<string | null>(null);
   const [pill, setPill] = useState<{ field: 'status' | 'priority' | 'assigned'; rect: DOMRect } | null>(null);
   const [busy, setBusy] = useState(false);
   const [archiveBusy, setArchiveBusy] = useState(false);
@@ -83,8 +88,31 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
 
   useEffect(() => { loadGuide(true); }, [loadGuide]);
 
+  // Lightweight category-fit check on open (once per ticket) → top-bar banner.
+  // Silent, best-effort; never blocks the modal.
+  useEffect(() => {
+    if (catCheckedRef.current === ticket.id) return;
+    catCheckedRef.current = ticket.id;
+    let on = true;
+    (async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        const token = session?.access_token;
+        if (!token) return;
+        const res = await fetch('/api/ticket-questions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ ticketId: ticket.id, mode: 'category' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (on && res.ok && data.ok && data.mismatch) { setCatMismatch(data.mismatch); setCatDismissed(false); }
+      } catch { /* silent — category hint is best-effort */ }
+    })();
+    return () => { on = false; };
+  }, [ticket.id]);
+
   // One-tap category switch from the rail's AI mismatch nudge. Optimistic + persisted.
   async function switchCategory(categoryKey: string) {
+    setCatMismatch(null);
     patchTicket(ticket.id, { category: categoryKey });
     try {
       const { error } = await sb.from('tickets').update({ category: categoryKey }).eq('id', ticket.id);
@@ -306,6 +334,22 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
     </>
   );
 
+  // Category-fit banner in the modal top bar (one-tap, never auto-applied).
+  const catBanner = catMismatch && !catDismissed ? (
+    <div className={`cat-banner cat-banner-${catMismatch.level}`}>
+      {catMismatch.level === 'mismatch'
+        ? <svg className="cat-banner-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+        : <svg className="cat-banner-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>}
+      <span className="cat-banner-msg">
+        {catMismatch.level === 'mismatch'
+          ? <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong> but looks like <strong>{CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</strong>.</>
+          : <>Filed under <strong>{CAT_LABEL[ticket.category] || ticket.category}</strong>. Might fit better under <strong>{CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</strong>.</>}
+      </span>
+      <button className="cat-banner-switch" onClick={() => switchCategory(catMismatch.suggested)}>Switch to {CAT_LABEL[catMismatch.suggested] || catMismatch.suggested}</button>
+      <button className="cat-banner-keep" onClick={() => setCatDismissed(true)} aria-label="Dismiss">Keep</button>
+    </div>
+  ) : null;
+
   // ─────────────── Mobile layout (≤900px) — desktop is untouched ───────────────
   const MODE: Record<Tab, { label: string; ph: string; hint: string; btn: string; flip: string; accent: string; bg: string }> = {
     reply: { label: `Reply to ${reqFirst}`, ph: `Type your reply to ${reqFirst}…`, hint: `Emailed to ${ticket.requester_email} with a secure link — they respond in the portal.`, btn: 'Send reply', flip: '→ moves to Waiting on Requester', accent: '#FF6B43', bg: '#FFF1EC' },
@@ -331,6 +375,8 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
         <button className="tdm-x" onClick={onClose} aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
       </div>
 
+      {catBanner}
+
       {/* Tabs */}
       <div className="tdm-tabs">
         <button className={`tdm-tab${pane === 'chat' ? ' active' : ''}`} onClick={() => setPane('chat')}>Conversation</button>
@@ -342,7 +388,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
         <div className="tdm-guide">
           <GuideRail
             guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
-            variant="panel" onInsert={insertGuideText} onSwitchCategory={switchCategory}
+            variant="panel" onInsert={insertGuideText} onMismatch={(m) => { setCatMismatch(m); setCatDismissed(false); }}
             onEdit={() => setGuideEditor({ guide })}
             onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
           />
@@ -431,6 +477,8 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
               <button className="modal-close" onClick={onClose}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -2, flexShrink: 0 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
             </div>
           </div>
+
+          {catBanner}
 
           <div className="modal-body">
             <div className="h-mobile-tabs" role="tablist">
@@ -531,7 +579,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
               <GuideRail
                 guide={guide} loading={guideLoading} ticketId={ticket.id} category={ticket.category} notes={notes} isAdmin={isAdmin}
                 variant="rail" collapsed={railCollapsed} onToggleCollapse={() => setRailCollapsed(c => !c)}
-                onInsert={insertGuideText} onSwitchCategory={switchCategory}
+                onInsert={insertGuideText} onMismatch={(m) => { setCatMismatch(m); setCatDismissed(false); }}
                 onEdit={() => setGuideEditor({ guide })}
                 onCreate={() => setGuideEditor({ preset: { category: ticket.category, sub_type: ticket.sub_type || null } })}
               />

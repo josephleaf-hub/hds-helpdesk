@@ -33,7 +33,7 @@ function Section({ title, accent, defaultOpen = true, children }: { title: React
   );
 }
 
-export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onSwitchCategory, onEdit, onCreate }: {
+export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, variant = 'rail', collapsed = false, onToggleCollapse, onInsert, onMismatch, onEdit, onCreate }: {
   guide: HelpGuide | null;
   loading: boolean;
   ticketId: string;
@@ -44,7 +44,7 @@ export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, 
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onInsert: (text: string) => void;
-  onSwitchCategory: (categoryKey: string) => void;
+  onMismatch: (m: { suggested: string; level: 'weak' | 'mismatch' } | null) => void;
   onEdit: () => void;
   onCreate: () => void;
 }) {
@@ -85,7 +85,7 @@ export function GuideRail({ guide, loading, ticketId, category, notes, isAdmin, 
         ) : (
           <>
             {/* AI "For this ticket" — on-demand, ticket-specific (phase 2). */}
-            <GuideAISection ticketId={ticketId} category={category} notes={notes} onInsert={onInsert} onSwitchCategory={onSwitchCategory} />
+            <GuideAISection ticketId={ticketId} notes={notes} onInsert={onInsert} onMismatch={onMismatch} />
 
             {!guide ? (
               // Empty state — no static guide yet (common early on).
