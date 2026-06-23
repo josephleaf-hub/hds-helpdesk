@@ -444,6 +444,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                       <div className="detail-right">
                         <div className="detail-conv">
                           <div className="field-label" style={{ marginBottom: 10 }}>Conversation</div>
+                          <div className="ptd-convo-title"><span className="ptd-convo-subject">{t.subject}</span><span className="ptd-convo-id">{t.id} · {(CAT_LABEL[t.category] || t.category)}{t.sub_type ? ` — ${t.sub_type}` : ''}</span></div>
                           <div className="detail-conv-scroll" ref={portalConvRef}>
                             <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} maskStaff bubbles />
                           </div>
