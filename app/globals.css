@@ -1357,3 +1357,12 @@ tr.row-attention:hover { background: #FCF3CF; }
   0% { background: #EFE8FC; border-color: #6D28D9; }
   100% { background: #fff; border-color: var(--border); }
 }
+
+/* Touch devices (any width): keep form fields and chat composers at 16px so iOS
+   never zooms on focus. Covers the requester portal AND the admin modal/chat,
+   including tablet widths where the admin still uses its desktop composer. */
+@media (pointer: coarse) {
+  input, select, textarea,
+  .input, .nt-input, .ge-gen-input, .house-input,
+  .composer textarea, .tdm-composer textarea, .portal-composer textarea { font-size: 16px !important; }
+}
