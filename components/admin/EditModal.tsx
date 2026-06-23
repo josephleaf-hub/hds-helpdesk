@@ -58,6 +58,10 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
   const [catDismissed, setCatDismissed] = useState(false);
   const catCheckedRef = useRef<string | null>(null);
   const [pill, setPill] = useState<{ field: 'status' | 'priority' | 'assigned'; rect: DOMRect } | null>(null);
+  // Handover popup when assigning to a person.
+  const [assignTo, setAssignTo] = useState<{ id: string; name: string } | null>(null);
+  const [handoverText, setHandoverText] = useState('');
+  const [assignBusy, setAssignBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [archiveBusy, setArchiveBusy] = useState(false);
   const [refreshBusy, setRefreshBusy] = useState(false);
@@ -135,6 +139,30 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
     } catch (err) {
       toast('Failed: ' + (err as Error).message);
       await onReload();
+    }
+  }
+
+  // Confirm assignment: sets the assignee, records the handover note, emails them.
+  async function confirmAssign() {
+    if (!assignTo) return;
+    setAssignBusy(true);
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Please sign in again.');
+      const res = await fetch('/api/assign-ticket', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ ticketId: ticket.id, assigneeId: assignTo.id, handover: handoverText.trim() || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      patchTicket(ticket.id, { assigned_to: assignTo.id });
+      toast(`Assigned to ${assignTo.name}${data.emailed ? ', notified by email' : ''}.`);
+      setAssignTo(null); setHandoverText('');
+      await onReload();
+    } catch (err) {
+      toast('Failed: ' + (err as Error).message);
+    } finally {
+      setAssignBusy(false);
     }
   }
 
@@ -310,7 +338,7 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
     if (!pill) return [];
     if (pill.field === 'status') return Object.entries(STATUS_LABEL).map(([v, l]) => ({ label: l, selected: ticket.status === v, onClick: () => updateField('status', v) }));
     if (pill.field === 'priority') return Object.entries(PRI_LABEL).map(([v, l]) => ({ label: l, selected: ticket.priority === v, onClick: () => updateField('priority', v) }));
-    return [{ label: 'Unassigned', selected: !ticket.assigned_to, onClick: () => updateField('assigned', '') }, ...users.map(u => ({ label: u.full_name, selected: ticket.assigned_to === u.user_id, onClick: () => updateField('assigned', u.user_id) }))];
+    return [{ label: 'Unassigned', selected: !ticket.assigned_to, onClick: () => updateField('assigned', '') }, ...users.map(u => ({ label: u.full_name, selected: ticket.assigned_to === u.user_id, onClick: () => { setPill(null); setHandoverText(''); setAssignTo({ id: u.user_id, name: u.full_name }); } }))];
   };
 
   const composeMeta = tab === 'internal' ? 'Visible to IT team only — does not email the requester'
@@ -615,6 +643,33 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
       </div>
 
       {pill && <FloatingMenu rect={pill.rect} items={pillItems()} onClose={() => setPill(null)} />}
+
+      {assignTo && (
+        <div className="assign-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !assignBusy) setAssignTo(null); }}>
+          <div className="assign-modal">
+            <div className="assign-head">
+              <div>
+                <div className="assign-title">Assign to {assignTo.name}</div>
+                <div className="assign-sub">{ticket.id} · {ticket.subject}</div>
+              </div>
+              <button className="nt-close" onClick={() => setAssignTo(null)} aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></button>
+            </div>
+            <div className="assign-body">
+              <label className="nt-label">Handover note <span style={{ color: '#9CA3AF', fontWeight: 500 }}>(optional)</span></label>
+              <textarea className="nt-input" value={handoverText} onChange={(e) => setHandoverText(e.target.value)} placeholder={`Context for ${assignTo.name.split(' ')[0]} taking this over: what's done, what's next, anything to watch.`} autoFocus style={{ minHeight: 96 }} />
+              <div className="assign-note">
+                {assignTo.id === user.id
+                  ? 'This is you, so no email will be sent. The note is saved on the ticket.'
+                  : <>{assignTo.name.split(' ')[0]} gets an email with this note and a link. It is also saved on the ticket as an internal note.</>}
+              </div>
+            </div>
+            <div className="assign-foot">
+              <button className="nt-btn-ghost" onClick={() => setAssignTo(null)} disabled={assignBusy}>Cancel</button>
+              <button className="nt-btn-primary" onClick={confirmAssign} disabled={assignBusy}>{assignBusy ? 'Assigning…' : 'Assign'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {guideEditor && (
         <GuideEditor
