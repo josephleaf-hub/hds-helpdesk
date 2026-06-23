@@ -110,25 +110,26 @@ export function GuideEditor({ guide, preset, userName, onClose, onSaved }: {
         <div className="nt-body">
           {/* Draft with AI — fills the form below as editable suggestions */}
           {!guide?.id && (
-            <div className="nt-draft">
-              <div className="nt-draft-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>
-                Draft with AI
+            <div className="ge-gen">
+              <div className="ge-gen-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>
+                <span className="ge-gen-title">Draft with AI</span>
+                <span className="ge-gen-sub">Describe the task — AI drafts the guide below for you to edit</span>
               </div>
-              <textarea className="nt-input" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe the task this guide should cover — e.g. 'Setting up a new starter: accounts, access, hardware and induction.' The fields below fill in as editable suggestions." />
-              <div className="nt-draft-actions">
-                <button type="button" className="btn-draft" onClick={draft} disabled={drafting || !prompt.trim()}>
-                  {drafting ? 'Drafting…' : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg> Draft with AI</>}
+              <textarea className="ge-gen-input" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="e.g. Setting up a Microsoft 365 account for a new starter" />
+              <div className="ge-gen-actions">
+                {draftError && <span className="ge-gen-err">{draftError}</span>}
+                <button type="button" className="ge-gen-btn" onClick={draft} disabled={drafting || !prompt.trim()}>
+                  {drafting ? <><span className="ge-gen-spin" /> Drafting…</> : <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg> {drafted ? 'Re-draft' : 'Draft with AI'}</>}
                 </button>
-                {draftError && <span className="nt-draft-err">{draftError}</span>}
               </div>
             </div>
           )}
 
           {drafted && (
-            <div className="nt-draft-banner">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-              Drafted by AI — review before saving.{gaps ? ' Anything in [brackets] needs your HDS-specific detail.' : ''} Nothing is saved until you click {guide?.id ? 'Save' : 'Create'}.
+            <div className="ge-drafted-banner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M20 6 9 17l-5-5" /></svg>
+              <span>Drafted by AI — review and edit before saving.{gaps ? ' Anything in [amber brackets] needs your HDS-specific detail (AI doesn’t know your tenant, OUs or licence names).' : ''} Nothing is saved until you click {guide?.id ? 'Save' : 'Create'}.</span>
             </div>
           )}
 

@@ -1229,6 +1229,25 @@ tr.row-attention:hover { background: #FCF3CF; }
 .guide-ai-keep { background: none; border: 1px solid #E2C893; color: #92500E; border-radius: 6px; padding: 6px 10px; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
 
 /* ── PHASE 2 — AI in the guide editor ─────────────────────────────────── */
+/* Purple "Draft with AI" generator panel (matches the rail's AI theme) */
+.ge-gen { background: #F6F2FD; border: 1px solid #E0D4F7; border-radius: 14px; padding: 16px; margin-bottom: 20px; }
+.ge-gen-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.ge-gen-head > svg { width: 16px; height: 16px; color: #6D28D9; flex-shrink: 0; }
+.ge-gen-title { font-size: 13px; font-weight: 700; color: #6D28D9; }
+.ge-gen-sub { font-size: 12px; color: #6B7280; margin-left: auto; }
+.ge-gen-input { width: 100%; min-height: 56px; background: #fff; border: 1px solid #D9C9F2; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-family: inherit; color: var(--text-1); resize: vertical; outline: none; }
+.ge-gen-input:focus { border-color: #6D28D9; box-shadow: 0 0 0 3px rgba(109,40,217,0.12); }
+.ge-gen-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.ge-gen-err { font-size: 12px; color: #C0392B; margin-right: auto; }
+.ge-gen-btn { display: inline-flex; align-items: center; gap: 7px; background: #6D28D9; color: #fff; border: none; border-radius: 9px; padding: 9px 15px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.ge-gen-btn:hover:not(:disabled) { background: #5B21B6; }
+.ge-gen-btn:disabled { background: #B9A4E4; cursor: default; }
+.ge-gen-btn svg { width: 14px; height: 14px; }
+.ge-gen-spin { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: ge-gen-spin-anim 0.7s linear infinite; }
+@keyframes ge-gen-spin-anim { to { transform: rotate(360deg); } }
+.ge-drafted-banner { display: flex; align-items: flex-start; gap: 9px; background: #F1EBFB; border: 1px solid #E0D4F7; border-radius: 10px; padding: 11px 13px; margin-bottom: 18px; font-size: 12px; color: #4B2C7A; line-height: 1.5; }
+.ge-drafted-banner svg { width: 15px; height: 15px; color: #6D28D9; flex-shrink: 0; margin-top: 1px; }
+
 .ge-ai-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: none; color: #6D28D9; background: #EFE8FC; padding: 3px 9px; border-radius: 10px; }
 .ge-ai-pill svg { width: 11px; height: 11px; }
 .ge-mismatch { display: flex; gap: 9px; background: #FEF6E7; border: 1px solid #F3D9A4; border-radius: 10px; padding: 11px 13px; margin-bottom: 12px; color: #92500E; }
