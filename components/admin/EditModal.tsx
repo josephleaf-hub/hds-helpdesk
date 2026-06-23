@@ -113,9 +113,11 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
   // One-tap category switch from the rail's AI mismatch nudge. Optimistic + persisted.
   async function switchCategory(categoryKey: string) {
     setCatMismatch(null);
-    patchTicket(ticket.id, { category: categoryKey });
+    // Clear the sub-type too — the old one belonged to the previous category and
+    // is invalid here (e.g. "VPN / Remote Access" under Account Setup).
+    patchTicket(ticket.id, { category: categoryKey, sub_type: '' });
     try {
-      const { error } = await sb.from('tickets').update({ category: categoryKey }).eq('id', ticket.id);
+      const { error } = await sb.from('tickets').update({ category: categoryKey, sub_type: '' }).eq('id', ticket.id);
       if (error) throw error;
       toast(`Category changed to ${CAT_LABEL[categoryKey] || categoryKey}`);
       await onReload();
@@ -468,7 +470,7 @@ export function EditModal({ ticket, user, onClose, onReload, patchTicket }: {
           <div className="modal-header">
             <div>
               <div className="modal-title">{ticket.subject}</div>
-              <div className="modal-ticket-id">{ticket.id} · {(CAT_LABEL[ticket.category] || ticket.category)} — {ticket.sub_type} · Submitted {fmtDate(ticket.created_at)}</div>
+              <div className="modal-ticket-id">{ticket.id} · {(CAT_LABEL[ticket.category] || ticket.category)}{ticket.sub_type ? ` — ${ticket.sub_type}` : ''} · Submitted {fmtDate(ticket.created_at)}</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               <button className="btn-secondary" style={{ fontSize: 12 }} onClick={refresh} disabled={refreshBusy} title="Refresh this ticket">
