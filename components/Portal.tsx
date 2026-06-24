@@ -326,7 +326,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
 
   return (
     <RealtimeAlertsProvider surface="requester" enabled={authed === true} onView={(id) => openTicket(id)} onActivity={() => { if (viewRef.current === 'detail') refreshOpenTicket(); else loadMyTickets(true); }}>
-    <div className="portal-shell">
+    <div className={`portal-shell${view === 'detail' ? ' detail-mode' : ''}`}>
       <main className="main">
         <header className="portal-topbar">
           <div className="pt-left">

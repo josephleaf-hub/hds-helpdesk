@@ -848,6 +848,21 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .composer-tip svg { flex-shrink: 0; margin-top: 1px; color: var(--blue); }
 @media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
 
+/* Desktop ticket detail: lock to the viewport so the page never scrolls. Only
+   the conversation list scrolls; the composer stays pinned at the bottom. */
+@media (min-width: 1025px) {
+  .portal-shell.detail-mode { height: 100vh; overflow: hidden; }
+  .portal-shell.detail-mode .main { height: 100vh; min-height: 0; }
+  .portal-shell.detail-mode .page-content { overflow: hidden; display: flex; flex-direction: column; padding-bottom: 24px; }
+  .portal-shell.detail-mode #detailView { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; }
+  .portal-shell.detail-mode .detail-topbar { flex-shrink: 0; }
+  .portal-shell.detail-mode .detail-grid2 { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  .portal-shell.detail-mode .detail-left { align-self: start; max-height: 100%; overflow-y: auto; }
+  .portal-shell.detail-mode .detail-right { min-height: 0; display: flex; flex-direction: column; }
+  .portal-shell.detail-mode .detail-conv { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .portal-shell.detail-mode .detail-conv-scroll { flex: 1; min-height: 0; height: auto; }
+}
+
 @media (max-width: 768px) {
   .cat-grid { grid-template-columns: repeat(2, 1fr); }
   .portal-hero { padding: 18px 20px; flex-direction: column; align-items: stretch; }
