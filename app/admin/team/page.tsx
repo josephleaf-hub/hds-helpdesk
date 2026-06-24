@@ -98,7 +98,7 @@ export default function TeamPage() {
     setBusyId(u.user_id);
     try {
       const data = await teamFetch('manage', { action, targetUserId: u.user_id });
-      const msg: Record<string, string> = { deactivate: `${u.full_name} deactivated.`, reactivate: `${u.full_name} reactivated.`, resend: `Invite resent${data.emailed === false ? ' (email may be delayed)' : ''}.`, cancel: 'Invite cancelled.' };
+      const msg: Record<string, string> = { deactivate: `${u.full_name} deactivated.`, reactivate: `${u.full_name} reactivated.`, resend: `Invite resent${data.emailed === false ? ' (email may be delayed)' : ''}.`, cancel: 'Invite cancelled.', reset: `Reset link sent to ${u.full_name}.` };
       toast(msg[action] || 'Done.');
       await load();
     } catch (e) { toast('Failed: ' + (e as Error).message); }
@@ -169,6 +169,7 @@ export default function TeamPage() {
                             <button className="tm-link" onClick={() => act(u, 'reactivate')}>Reactivate</button>
                           ) : (<>
                             <button className="tm-link" onClick={() => openRole(u)}>Change role</button>
+                            <button className="tm-link" onClick={() => act(u, 'reset', { title: `Reset ${u.full_name}'s password?`, body: 'They get an email with a link to set a new password. Their current password keeps working until they use it.', confirmLabel: 'Send reset', tone: 'primary' })}>Reset password</button>
                             <button className="tm-link danger" onClick={() => act(u, 'deactivate', { title: `Deactivate ${u.full_name}?`, body: 'They lose access immediately but stay on record (their name still shows on tickets they handled). You can reactivate any time.', confirmLabel: 'Deactivate', tone: 'danger' })}>Deactivate</button>
                           </>)
                         )}

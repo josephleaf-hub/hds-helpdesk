@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { siteUrl } from '@/lib/site';
-import { inviteEmailHtml, inviteEmailText } from '@/lib/email';
+import { inviteEmailHtml, inviteEmailText, resetEmailHtml, resetEmailText } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -70,6 +70,36 @@ export async function POST(req: NextRequest) {
     const { error } = await admin.auth.admin.updateUserById(targetId, { ban_duration: 'none' });
     if (error) return NextResponse.json({ error: 'Reactivate failed: ' + error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
+  }
+
+  if (action === 'reset') {
+    // Owner-initiated password reset for an existing (accepted) member.
+    const { data: au } = await admin.auth.admin.getUserById(targetId);
+    const email = au?.user?.email;
+    if (!email) return NextResponse.json({ error: 'User has no email on file' }, { status: 400 });
+    const { data: gen, error: genErr } = await admin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${SITE_URL}/set-password` } });
+    const link = gen?.properties?.action_link || '';
+    if (genErr || !link) return NextResponse.json({ error: 'Could not generate the reset link' }, { status: 500 });
+    let emailed = false;
+    try {
+      if (process.env.SENDGRID_API_KEY) {
+        const sg = await fetch('https://api.sendgrid.com/v3/mail/send', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personalizations: [{ to: [{ email, name: target.full_name }] }],
+            from: { email: EMAIL_FROM, name: 'HDS IT Helpdesk' },
+            subject: 'Your HDS IT Helpdesk password was reset',
+            content: [
+              { type: 'text/plain', value: resetEmailText({ name: String(target.full_name), link, byOwner: true }) },
+              { type: 'text/html', value: resetEmailHtml({ name: String(target.full_name), link, byOwner: true }) },
+            ],
+          }),
+        });
+        emailed = sg.ok;
+      }
+    } catch (err) { console.error('team/manage reset: email failed', (err as Error).message); }
+    return NextResponse.json({ ok: true, emailed });
   }
 
   if (action === 'resend' || action === 'cancel') {

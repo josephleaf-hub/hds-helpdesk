@@ -41,7 +41,10 @@ export function UserMenu({ label, variant = 'admin', manager = false, redirectTo
         </div>
       )}
       {rect && <FloatingMenu rect={rect} minWidth={150} align="right" onClose={() => setRect(null)}
-        items={[{ label: 'Sign out', color: '#C0392B', onClick: signOut }]} />}
+        items={[
+          ...(variant === 'admin' ? [{ label: 'Change password', onClick: () => { window.location.href = '/set-password?change=1'; } }] : []),
+          { label: 'Sign out', color: '#C0392B', onClick: signOut },
+        ]} />}
     </>
   );
 }

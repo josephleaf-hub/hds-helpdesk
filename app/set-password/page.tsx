@@ -14,6 +14,9 @@ export default function SetPasswordPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  // Logged-in "change password" vs invite/reset acceptance.
+  const [isChange, setIsChange] = useState(false);
+  useEffect(() => { setIsChange(new URLSearchParams(window.location.search).get('change') === '1'); }, []);
 
   useEffect(() => {
     let settled = false;
@@ -50,8 +53,8 @@ export default function SetPasswordPage() {
       <div className="login-wrap">
         <div className="login-header">
           <img src="https://cdn.prod.website-files.com/69d48f8e8f01871806e7f5c4/69dc2749d52c90cf97e32309_Secondary-positive.png" alt="HDS" className="login-logo" />
-          <div className="login-title">Set your password</div>
-          <div className="login-sub">Finish setting up your HDS IT Helpdesk account</div>
+          <div className="login-title">{isChange ? 'Change your password' : 'Set your password'}</div>
+          <div className="login-sub">{isChange ? 'Choose a new password for your account' : 'Finish setting up your HDS IT Helpdesk account'}</div>
         </div>
 
         <div className="login-card">
@@ -72,11 +75,11 @@ export default function SetPasswordPage() {
                 <label className="form-label">Confirm password</label>
                 <input className="input" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" onKeyDown={onKey} />
               </div>
-              <button className="btn-primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Set password & sign in →'}</button>
+              <button className="btn-primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : (isChange ? 'Save new password →' : 'Set password & sign in →')}</button>
             </>
           )}
 
-          {done && <div className="loading-text" style={{ textAlign: 'center', padding: 12, color: '#2E7D52' }}>Password set. Signing you in…</div>}
+          {done && <div className="loading-text" style={{ textAlign: 'center', padding: 12, color: '#2E7D52' }}>{isChange ? 'Password changed. Taking you back…' : 'Password set. Signing you in…'}</div>}
         </div>
 
         <div className="login-footer"><a href="/login">← Staff login</a></div>
