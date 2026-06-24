@@ -212,6 +212,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const [success, setSuccess] = useState<{ html: string } | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [dept, setDept] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
@@ -246,7 +247,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
       if (submitFile) image = await compressImageToBase64(submitFile);
       const res = await fetch('/api/submit-ticket', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, subType, priority, subject: subject.trim(), description: desc.trim(), requesterName: name.trim(), requesterEmail: finalEmail, department: dept, location, affectedUser: affected.trim(), image }),
+        body: JSON.stringify({ category, subType, priority, subject: subject.trim(), description: desc.trim(), requesterName: name.trim(), requesterEmail: finalEmail, requesterPhone: phone.trim(), department: dept, location, affectedUser: affected.trim(), image }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Submission failed');
@@ -398,7 +399,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                 </div>
               ) : (
                 <SubmitForm
-                  {...{ authed, name, setName, email: authed ? (user?.email || '') : email, setEmail, dept, setDept, location, setLocation,
+                  {...{ authed, name, setName, email: authed ? (user?.email || '') : email, setEmail, phone, setPhone, dept, setDept, location, setLocation,
                     category, setCategory, subType, setSubType, priority, setPriority, affected, setAffected, subject, setSubject,
                     desc, setDesc, submitFile, setSubmitFile, emailErr, submitBusy, submitTicket }}
                 />
@@ -486,7 +487,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
 
 // ── Submit form (extracted for readability) ──
 type SubmitProps = {
-  authed: boolean; name: string; setName: (v: string) => void; email: string; setEmail: (v: string) => void;
+  authed: boolean; name: string; setName: (v: string) => void; email: string; setEmail: (v: string) => void; phone: string; setPhone: (v: string) => void;
   dept: string; setDept: (v: string) => void; location: string; setLocation: (v: string) => void;
   category: string; setCategory: (v: string) => void; subType: string; setSubType: (v: string) => void;
   priority: string; setPriority: (v: string) => void; affected: string; setAffected: (v: string) => void;
@@ -513,6 +514,11 @@ function SubmitForm(p: SubmitProps) {
             <input className="input" type="email" value={p.email} readOnly={p.authed} onChange={(e) => p.setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="email" style={p.authed ? { background: '#EEF0F3', color: '#6B7280', cursor: 'not-allowed' } : undefined} />
             {p.emailErr && <div className="form-error" style={{ display: 'block' }}>{p.emailErr}</div>}
             <div className="form-hint">{p.authed ? 'Signed in — replies go to this address.' : 'Use your HDS work email (@homedelivery.com.au or @hdsau.com).'}</div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Mobile number <span style={{ color: '#8A97A8', fontWeight: 500 }}>(optional)</span></label>
+            <input className="input" type="tel" value={p.phone} onChange={(e) => p.setPhone(e.target.value)} placeholder="e.g. 0400 000 000" autoComplete="tel" />
+            <div className="form-hint">So IT can call you about this ticket if needed.</div>
           </div>
           <div className="form-group"><label className="form-label">Department <span className="req">*</span></label>
             <select className="input" value={p.dept} onChange={(e) => p.setDept(e.target.value)}><option value="">Select department…</option>{DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}</select>

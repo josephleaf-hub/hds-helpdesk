@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const {
     category, subType, priority, subject, description,
-    requesterName, requesterEmail, department, location, affectedUser, image,
+    requesterName, requesterEmail, requesterPhone, department, location, affectedUser, image,
   } = body as Record<string, string> & { image?: { dataBase64?: string; mimeType?: string; fileName?: string } };
 
   if (!category || !subType || !priority || !subject || !description || !requesterName || !requesterEmail || !department) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   const { error: insertError } = await supabase.from('tickets').insert([{
     id: ticketId, category, sub_type: subType, priority, subject, description,
-    requester_name: requesterName, requester_email: emailNorm, department,
+    requester_name: requesterName, requester_email: emailNorm, requester_phone: (requesterPhone || '').trim() || null, department,
     location: location || null, affected_user: affectedUser || null, status: 'new',
   }]);
   if (insertError) {

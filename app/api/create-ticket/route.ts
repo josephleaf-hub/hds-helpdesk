@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   let body: Record<string, string | boolean | undefined>;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const { requesterName, requesterEmail, department, location, affectedUser, subject, category, subType, priority, description, status, assignedTo, notify, sourceThread } = body as Record<string, string> & { notify?: boolean };
+  const { requesterName, requesterEmail, requesterPhone, department, location, affectedUser, subject, category, subType, priority, description, status, assignedTo, notify, sourceThread } = body as Record<string, string> & { notify?: boolean };
 
   if (!subject || !String(subject).trim()) return NextResponse.json({ error: 'Subject is required' }, { status: 400 });
   if (!requesterName || !String(requesterName).trim()) return NextResponse.json({ error: 'Requester name is required' }, { status: 400 });
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const row: Record<string, unknown> = {
     id: ticketId, category, sub_type: String(subType || '').trim(), priority: priority || 'medium',
     subject: String(subject).trim(), description: String(description || '').trim(),
-    requester_name: String(requesterName).trim(), requester_email: emailNorm,
+    requester_name: String(requesterName).trim(), requester_email: emailNorm, requester_phone: String(requesterPhone || '').trim() || null,
     department: String(department || '').trim(), location: location || null, affected_user: affectedUser || null,
     status: finalStatus, assigned_to: assignedTo || null,
   };

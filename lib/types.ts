@@ -21,6 +21,7 @@ export interface Ticket {
   description: string;
   requester_name: string;
   requester_email: string;
+  requester_phone?: string | null;
   department: string;
   location: string | null;
   affected_user: string | null;

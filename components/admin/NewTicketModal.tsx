@@ -20,6 +20,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
   // on behalf of someone else. Prefills + locks the requester fields so the email
   // reliably matches the admin's own address (findable in the "My tickets" view).
   const [forMe, setForMe] = useState(false);
+  const [phone, setPhone] = useState('');
   const [dept, setDept] = useState('');
   const [location, setLocation] = useState('');
   const [affected, setAffected] = useState('');
@@ -76,7 +77,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
       const filled = new Set<string>();
       const apply = (key: string, val: string, fn: (v: string) => void) => { if (val && val.trim()) { fn(val.trim()); filled.add(key); } };
       apply('subject', d.subject, setSubject);
-      if (!forMe) { apply('name', d.requester_name, setName); apply('email', d.requester_email, setEmail); }
+      if (!forMe) { apply('name', d.requester_name, setName); apply('email', d.requester_email, setEmail); apply('phone', d.requester_phone, setPhone); }
       apply('dept', d.department, setDept);
       apply('location', d.location, setLocation);
       apply('affected', d.affected_user, setAffected);
@@ -125,7 +126,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           subject: subject.trim(), requesterName: name.trim(), requesterEmail: e, category, subType,
-          department: dept, location, affectedUser: affected.trim(), priority, description: desc.trim(), status, assignedTo: assign, notify,
+          requesterPhone: phone.trim(), department: dept, location, affectedUser: affected.trim(), priority, description: desc.trim(), status, assignedTo: assign, notify,
           // Keep the pasted thread (if any) as the ticket's first internal note.
           sourceThread: thread.trim() || undefined,
         }),
@@ -206,6 +207,10 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
               <label className="nt-label">Email <span className="req">*</span></label>
               <input className={'nt-input' + hl('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="off" disabled={forMe} style={forMe ? { background: '#EEF0F3', color: '#6B7280', cursor: 'not-allowed' } : undefined} />
               <div className="nt-hint">{forMe ? 'Locked to your account while “This is for me” is on.' : 'Use the requester’s HDS work email (@homedelivery.com.au or @hdsau.com).'}</div>
+            </div>
+            <div className="nt-field">
+              <label className="nt-label">Mobile number <span style={{ color: '#9CA3AF', fontWeight: 500 }}>(optional)</span></label>
+              <input className={'nt-input' + hl('phone')} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 0400 000 000" autoComplete="off" />
             </div>
             <div className="nt-row-2">
               <div className="nt-field">

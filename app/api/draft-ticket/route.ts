@@ -32,10 +32,11 @@ function buildSystemPrompt(mode: 'email' | 'describe'): string {
   return `You are an IT-helpdesk assistant. ${intro}
 
 Return ONLY a single JSON object — no prose, no explanation, no markdown code fences. The object must have exactly these keys:
-  subject, requester_name, requester_email, department, location, affected_user, category, sub_type, priority, description
+  subject, requester_name, requester_email, requester_phone, department, location, affected_user, category, sub_type, priority, description
 
 Rules:
 ${requesterRule}
+- requester_phone: the requester's contact mobile/phone if one is clearly given (signature or stated); otherwise "". Never invent a number.
 - affected_user: only fill if the request is clearly on behalf of someone other than the requester; otherwise "".
 - description: a clean, concise summary of the actual issue or request in plain prose${mode === 'email' ? ' — NOT the raw thread' : ''}. Capture any stated urgency or deadline.
 - subject: a short one-line summary.
@@ -51,7 +52,7 @@ ${subs}
 }
 
 type Draft = {
-  subject: string; requester_name: string; requester_email: string; department: string; location: string;
+  subject: string; requester_name: string; requester_email: string; requester_phone: string; department: string; location: string;
   affected_user: string; category: string; sub_type: string; priority: string; description: string;
 };
 
@@ -65,7 +66,7 @@ function sanitize(raw: Record<string, unknown>): Draft {
   const location = LOCATIONS.includes(str(raw.location)) ? str(raw.location) : '';
   return {
     subject: str(raw.subject), requester_name: str(raw.requester_name),
-    requester_email: str(raw.requester_email), department, location, affected_user: str(raw.affected_user),
+    requester_email: str(raw.requester_email), requester_phone: str(raw.requester_phone), department, location, affected_user: str(raw.affected_user),
     category, sub_type: subType, priority, description: str(raw.description),
   };
 }

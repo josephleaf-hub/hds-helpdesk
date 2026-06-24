@@ -494,7 +494,7 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
             </div>
           ) : null}
           <hr className="divider-line" />
-          <div className="field"><div className="field-label">Requester</div><div className="field-val">{ticket.requester_name}</div><div className="field-sub">{ticket.requester_email}</div></div>
+          <div className="field"><div className="field-label">Requester</div><div className="field-val">{ticket.requester_name}</div><div className="field-sub">{ticket.requester_email}</div>{ticket.requester_phone && <div className="field-sub"><a href={`tel:${ticket.requester_phone.replace(/\s+/g, '')}`} style={{ color: 'var(--blue)', textDecoration: 'none' }}>{ticket.requester_phone}</a></div>}</div>
           <div className="field"><div className="field-label">Department / Location</div><div className="field-val">{ticket.department}{ticket.location ? ' · ' + ticket.location : ''}</div></div>
           {ticket.affected_user && <div className="field"><div className="field-label">Affected user</div><div className="field-val">{ticket.affected_user}</div></div>}
           <div className="field"><div className="field-label">Submitted</div><div className="field-val">{fmtDate(ticket.created_at)}</div></div>
@@ -537,6 +537,7 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
                   <div className="field-label">Requester</div>
                   <div className="field-val">{ticket.requester_name}</div>
                   <div className="field-sub">{ticket.requester_email}</div>
+                  {ticket.requester_phone && <div className="field-sub"><a href={`tel:${ticket.requester_phone.replace(/\s+/g, '')}`} style={{ color: 'var(--blue)', textDecoration: 'none' }}>{ticket.requester_phone}</a></div>}
                 </div>
                 <div className="field">
                   <div className="field-label">Department / Location</div>
