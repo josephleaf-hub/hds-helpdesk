@@ -11,11 +11,15 @@ const NOTIFY_ON = 'Requester gets a secure link to view and reply in the portal.
 const NOTIFY_OFF = 'No email sent — logged internally only. Use this for issues you’ve already handled or are tracking yourself.';
 const NT_STATUS: [string, string][] = [['new', 'New'], ['in-progress', 'In Progress'], ['on-hold', 'On Hold'], ['resolved', 'Resolved']];
 
-export function NewTicketModal({ users, onClose, onReload }: { users: AssignableUser[]; onClose: () => void; onReload: () => Promise<void> }) {
+export function NewTicketModal({ users, me, onClose, onReload }: { users: AssignableUser[]; me: { name: string; email: string }; onClose: () => void; onReload: () => Promise<void> }) {
   const toast = useToast();
   const [subject, setSubject] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  // "This is for me" — raise the ticket as the signed-in staff member rather than
+  // on behalf of someone else. Prefills + locks the requester fields so the email
+  // reliably matches the admin's own address (findable in the "My tickets" view).
+  const [forMe, setForMe] = useState(false);
   const [dept, setDept] = useState('');
   const [affected, setAffected] = useState('');
   const [desc, setDesc] = useState('');
@@ -39,6 +43,18 @@ export function NewTicketModal({ users, onClose, onReload }: { users: Assignable
   const hl = (k: string) => (highlight.has(k) ? ' nt-filled' : '');
 
   function pickCategory(c: string) { setCategory(c); setSubType(''); }
+
+  // Toggle "this is for me": ON prefills + locks the requester to the signed-in
+  // user and defaults notify OFF (no point emailing yourself a portal link).
+  // OFF restores the empty "raise on behalf of" defaults.
+  function toggleForMe() {
+    setForMe(v => {
+      const next = !v;
+      if (next) { setName(me.name || ''); setEmail(me.email || ''); setNotify(false); }
+      else { setName(''); setEmail(''); setNotify(true); }
+      return next;
+    });
+  }
 
   async function draft() {
     const t = thread.trim();
@@ -171,14 +187,21 @@ export function NewTicketModal({ users, onClose, onReload }: { users: Assignable
 
           <div className="nt-group">
             <div className="nt-group-label">Requester</div>
+            <div className="nt-notify" style={{ marginBottom: 12 }}>
+              <div className="nt-notify-head">
+                <span className="nt-notify-label">This is for me</span>
+                <button type="button" className={`nt-toggle${forMe ? ' on' : ''}`} onClick={toggleForMe} aria-label="Toggle this is for me" />
+              </div>
+              <div className="nt-notify-help">{forMe ? 'Raising this ticket as yourself — requester set to your account. It’ll show under “My tickets”.' : 'Off — raising on behalf of someone else. Turn on to log a ticket for yourself.'}</div>
+            </div>
             <div className="nt-field">
               <label className="nt-label">Name <span className="req">*</span></label>
-              <input className={'nt-input' + hl('name')} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jase Paul" autoComplete="off" />
+              <input className={'nt-input' + hl('name')} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jase Paul" autoComplete="off" disabled={forMe} style={forMe ? { background: '#EEF0F3', color: '#6B7280', cursor: 'not-allowed' } : undefined} />
             </div>
             <div className="nt-field">
               <label className="nt-label">Email <span className="req">*</span></label>
-              <input className={'nt-input' + hl('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="off" />
-              <div className="nt-hint">Use the requester&apos;s HDS work email (@homedelivery.com.au or @hdsau.com).</div>
+              <input className={'nt-input' + hl('email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@homedelivery.com.au" autoComplete="off" disabled={forMe} style={forMe ? { background: '#EEF0F3', color: '#6B7280', cursor: 'not-allowed' } : undefined} />
+              <div className="nt-hint">{forMe ? 'Locked to your account while “This is for me” is on.' : 'Use the requester’s HDS work email (@homedelivery.com.au or @hdsau.com).'}</div>
             </div>
             <div className="nt-row-2">
               <div className="nt-field">

@@ -57,6 +57,7 @@ export default function AdminPage() {
   const [fPri, setFPri] = useState('');
   const [fAssign, setFAssign] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [scope, setScope] = useState<'all' | 'mine'>('all');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -150,10 +151,21 @@ export default function AdminPage() {
     }
   }
 
+  // ── Scope: "All Tickets" vs "My tickets" ──
+  // For an admin, RLS returns the full superset, so "mine" MUST be an explicit
+  // app-level filter on requester_email (RLS will not scope it). Compared
+  // case-insensitively — stored emails are normalised lower-case, the requester
+  // policy uses lower(), and a signed-in email could theoretically be mixed-case.
+  const myEmail = (user?.email || '').toLowerCase();
+  const scoped = useMemo(
+    () => scope === 'mine' ? allTickets.filter(t => (t.requester_email || '').toLowerCase() === myEmail) : allTickets,
+    [allTickets, scope, myEmail],
+  );
+
   // ── Filter + sort ──
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
-    return allTickets.filter(t => {
+    return scoped.filter(t => {
       if (t.deleted_at && !showArchived) return false;
       if (s && !`${t.id} ${t.subject} ${t.requester_name} ${t.department} ${t.sub_type}`.toLowerCase().includes(s)) return false;
       if (fStatus && t.status !== fStatus) return false;
@@ -173,11 +185,11 @@ export default function AdminPage() {
       // reshuffles by status/priority — click a column header to re-sort.
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
-  }, [allTickets, search, fStatus, fCat, fPri, fAssign, showArchived, sortKey, sortDir]);
+  }, [scoped, search, fStatus, fCat, fPri, fAssign, showArchived, sortKey, sortDir]);
 
-  // ── KPIs (archived never count) ──
+  // ── KPIs (archived never count) — reflect the active scope ──
   const kpi = useMemo(() => {
-    const A = allTickets.filter(t => !t.deleted_at);
+    const A = scoped.filter(t => !t.deleted_at);
     return {
       newCount: A.filter(t => t.status === 'new').length,
       prog: A.filter(t => t.status === 'in-progress').length,
@@ -185,7 +197,7 @@ export default function AdminPage() {
       hiUrg: A.filter(t => ['urgent', 'high'].includes(t.priority) && ['new', 'in-progress'].includes(t.status)).length,
       done: A.filter(t => ['resolved', 'closed'].includes(t.status)).length,
     };
-  }, [allTickets]);
+  }, [scoped]);
 
   const isAdmin = user?.role === 'admin';
   const activeTicket = activeId ? allTickets.find(t => t.id === activeId) || null : null;
@@ -246,11 +258,14 @@ export default function AdminPage() {
 
         <div className="tab-bar-wrap">
           <div className="tab-bar">
-            <span className="tab-btn active">
+            <button className={`tab-btn${scope === 'all' ? ' active' : ''}`} onClick={() => setScope('all')}>
               {isAdmin
                 ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 11v2" /><path d="M13 17v2" /></svg> All Tickets</>
                 : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg> My Team&apos;s Tickets</>}
-            </span>
+            </button>
+            <button className={`tab-btn${scope === 'mine' ? ' active' : ''}`} onClick={() => setScope('mine')}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg> My tickets
+            </button>
             <a className="tab-btn" href="/admin/guides" style={{ textDecoration: 'none' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg> Guides</a>
             {isAdmin && <a className="tab-btn" href="/admin/analytics" style={{ textDecoration: 'none' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></svg> Analytics</a>}
             {isAdmin && <a className="tab-btn" href="/admin/team" style={{ textDecoration: 'none' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -3, flexShrink: 0, marginRight: 7 }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg> Team</a>}
@@ -294,10 +309,14 @@ export default function AdminPage() {
                 <span className="arch-track"><span className="arch-thumb" /></span>
               </label>
             )}
-            <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              {exporting ? 'Exporting…' : 'Export CSV'}
-            </button>
+            {/* Export re-runs filters server-side against the full set; it has no
+                "mine" scope, so hide it in My tickets to avoid exporting more than shown. */}
+            {scope !== 'mine' && (
+              <button className="btn-secondary" onClick={exportCsv} disabled={exporting} style={{ fontSize: 12 }} title="Download the filtered tickets as CSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                {exporting ? 'Exporting…' : 'Export CSV'}
+              </button>
+            )}
           </div>
 
           <AwayBar />
@@ -318,7 +337,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {!filtered.length ? (
-                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>No tickets match your filters.</td></tr>
+                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>{scope === 'mine' && scoped.length === 0 ? 'You haven’t raised any tickets yet. Use "New ticket" with "This is for me" turned on to log one.' : 'No tickets match your filters.'}</td></tr>
                   ) : filtered.map(t => {
                     const archived = !!t.deleted_at;
                     return (
@@ -370,7 +389,7 @@ export default function AdminPage() {
       })()}
 
       {activeTicket && user && <EditModal ticket={activeTicket} user={user} users={users} onClose={() => setActiveId(null)} onReload={() => loadTickets(true)} patchTicket={patchTicket} />}
-      {newOpen && <NewTicketModal users={users} onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}
+      {newOpen && user && <NewTicketModal users={users} me={{ name: user.full_name, email: user.email }} onClose={() => setNewOpen(false)} onReload={() => loadTickets(true)} />}
     </RealtimeAlertsProvider>
   );
 }

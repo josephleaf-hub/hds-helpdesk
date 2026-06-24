@@ -161,7 +161,7 @@ export default function TeamPage() {
                       </td>
                       <td className="tm-dept">{u.status === 'invited' ? '—' : (u.last_active ? fmtRelative(u.last_active) : 'Never')}</td>
                       <td className="tm-actions">
-                        {isSelf ? <span className="tm-link muted">You</span> : !isOwner ? null : busyId === u.user_id ? <span className="tm-link muted">…</span> : (
+                        {isSelf ? (<><span className="tm-link muted">You</span><a className="tm-link" href="/set-password?change=1">Change password</a></>) : !isOwner ? null : busyId === u.user_id ? <span className="tm-link muted">…</span> : (
                           u.status === 'invited' ? (<>
                             <button className="tm-link" onClick={() => act(u, 'resend')}>Resend invite</button>
                             <button className="tm-link muted" onClick={() => act(u, 'cancel', { title: `Cancel ${u.full_name}'s invite?`, body: 'This removes the pending invite. They will not be able to use the old link.', confirmLabel: 'Cancel invite', tone: 'danger' })}>Cancel</button>
