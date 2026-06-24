@@ -35,7 +35,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
   const fileRef = useRef<HTMLInputElement>(null);
 
   // AI assist — paste an email thread OR describe the ticket in plain words.
-  const [draftMode, setDraftMode] = useState<'email' | 'describe'>('email');
+  const [draftMode, setDraftMode] = useState<'email' | 'describe'>('describe');
   const [thread, setThread] = useState('');
   const [drafting, setDrafting] = useState(false);
   const [draftError, setDraftError] = useState('');
@@ -161,8 +161,8 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
           {/* AI assist — paste an email thread OR describe it; AI drafts the fields (never creates) */}
           <div className="nt-draft">
             <div className="nt-draft-tabs">
-              <button type="button" className={`nt-draft-tab${draftMode === 'email' ? ' active' : ''}`} onClick={() => setDraftMode('email')}>Paste email thread</button>
               <button type="button" className={`nt-draft-tab${draftMode === 'describe' ? ' active' : ''}`} onClick={() => setDraftMode('describe')}>Describe it</button>
+              <button type="button" className={`nt-draft-tab${draftMode === 'email' ? ' active' : ''}`} onClick={() => setDraftMode('email')}>Paste email thread</button>
             </div>
             <textarea className="nt-input" value={thread} onChange={(e) => setThread(e.target.value)} placeholder={draftMode === 'email'
               ? 'Paste the full email thread here, then Draft. The fields below fill in as editable suggestions.'
