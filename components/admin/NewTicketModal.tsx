@@ -192,7 +192,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
                 <span className="nt-notify-label">This is for me</span>
                 <button type="button" className={`nt-toggle${forMe ? ' on' : ''}`} onClick={toggleForMe} aria-label="Toggle this is for me" />
               </div>
-              <div className="nt-notify-help">{forMe ? 'Raising this ticket as yourself — requester set to your account. It’ll show under “My tickets”.' : 'Off — raising on behalf of someone else. Turn on to log a ticket for yourself.'}</div>
+              <div className="nt-notify-help">{forMe ? 'Raising this ticket as yourself. Requester is set to your account, and it’ll show under “My tickets”.' : 'Off. Raising on behalf of someone else. Turn it on to log a ticket for yourself.'}</div>
             </div>
             <div className="nt-field">
               <label className="nt-label">Name <span className="req">*</span></label>

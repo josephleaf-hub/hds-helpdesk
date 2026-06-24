@@ -119,10 +119,11 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [replyBusy, setReplyBusy] = useState(false);
   const [resolveBusy, setResolveBusy] = useState(false);
+  const [reopening, setReopening] = useState(false);   // requester chose to reopen a resolved ticket
 
   async function openTicket(id: string) {
     setView('detail'); setDetailError(''); setActiveTicket(null); setDetailPane('chat');
-    setReplyText(''); setReplyFiles([]);
+    setReplyText(''); setReplyFiles([]); setReopening(false);
     window.history.replaceState(null, '', '/t/' + id);
     try {
       const { data: ticket, error } = await sb.from('tickets').select('*').eq('id', id).maybeSingle();
@@ -449,11 +450,15 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                             <Conversation notes={notes} reqFirst={reqFirst} attMap={attMap} maskStaff bubbles />
                           </div>
                         </div>
-                        {isClosed ? (
-                          <div className="resolved-notice">This ticket is {(STATUS_LABEL[t.status] || t.status).toLowerCase()}. If your issue isn&apos;t fixed, please submit a new ticket.</div>
+                        {isClosed && !reopening ? (
+                          <div className="resolved-notice">
+                            <div>This ticket is {(STATUS_LABEL[t.status] || t.status).toLowerCase()}. If your issue isn&apos;t fully fixed, you can reopen it.</div>
+                            <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => setReopening(true)}>Reopen ticket</button>
+                          </div>
                         ) : (
                           <div className="portal-composer">
-                            <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (!replyBusy) sendPortalReply(); } }} placeholder="Type your reply to the IT team…" />
+                            {isClosed && <div className="reopen-hint">This ticket is {(STATUS_LABEL[t.status] || t.status).toLowerCase()}. Sending a reply reopens it for the IT team.</div>}
+                            <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (!replyBusy) sendPortalReply(); } }} placeholder={isClosed ? 'Tell the IT team what still needs fixing…' : 'Type your reply to the IT team…'} />
                             {replyFiles.length > 0 && <div className="attach-preview">{replyFiles.map((f, i) => <span key={i} className="attach-chip"><span>{f.name}</span><button type="button" onClick={() => setReplyFiles(replyFiles.filter((_, j) => j !== i))} aria-label="Remove">×</button></span>)}</div>}
                             <div className="composer-actions">
                               <label className="btn-ghost attach-btn" style={{ cursor: 'pointer' }}>
@@ -462,7 +467,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                               </label>
                               <span style={{ flex: 1 }} />
                               {t.status === 'waiting-on-requester' && <button className="btn-secondary" disabled={resolveBusy} onClick={markResolved}>{resolveBusy ? 'Resolving…' : 'Mark as resolved'}</button>}
-                              <button className="btn-primary" disabled={replyBusy} onClick={sendPortalReply}>{replyBusy ? 'Sending…' : 'Send reply'}</button>
+                              <button className="btn-primary" disabled={replyBusy} onClick={sendPortalReply}>{replyBusy ? 'Sending…' : (isClosed ? 'Reopen & send' : 'Send reply')}</button>
                             </div>
                           </div>
                         )}
