@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
-import { CAT_LABEL, STATUS_ORDER, PRI_ORDER } from '@/lib/constants';
+import { CAT_LABEL, STATUS_ORDER, PRI_ORDER, LOCATIONS } from '@/lib/constants';
 import { fmtDate, fmtShort } from '@/lib/format';
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { FloatingMenu } from '@/components/admin/FloatingMenu';
@@ -31,11 +31,11 @@ const SORT_KEYS: Record<string, (t: Ticket) => string | number> = {
 };
 const SORT_DEFAULT_DESC = new Set(['submitted', 'active']);
 const COLS: { key?: string; label: string; width: string; photo?: boolean }[] = [
-  { key: 'id', label: 'Ticket ID', width: '7%' }, { key: 'subject', label: 'Subject', width: 'auto' },
-  { key: 'category', label: 'Category', width: '8%' }, { key: 'requester', label: 'Requester', width: '9%' },
-  { key: 'department', label: 'Department', width: '7%' }, { key: 'priority', label: 'Priority', width: '8%' },
-  { key: 'status', label: 'Status', width: '12%' }, { key: 'submitted', label: 'Submitted', width: '8%' },
-  { key: 'active', label: 'Last Active', width: '10%' }, { label: 'Assignee', width: '9%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
+  { key: 'id', label: 'Ticket ID', width: '6%' }, { key: 'subject', label: 'Subject', width: 'auto' },
+  { key: 'category', label: 'Category', width: '8%' }, { key: 'requester', label: 'Requester', width: '8%' },
+  { key: 'department', label: 'Department', width: '7%' }, { label: 'Location', width: '9%' }, { key: 'priority', label: 'Priority', width: '7%' },
+  { key: 'status', label: 'Status', width: '11%' }, { key: 'submitted', label: 'Submitted', width: '7%' },
+  { key: 'active', label: 'Last Active', width: '9%' }, { label: 'Assignee', width: '8%' }, { label: '', width: '4%', photo: true }, { label: '', width: '4%' },
 ];
 
 // Total attachments on a ticket, from the list query's ticket_attachments(count).
@@ -56,6 +56,7 @@ export default function AdminPage() {
   const [fCat, setFCat] = useState('');
   const [fPri, setFPri] = useState('');
   const [fAssign, setFAssign] = useState('');
+  const [fLoc, setFLoc] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [scope, setScope] = useState<'all' | 'mine'>('all');
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -116,7 +117,7 @@ export default function AdminPage() {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir(SORT_DEFAULT_DESC.has(key) ? 'desc' : 'asc'); }
   }
-  function clearFilters() { setSearch(''); setFStatus(''); setFCat(''); setFPri(''); setFAssign(''); setShowArchived(false); }
+  function clearFilters() { setSearch(''); setFStatus(''); setFCat(''); setFPri(''); setFAssign(''); setFLoc(''); setShowArchived(false); }
   const nameMap = useMemo(() => userNameMap(users), [users]);
 
   // Export the current filtered view to CSV (server re-runs the same filters).
@@ -130,7 +131,7 @@ export default function AdminPage() {
       const res = await fetch('/api/export-tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ search, status: fStatus, category: fCat, priority: fPri, assignee: fAssign, showArchived }),
+        body: JSON.stringify({ search, status: fStatus, category: fCat, priority: fPri, assignee: fAssign, location: fLoc, showArchived }),
       });
       if (res.headers.get('content-type')?.includes('application/json')) {
         const j = await res.json().catch(() => ({}));
@@ -173,6 +174,7 @@ export default function AdminPage() {
       if (fPri && t.priority !== fPri) return false;
       if (fAssign === '__unassigned__' && t.assigned_to) return false;
       if (fAssign && fAssign !== '__unassigned__' && t.assigned_to !== fAssign) return false;
+      if (fLoc && t.location !== fLoc) return false;
       return true;
     }).sort((a, b) => {
       if (sortKey && SORT_KEYS[sortKey]) {
@@ -185,7 +187,7 @@ export default function AdminPage() {
       // reshuffles by status/priority — click a column header to re-sort.
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
-  }, [scoped, search, fStatus, fCat, fPri, fAssign, showArchived, sortKey, sortDir]);
+  }, [scoped, search, fStatus, fCat, fPri, fAssign, fLoc, showArchived, sortKey, sortDir]);
 
   // ── KPIs (archived never count) — reflect the active scope ──
   const kpi = useMemo(() => {
@@ -301,6 +303,9 @@ export default function AdminPage() {
             <select className="input" value={fAssign} onChange={(e) => setFAssign(e.target.value)} style={{ width: 150 }}>
               <option value="">All Assignees</option><option value="__unassigned__">Unassigned</option>{users.map(u => <option key={u.user_id} value={u.user_id}>{u.full_name}</option>)}
             </select>
+            <select className="input" value={fLoc} onChange={(e) => setFLoc(e.target.value)} style={{ width: 170 }}>
+              <option value="">All Locations</option>{LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
             <button className="btn-ghost" onClick={clearFilters} style={{ fontSize: 12 }}>Clear</button>
             {isAdmin && (
               <label className="arch-toggle">
@@ -337,7 +342,7 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {!filtered.length ? (
-                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>{scope === 'mine' && scoped.length === 0 ? 'You haven’t raised any tickets yet. Use "New ticket" with "This is for me" turned on to log one.' : 'No tickets match your filters.'}</td></tr>
+                    <tr><td colSpan={13} style={{ textAlign: 'center', padding: 40, color: '#6B7280' }}>{scope === 'mine' && scoped.length === 0 ? 'You haven’t raised any tickets yet. Use "New ticket" with "This is for me" turned on to log one.' : 'No tickets match your filters.'}</td></tr>
                   ) : filtered.map(t => {
                     const archived = !!t.deleted_at;
                     return (
@@ -347,6 +352,7 @@ export default function AdminPage() {
                         <td>{CAT_LABEL[t.category] || t.category}</td>
                         <td>{t.requester_name}</td>
                         <td>{t.department}</td>
+                        <td>{t.location || <span style={{ color: '#9CA3AF', fontStyle: 'italic' }}>—</span>}</td>
                         <td className="cell-badge"><PriBadge priority={t.priority} /></td>
                         <td className="cell-badge"><StatusBadge status={t.status} /></td>
                         <td>{fmtShort(t.created_at)}</td>

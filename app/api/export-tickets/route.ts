@@ -15,6 +15,7 @@ type Filters = {
   category?: string;
   priority?: string;
   assignee?: string;        // '' | '__unassigned__' | a name
+  location?: string;
   showArchived?: boolean;
   createdFrom?: string;     // optional ISO date range (not in the UI today, honoured if sent)
   createdTo?: string;
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
   if (f.priority) q = q.eq('priority', f.priority);
   if (f.assignee === '__unassigned__') q = q.is('assigned_to', null);
   else if (f.assignee) q = q.eq('assigned_to', f.assignee);
+  if (f.location) q = q.eq('location', f.location);
   if (f.createdFrom) q = q.gte('created_at', f.createdFrom);
   if (f.createdTo) q = q.lte('created_at', f.createdTo);
 

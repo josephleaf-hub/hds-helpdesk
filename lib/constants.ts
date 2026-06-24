@@ -22,6 +22,24 @@ export const DEPARTMENTS = [
   'HR & People', 'Leadership', 'Marketing', 'Warehouse', 'Driver / Field',
 ];
 
+export const LOCATIONS = [
+  'HQ - VIC, Toorak',
+  'DC - VIC, Clayton South',
+  'DC - VIC, Dandenong South',
+  'DC - VIC, Ravenhall',
+  'DC - NSW, Wetherill Park',
+  'DC - NSW, Tamworth',
+  'DC - NSW, Eastern Creek',
+  'DC - QLD, Morningside Bldg 7',
+  'DC - QLD, Morningside Bldg 12',
+  'DC - QLD, Acacia Ridge',
+  'DC - WA, Jandakot',
+  'DC - SA, Dry Creek',
+  'DC - TAS, Hobart',
+  'DC - ACT, Canberra',
+  'Remote',
+];
+
 export const SUB_TYPES: Record<string, string[]> = {
   access:   ['New System Access', 'Modify Existing Access', 'VPN / Remote Access', 'Application License', 'Remove / Revoke Access'],
   hardware: ['New Laptop', 'Laptop Replacement', 'Monitor / Peripheral', 'Mobile Device', 'Headset / Audio', 'Other Hardware'],

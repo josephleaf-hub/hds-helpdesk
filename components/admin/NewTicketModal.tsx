@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { sb } from '@/lib/supabase';
-import { CAT_LABEL, PRI_LABEL, DEPARTMENTS, SUB_TYPES, ALLOWED_DOMAINS } from '@/lib/constants';
+import { CAT_LABEL, PRI_LABEL, DEPARTMENTS, LOCATIONS, SUB_TYPES, ALLOWED_DOMAINS } from '@/lib/constants';
 import type { AssignableUser } from '@/lib/users';
 import { uploadImages } from '@/lib/attachments';
 import { useToast } from '@/components/Toast';
@@ -21,6 +21,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
   // reliably matches the admin's own address (findable in the "My tickets" view).
   const [forMe, setForMe] = useState(false);
   const [dept, setDept] = useState('');
+  const [location, setLocation] = useState('');
   const [affected, setAffected] = useState('');
   const [desc, setDesc] = useState('');
   const [category, setCategory] = useState('');
@@ -33,7 +34,8 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // "Draft from email" assist
+  // AI assist — paste an email thread OR describe the ticket in plain words.
+  const [draftMode, setDraftMode] = useState<'email' | 'describe'>('email');
   const [thread, setThread] = useState('');
   const [drafting, setDrafting] = useState(false);
   const [draftError, setDraftError] = useState('');
@@ -58,7 +60,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
 
   async function draft() {
     const t = thread.trim();
-    if (!t) { toast('Paste an email thread first.'); return; }
+    if (!t) { toast(draftMode === 'email' ? 'Paste an email thread first.' : 'Describe the ticket first.'); return; }
     setDrafting(true); setDraftError('');
     try {
       const { data: { session } } = await sb.auth.getSession();
@@ -66,7 +68,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
       if (!token) throw new Error('Session expired — please sign in again.');
       const r = await fetch('/api/draft-ticket', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ thread: t }),
+        body: JSON.stringify({ input: t, mode: draftMode }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok || !data.ok) throw new Error(data.error || ('HTTP ' + r.status));
@@ -74,9 +76,9 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
       const filled = new Set<string>();
       const apply = (key: string, val: string, fn: (v: string) => void) => { if (val && val.trim()) { fn(val.trim()); filled.add(key); } };
       apply('subject', d.subject, setSubject);
-      apply('name', d.requester_name, setName);
-      apply('email', d.requester_email, setEmail);
+      if (!forMe) { apply('name', d.requester_name, setName); apply('email', d.requester_email, setEmail); }
       apply('dept', d.department, setDept);
+      apply('location', d.location, setLocation);
       apply('affected', d.affected_user, setAffected);
       apply('desc', d.description, setDesc);
       apply('category', d.category, setCategory);
@@ -123,7 +125,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           subject: subject.trim(), requesterName: name.trim(), requesterEmail: e, category, subType,
-          department: dept, affectedUser: affected.trim(), priority, description: desc.trim(), status, assignedTo: assign, notify,
+          department: dept, location, affectedUser: affected.trim(), priority, description: desc.trim(), status, assignedTo: assign, notify,
           // Keep the pasted thread (if any) as the ticket's first internal note.
           sourceThread: thread.trim() || undefined,
         }),
@@ -156,18 +158,20 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
         </div>
 
         <div className="nt-body">
-          {/* AI assist — paste a thread, Claude drafts the fields (never creates) */}
+          {/* AI assist — paste an email thread OR describe it; AI drafts the fields (never creates) */}
           <div className="nt-draft">
-            <div className="nt-draft-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>
-              Draft from email
+            <div className="nt-draft-tabs">
+              <button type="button" className={`nt-draft-tab${draftMode === 'email' ? ' active' : ''}`} onClick={() => setDraftMode('email')}>Paste email thread</button>
+              <button type="button" className={`nt-draft-tab${draftMode === 'describe' ? ' active' : ''}`} onClick={() => setDraftMode('describe')}>Describe it</button>
             </div>
-            <textarea className="nt-input" value={thread} onChange={(e) => setThread(e.target.value)} placeholder="Paste the full email thread here, then click Draft from email — the fields below fill in as editable suggestions." />
+            <textarea className="nt-input" value={thread} onChange={(e) => setThread(e.target.value)} placeholder={draftMode === 'email'
+              ? 'Paste the full email thread here, then Draft. The fields below fill in as editable suggestions.'
+              : 'Describe the ticket in plain words, e.g. “New laptop for Sam Carter, Clayton South DC, needed by Friday, urgent.” Then Draft.'} />
             <div className="nt-draft-actions">
               <button type="button" className="btn-draft" onClick={draft} disabled={drafting || !thread.trim()}>
                 {drafting
-                  ? 'Reading thread…'
-                  : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg> Draft from email</>}
+                  ? (draftMode === 'email' ? 'Reading thread…' : 'Drafting…')
+                  : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg> {draftMode === 'email' ? 'Draft from email' : 'Draft from description'}</>}
               </button>
               {draftError && <span className="nt-draft-err">{draftError}</span>}
             </div>
@@ -176,7 +180,7 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
           {drafted && (
             <div className="nt-draft-banner">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-              Drafted from the email — review and edit every field before creating. Nothing is saved until you click Create.
+              Drafted by AI — review and edit every field before creating. Nothing is saved until you click Create.
             </div>
           )}
 
@@ -209,9 +213,13 @@ export function NewTicketModal({ users, me, onClose, onReload }: { users: Assign
                 <select className={'nt-input' + hl('dept')} value={dept} onChange={(e) => setDept(e.target.value)}><option value="">—</option>{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</select>
               </div>
               <div className="nt-field">
-                <label className="nt-label">Affected user</label>
-                <input className={'nt-input' + hl('affected')} value={affected} onChange={(e) => setAffected(e.target.value)} placeholder="If different" />
+                <label className="nt-label">Location</label>
+                <select className={'nt-input' + hl('location')} value={location} onChange={(e) => setLocation(e.target.value)}><option value="">—</option>{LOCATIONS.map(l => <option key={l}>{l}</option>)}</select>
               </div>
+            </div>
+            <div className="nt-field">
+              <label className="nt-label">Affected user</label>
+              <input className={'nt-input' + hl('affected')} value={affected} onChange={(e) => setAffected(e.target.value)} placeholder="If different from the requester" />
             </div>
           </div>
 

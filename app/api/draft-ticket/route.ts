@@ -6,7 +6,7 @@
    return a clean error and the UI falls back to a blank form. */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { CAT_LABEL, SUB_TYPES, PRI_LABEL, DEPARTMENTS } from '@/lib/constants';
+import { CAT_LABEL, SUB_TYPES, PRI_LABEL, DEPARTMENTS, LOCATIONS } from '@/lib/constants';
 import { fetchKnowledgeBlock } from '@/lib/orgKnowledge';
 
 export const runtime = 'nodejs';
@@ -17,33 +17,41 @@ const MODEL = 'claude-sonnet-4-6';
 
 // The exact allowed values, sourced from the app's own constants — Claude is
 // constrained to these so it can't invent categories/sub-types/etc.
-function buildSystemPrompt(): string {
+function buildSystemPrompt(mode: 'email' | 'describe'): string {
   const cats = Object.entries(CAT_LABEL).map(([k, l]) => `"${k}" (${l})`).join(', ');
   const subs = Object.entries(SUB_TYPES).map(([cat, list]) => `  - ${cat}: ${list.map(s => `"${s}"`).join(', ')}`).join('\n');
   const pris = Object.keys(PRI_LABEL).map(p => `"${p}"`).join(', ');
   const depts = DEPARTMENTS.map(d => `"${d}"`).join(', ');
-  return `You are an IT-helpdesk assistant. You read a pasted email thread and extract a structured IT support ticket.
+  const locs = LOCATIONS.map(l => `"${l}"`).join(', ');
+  const intro = mode === 'email'
+    ? 'You read a pasted email thread and extract a structured IT support ticket.'
+    : "You read a support agent's short plain-language description of a ticket they want to raise, and turn it into a structured IT support ticket.";
+  const requesterRule = mode === 'email'
+    ? '- requester_name / requester_email: extract from the email headers. Identify who ORIGINATED the request (the first person to raise the issue), not necessarily the last sender in the thread.'
+    : '- requester_name / requester_email: ONLY fill these if the description explicitly names the person (and/or gives their email). If the agent is just describing a task without naming a requester, return "" for both. Never invent a name or email.';
+  return `You are an IT-helpdesk assistant. ${intro}
 
 Return ONLY a single JSON object — no prose, no explanation, no markdown code fences. The object must have exactly these keys:
-  subject, requester_name, requester_email, department, affected_user, category, sub_type, priority, description
+  subject, requester_name, requester_email, department, location, affected_user, category, sub_type, priority, description
 
 Rules:
-- requester_name / requester_email: extract from the email headers. Identify who ORIGINATED the request (the first person to raise the issue), not necessarily the last sender in the thread.
+${requesterRule}
 - affected_user: only fill if the request is clearly on behalf of someone other than the requester; otherwise "".
-- description: a clean, concise summary of the actual issue or request in plain prose — NOT the raw thread. Capture any stated urgency or deadline.
+- description: a clean, concise summary of the actual issue or request in plain prose${mode === 'email' ? ' — NOT the raw thread' : ''}. Capture any stated urgency or deadline.
 - subject: a short one-line summary.
 - category: MUST be exactly one of these keys: ${cats}. Return the KEY only (e.g. "support").
 - sub_type: MUST be one of the exact strings allowed for the chosen category:
 ${subs}
 - priority: MUST be exactly one of: ${pris}.
 - department: MUST be exactly one of: ${depts}.
-- For category, sub_type, priority, department: if you are unsure, return an empty string "" for that field rather than guessing. Never invent a value outside the allowed lists.
+- location: MUST be exactly one of these strings, or "": ${locs}. Infer it from any site or city mentioned; if unsure, "".
+- For category, sub_type, priority, department, location: if you are unsure, return an empty string "" for that field rather than guessing. Never invent a value outside the allowed lists.
 - NEVER use dashes in any text you write (subject, description). No em dashes, no en dashes, and no hyphen used as a dash or separator. Use commas, full stops, or parentheses instead. Ordinary hyphenated words such as "sign-in" or "sub-type" are fine.
 - Return valid JSON only.`;
 }
 
 type Draft = {
-  subject: string; requester_name: string; requester_email: string; department: string;
+  subject: string; requester_name: string; requester_email: string; department: string; location: string;
   affected_user: string; category: string; sub_type: string; priority: string; description: string;
 };
 
@@ -54,9 +62,10 @@ function sanitize(raw: Record<string, unknown>): Draft {
   const subType = category && (SUB_TYPES[category] || []).includes(str(raw.sub_type)) ? str(raw.sub_type) : '';
   const priority = Object.keys(PRI_LABEL).includes(str(raw.priority)) ? str(raw.priority) : '';
   const department = DEPARTMENTS.includes(str(raw.department)) ? str(raw.department) : '';
+  const location = LOCATIONS.includes(str(raw.location)) ? str(raw.location) : '';
   return {
     subject: str(raw.subject), requester_name: str(raw.requester_name),
-    requester_email: str(raw.requester_email), department, affected_user: str(raw.affected_user),
+    requester_email: str(raw.requester_email), department, location, affected_user: str(raw.affected_user),
     category, sub_type: subType, priority, description: str(raw.description),
   };
 }
@@ -74,11 +83,12 @@ export async function POST(req: NextRequest) {
   if (roleErr) return NextResponse.json({ error: 'Role lookup failed: ' + roleErr.message }, { status: 500 });
   if (!roleRow || !['admin', 'manager'].includes(roleRow.role)) return NextResponse.json({ error: 'Account does not have IT staff access' }, { status: 403 });
 
-  let body: { thread?: string };
+  let body: { thread?: string; input?: string; mode?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
-  const thread = String(body.thread || '').trim();
-  if (!thread) return NextResponse.json({ error: 'An email thread is required' }, { status: 400 });
-  if (thread.length > 30000) return NextResponse.json({ error: 'Thread too long (max 30,000 chars)' }, { status: 400 });
+  const mode: 'email' | 'describe' = body.mode === 'describe' ? 'describe' : 'email';
+  const input = String(body.input || body.thread || '').trim();   // 'thread' kept for back-compat
+  if (!input) return NextResponse.json({ error: mode === 'email' ? 'An email thread is required' : 'A description is required' }, { status: 400 });
+  if (input.length > 30000) return NextResponse.json({ error: 'Input too long (max 30,000 chars)' }, { status: 400 });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -95,8 +105,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 600,
-        system: buildSystemPrompt() + knowledge,
-        messages: [{ role: 'user', content: `Email thread:\n\n${thread}` }],
+        system: buildSystemPrompt(mode) + knowledge,
+        messages: [{ role: 'user', content: `${mode === 'email' ? 'Email thread' : 'Ticket description'}:\n\n${input}` }],
       }),
     });
 
