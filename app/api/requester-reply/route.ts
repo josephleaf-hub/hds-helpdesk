@@ -61,12 +61,13 @@ export async function POST(req: NextRequest) {
     resolved = true;
   } else {
     reopened = ['resolved', 'closed'].includes(ticket.status);
-    if (ticket.status !== 'waiting-on-admin') {
-      const update: Record<string, unknown> = { status: 'waiting-on-admin', updated_at: now };
-      if (reopened) update.resolved_at = null;
-      const { error: updErr } = await admin.from('tickets').update(update).eq('id', ticket.id);
-      if (updErr) return NextResponse.json({ error: 'Status update failed: ' + updErr.message }, { status: 500 });
-    }
+    // A requester reply needs IT's attention, so always pull the ticket back into
+    // the active list (un-archive) and update status if it isn't already on admin.
+    const update: Record<string, unknown> = { updated_at: now, deleted_at: null };
+    if (ticket.status !== 'waiting-on-admin') update.status = 'waiting-on-admin';
+    if (reopened) update.resolved_at = null;
+    const { error: updErr } = await admin.from('tickets').update(update).eq('id', ticket.id);
+    if (updErr) return NextResponse.json({ error: 'Status update failed: ' + updErr.message }, { status: 500 });
     if (reopened) {
       await admin.from('ticket_notes').insert({ ticket_id: ticket.id, added_by: 'System', note_text: 'Ticket reopened by requester.', note_type: 'internal' });
     }
