@@ -69,10 +69,10 @@ async function sendTokenEmail(email: string, link: string, emailFrom: string) {
         <div style="font-size:18px;font-weight:600;color:#0F1C2E;margin-top:4px;">Your sign-in link</div>
       </td></tr>
       <tr><td style="padding:24px 28px;font-size:14px;line-height:1.6;color:#0F1C2E;">
-        <div style="margin-bottom:20px;">Use the button below to sign in to the HDS IT Helpdesk. It works on any device, any time — bookmark it if you like.</div>
+        <div style="margin-bottom:20px;">Use the button below to sign in to the HDS IT Helpdesk. It works on any device, any time. Bookmark it if you like.</div>
         <div style="margin:0 0 20px;"><a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">Sign in to the portal</a></div>
         <div style="font-size:12px;color:#6B7280;line-height:1.5;">If you didn't request this, you can ignore it. If you think your previous link was shared, this new one replaces it.</div>
-        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— HDS IT Helpdesk</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">HDS IT Helpdesk</div>
       </td></tr>
     </table>
   </td></tr>
@@ -85,7 +85,7 @@ async function sendTokenEmail(email: string, link: string, emailFrom: string) {
     '',
     `If you didn't request this, you can ignore it.`,
     '',
-    `— HDS IT Helpdesk`,
+    `HDS IT Helpdesk`,
   ].join('\n');
 
   const r = await fetch('https://api.sendgrid.com/v3/mail/send', {

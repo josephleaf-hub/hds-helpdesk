@@ -145,15 +145,15 @@ function buildCreatedHtml({ ticket, link }: { ticket: CreatedTicket; link: strin
           <div><strong>Ticket:</strong> ${esc(ticket.id)}</div>
           ${summaryRow}
         </div>
-        <div style="margin-bottom:20px;">You can view it and reply directly in the portal — no need to go back and forth over email. Replying there keeps the whole conversation together and helps us get to you faster.</div>
+        <div style="margin-bottom:20px;">You can view it and reply directly in the portal, no need to go back and forth over email. Replying there keeps the whole conversation together and helps us get to you faster.</div>
         <div style="margin:24px 0;">
           <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
         </div>
         <div style="margin-bottom:0;">If something looks wrong or you weren't expecting this, just reply in the portal and let us know.</div>
-        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— HDS IT Helpdesk</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">HDS IT Helpdesk</div>
       </td></tr>
       <tr><td style="padding:16px 28px;background:#F8F9FA;border-top:1px solid #E2E8EF;font-size:12px;color:#6B7280;line-height:1.5;">
-        Use the button above to view and reply — it signs you in automatically on any device.<br>
+        Use the button above to view and reply. It signs you in automatically on any device.<br>
         Reference: <strong>${esc(ticket.id)}</strong>
       </td></tr>
     </table>
@@ -171,10 +171,10 @@ function buildCreatedText({ ticket, link }: { ticket: CreatedTicket; link: strin
   ];
   if (ticket.subject) lines.push(`  Summary: ${ticket.subject}`);
   lines.push('',
-    `You can view it and reply directly in the portal — no need to go back and forth over email. Replying there keeps the whole conversation together and helps us get to you faster.`, '',
+    `You can view it and reply directly in the portal, no need to go back and forth over email. Replying there keeps the whole conversation together and helps us get to you faster.`, '',
     `View & reply in portal (signs you in automatically): ${link}`, '',
     `If something looks wrong or you weren't expecting this, just reply in the portal and let us know.`, '',
-    `— HDS IT Helpdesk`, '', '———', `Reference: ${ticket.id}`);
+    `HDS IT Helpdesk`, '', '___________', `Reference: ${ticket.id}`);
   return lines.join('\n');
 }
 

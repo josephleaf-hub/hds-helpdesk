@@ -139,7 +139,7 @@ async function sendEmail(ticketId: string, ticket: Ticket, SITE_URL: string) {
       <tr>
         <td style="background:#EBF2FF;padding:14px 32px;border-bottom:1px solid #E2E8EF;">
           <span style="font-size:18px;font-weight:700;color:#1C64F2;letter-spacing:-0.02em;">${ticketId}</span>
-          <span style="font-size:12px;color:#6B7280;margin-left:10px;">${catStr} — ${ticket.subType}</span>
+          <span style="font-size:12px;color:#6B7280;margin-left:10px;">${catStr} · ${ticket.subType}</span>
         </td>
       </tr>
       <tr>
@@ -253,7 +253,7 @@ async function sendConfirmationEmail(
           <a href="${portalLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">View all my tickets</a>
         </div>
         <div style="font-size:12px;color:#6B7280;line-height:1.5;">This link signs you in automatically. After signing in once, you'll stay logged in for 30 days and can use the portal at <a href="${SITE_URL}" style="color:#1C64F2;">it-helpdesk.hdsaus.com.au</a>.</div>
-        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— HDS IT Helpdesk</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">HDS IT Helpdesk</div>
       </td></tr>
     </table>
   </td></tr>
@@ -267,7 +267,7 @@ async function sendConfirmationEmail(
     `View your ticket (this link signs you in automatically):`, magicLink, '',
     `View all your tickets:`, portalLink, '',
     `After signing in once, you'll stay logged in for 30 days at ${SITE_URL}`, '',
-    `— HDS IT Helpdesk`,
+    `HDS IT Helpdesk`,
   ].join('\n');
 
   const res = await fetch('https://api.sendgrid.com/v3/mail/send', {

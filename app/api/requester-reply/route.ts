@@ -92,9 +92,9 @@ async function notifyIT(opts: { ticket: ReplyTicket; message: string; resolved: 
   const adminLink = `${SITE_URL}/admin?ticket=${ticket.id}`;
   const who = ticket.requester_name || ticket.requester_email;
   const subject = `Re: [${ticket.id}] ${ticket.subject}`;
-  const bodyHtml = message ? esc(message).replace(/\n/g, '<br>') : '<em style="color:#6B7280;">(No message — open the ticket in the dashboard.)</em>';
+  const bodyHtml = message ? esc(message).replace(/\n/g, '<br>') : '<em style="color:#6B7280;">(No message. Open the ticket in the dashboard.)</em>';
   const attachBadge = attachCount > 0
-    ? `<div style="margin:0 0 18px;"><span style="display:inline-flex;align-items:center;gap:6px;background:#EBF2FF;color:#1C64F2;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${attachCount} image${attachCount > 1 ? 's' : ''} attached — view in the dashboard</span></div>`
+    ? `<div style="margin:0 0 18px;"><span style="display:inline-flex;align-items:center;gap:6px;background:#EBF2FF;color:#1C64F2;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${attachCount} image${attachCount > 1 ? 's' : ''} attached, view in the dashboard</span></div>`
     : '';
 
   const html = `<!DOCTYPE html>
@@ -124,7 +124,7 @@ async function notifyIT(opts: { ticket: ReplyTicket; message: string; resolved: 
 
   const text = [
     `${who} replied on ticket ${ticket.id}${resolved ? ' and marked it resolved' : ''}${attachCount > 0 ? ` (${attachCount} image${attachCount > 1 ? 's' : ''} attached)` : ''}.`,
-    '', message, '', '———', `View in dashboard: ${adminLink}`,
+    '', message, '', '___________', `View in dashboard: ${adminLink}`,
   ].join('\n');
 
   const sgRes = await fetch('https://api.sendgrid.com/v3/mail/send', {

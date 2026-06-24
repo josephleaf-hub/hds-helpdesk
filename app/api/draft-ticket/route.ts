@@ -103,12 +103,12 @@ export async function POST(req: NextRequest) {
     if (!aiRes.ok) {
       const detail = (await aiRes.text().catch(() => '')).slice(0, 300);
       console.error('draft-ticket: Anthropic error', aiRes.status, detail);
-      return NextResponse.json({ error: 'AI drafting failed — please fill the form manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'AI drafting failed. Please fill the form manually.' }, { status: 502 });
     }
 
     const data = await aiRes.json();
     const text = (data?.content?.[0]?.text || '').trim();
-    if (!text) return NextResponse.json({ error: 'AI returned no draft — please fill the form manually.' }, { status: 502 });
+    if (!text) return NextResponse.json({ error: 'AI returned no draft. Please fill the form manually.' }, { status: 502 });
 
     // Strip ```json … ``` fences if the model added them, then parse defensively.
     const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
@@ -116,12 +116,12 @@ export async function POST(req: NextRequest) {
     try { parsed = JSON.parse(cleaned); }
     catch {
       console.error('draft-ticket: JSON parse failed for:', cleaned.slice(0, 300));
-      return NextResponse.json({ error: 'Could not read the AI draft — please fill the form manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'Could not read the AI draft. Please fill the form manually.' }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true, draft: sanitize(parsed) });
   } catch (err) {
     console.error('draft-ticket: unexpected error', (err as Error).message);
-    return NextResponse.json({ error: 'AI drafting failed — please fill the form manually.' }, { status: 502 });
+    return NextResponse.json({ error: 'AI drafting failed. Please fill the form manually.' }, { status: 502 });
   }
 }

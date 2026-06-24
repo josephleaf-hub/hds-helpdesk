@@ -1358,6 +1358,27 @@ tr.row-attention:hover { background: #FCF3CF; }
   100% { background: #fff; border-color: var(--border); }
 }
 
+/* ── TEAM & ACCESS page ───────────────────────────────────────────────── */
+.perm-note { display: flex; align-items: center; gap: 8px; background: #EBF2FF; border: 1px solid #C7DBFB; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #1C64F2; font-weight: 500; margin: 0 0 16px; }
+.perm-note svg { width: 15px; height: 15px; flex-shrink: 0; }
+.tm-table .u-name { font-weight: 600; color: var(--text-1); }
+.tm-table .u-email { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+.tm-dept { color: var(--text-2); font-size: 12px; }
+.tm-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 10px; white-space: nowrap; }
+.tm-owner { background: #0F1C2E; color: #fff; }
+.tm-admin { background: #EBF2FF; color: #1C64F2; }
+.tm-manager { background: #EEF0F3; color: #475569; }
+.tm-active { background: #E8F5EE; color: #2E7D52; }
+.tm-invited { background: #FEF6E7; color: #B45309; }
+.tm-inactive { background: #F0F2F5; color: #8A97A8; }
+.tm-actions { text-align: right; white-space: nowrap; }
+.tm-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--blue); cursor: pointer; margin-left: 14px; }
+.tm-link:hover { text-decoration: underline; }
+.tm-link.danger { color: #C0392B; }
+.tm-link.muted { color: var(--text-3); cursor: default; }
+.tm-link.muted:hover { text-decoration: none; }
+.tm-inactive-row .u-name, .tm-inactive-row .u-email, .tm-inactive-row .tm-dept { opacity: 0.55; }
+
 /* ── ASSIGN / HANDOVER popup ──────────────────────────────────────────── */
 .assign-overlay { position: fixed; inset: 0; z-index: 1700; background: rgba(15,28,46,0.45); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .assign-modal { background: #fff; border-radius: 18px; width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column; }

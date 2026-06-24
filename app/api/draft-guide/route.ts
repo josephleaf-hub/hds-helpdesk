@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     if (!aiRes.ok) {
       const detail = (await aiRes.text().catch(() => '')).slice(0, 300);
       console.error('draft-guide: Anthropic error', aiRes.status, detail);
-      return NextResponse.json({ error: 'AI drafting failed — write the guide manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'AI drafting failed. Write the guide manually.' }, { status: 502 });
     }
     const data = await aiRes.json();
     const text = (data?.content?.[0]?.text || '').trim();
@@ -112,11 +112,11 @@ export async function POST(req: NextRequest) {
     try { parsed = JSON.parse(cleaned); }
     catch {
       console.error('draft-guide: JSON parse failed for:', cleaned.slice(0, 300));
-      return NextResponse.json({ error: 'Could not read the AI draft — write the guide manually.' }, { status: 502 });
+      return NextResponse.json({ error: 'Could not read the AI draft. Write the guide manually.' }, { status: 502 });
     }
     return NextResponse.json({ ok: true, draft: sanitize(parsed, passedCategory) });
   } catch (err) {
     console.error('draft-guide: unexpected error', (err as Error).message);
-    return NextResponse.json({ error: 'AI drafting failed — write the guide manually.' }, { status: 502 });
+    return NextResponse.json({ error: 'AI drafting failed. Write the guide manually.' }, { status: 502 });
   }
 }

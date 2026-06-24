@@ -103,9 +103,9 @@ function esc(s: string) {
 type ReplyTicket = { id: string; subject: string; requester_name: string; requester_email: string };
 
 function buildReplyHtml({ ticket, message, attachCount, link, allLink }: { ticket: ReplyTicket; message: string; attachCount: number; link: string; allLink: string }) {
-  const bodyHtml = (message && message.trim()) ? esc(message).replace(/\n/g, '<br>') : '<em style="color:#6B7280;">A screenshot was attached — open the portal to view it.</em>';
+  const bodyHtml = (message && message.trim()) ? esc(message).replace(/\n/g, '<br>') : '<em style="color:#6B7280;">A screenshot was attached. Open the portal to view it.</em>';
   const attachBadge = attachCount > 0
-    ? `<div style="margin:0 0 18px;"><span style="display:inline-flex;align-items:center;gap:6px;background:#EBF2FF;color:#1C64F2;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${attachCount} image${attachCount > 1 ? 's' : ''} attached — view in the portal</span></div>`
+    ? `<div style="margin:0 0 18px;"><span style="display:inline-flex;align-items:center;gap:6px;background:#EBF2FF;color:#1C64F2;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> ${attachCount} image${attachCount > 1 ? 's' : ''} attached, view in the portal</span></div>`
     : '';
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>${esc(ticket.id)}</title>${EMAIL_HEAD_STYLE}</head>
@@ -128,10 +128,10 @@ function buildReplyHtml({ ticket, message, attachCount, link, allLink }: { ticke
           <a href="${link}" style="display:inline-block;background:#1C64F2;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;">View &amp; reply in portal</a>
           <a href="${allLink}" style="display:inline-block;margin-left:8px;background:#fff;color:#1C64F2;border:1px solid #C8D4DF;text-decoration:none;font-weight:600;font-size:14px;padding:10px 20px;border-radius:8px;">All my tickets</a>
         </div>
-        <div style="margin-top:24px;color:#6B7280;font-size:13px;">— The HDS IT Helpdesk team</div>
+        <div style="margin-top:24px;color:#6B7280;font-size:13px;">The HDS IT Helpdesk team</div>
       </td></tr>
       <tr><td style="padding:16px 28px;background:#F8F9FA;border-top:1px solid #E2E8EF;font-size:12px;color:#6B7280;line-height:1.5;">
-        Use the button above to view and reply — it signs you in automatically on any device.<br>
+        Use the button above to view and reply. It signs you in automatically on any device.<br>
         Reference: <strong>${esc(ticket.id)}</strong>
       </td></tr>
     </table>
@@ -143,10 +143,10 @@ function buildReplyHtml({ ticket, message, attachCount, link, allLink }: { ticke
 function buildReplyText({ ticket, message, attachCount, link, allLink }: { ticket: ReplyTicket; message: string; attachCount: number; link: string; allLink: string }) {
   const lines = [
     `Hi ${ticket.requester_name.split(' ')[0]},`, '',
-    (message && message.trim()) ? message.trim() : 'A screenshot was attached — open the portal to view it.',
+    (message && message.trim()) ? message.trim() : 'A screenshot was attached. Open the portal to view it.',
   ];
-  if (attachCount > 0 && message && message.trim()) lines.push('', `(${attachCount} image${attachCount > 1 ? 's' : ''} attached — view in the portal)`);
-  lines.push('', `— The HDS IT Helpdesk team`, '', '———',
+  if (attachCount > 0 && message && message.trim()) lines.push('', `(${attachCount} image${attachCount > 1 ? 's' : ''} attached, view in the portal)`);
+  lines.push('', `The HDS IT Helpdesk team`, '', '___________',
     `Reply to this conversation (signs you in automatically): ${link}`, `All your tickets: ${allLink}`, `Reference: ${ticket.id}`);
   return lines.join('\n');
 }

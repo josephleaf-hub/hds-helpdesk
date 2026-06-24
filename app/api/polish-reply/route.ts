@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (!aiRes.ok) {
       const detail = (await aiRes.text().catch(() => '')).slice(0, 300);
       console.error('polish-reply: Anthropic error', aiRes.status, detail);
-      return NextResponse.json({ error: 'Polish failed — your text is unchanged.' }, { status: 502 });
+      return NextResponse.json({ error: 'Polish failed. Your text is unchanged.' }, { status: 502 });
     }
     const data = await aiRes.json();
     let out = (data?.content?.[0]?.text || '').trim();
@@ -69,6 +69,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ polished: out });
   } catch (err) {
     console.error('polish-reply: unexpected error', (err as Error).message);
-    return NextResponse.json({ error: 'Polish failed — your text is unchanged.' }, { status: 502 });
+    return NextResponse.json({ error: 'Polish failed. Your text is unchanged.' }, { status: 502 });
   }
 }
