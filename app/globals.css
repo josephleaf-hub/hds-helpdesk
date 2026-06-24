@@ -1361,6 +1361,8 @@ tr.row-attention:hover { background: #FCF3CF; }
 /* ── TEAM & ACCESS page ───────────────────────────────────────────────── */
 .perm-note { display: flex; align-items: center; gap: 8px; background: #EBF2FF; border: 1px solid #C7DBFB; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #1C64F2; font-weight: 500; margin: 0 0 16px; }
 .perm-note svg { width: 15px; height: 15px; flex-shrink: 0; }
+.invite-note { display: flex; gap: 8px; background: #F4F8FF; border: 1px solid #D6E2FB; border-radius: 10px; padding: 11px 13px; font-size: 12px; color: #1F3A6B; line-height: 1.5; margin-top: 4px; }
+.invite-note svg { width: 15px; height: 15px; color: #1C64F2; flex-shrink: 0; margin-top: 1px; }
 .tm-table .u-name { font-weight: 600; color: var(--text-1); }
 .tm-table .u-email { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 .tm-dept { color: var(--text-2); font-size: 12px; }
