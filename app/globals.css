@@ -844,6 +844,8 @@ select.nt-input { appearance: none; background-image: url("data:image/svg+xml,%3
 .composer-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 .resolved-notice { background: var(--success-bg); border-radius: 0 0 20px 20px; box-shadow: var(--shadow-card); padding: 18px 22px; font-size: 13px; color: var(--success); }
 .reopen-hint { font-size: 12px; color: var(--text-2); background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 11px; margin-bottom: 10px; line-height: 1.5; }
+.composer-tip { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; color: var(--text-2); margin-top: 8px; line-height: 1.4; }
+.composer-tip svg { flex-shrink: 0; margin-top: 1px; color: var(--blue); }
 @media (max-width: 1024px) { .detail-grid2 { grid-template-columns: 1fr; } }
 
 @media (max-width: 768px) {
