@@ -44,7 +44,7 @@ export const SUB_TYPES: Record<string, string[]> = {
   access:   ['New System Access', 'Modify Existing Access', 'VPN / Remote Access', 'Application License', 'Remove / Revoke Access'],
   hardware: ['New Laptop', 'Laptop Replacement', 'Monitor / Peripheral', 'Mobile Device', 'Headset / Audio', 'Other Hardware'],
   account:  ['New Starter Setup', 'Leaver Account Deactivation', 'Password Reset', 'Email & Signature Setup', 'Profile / Name Change'],
-  support:  ['Software Not Working', 'Hardware Fault', 'Network / Connectivity', 'Email Problem', 'Printing / Scanning', 'Other'],
+  support:  ['Software Not Working', 'Hardware Fault', 'Network / Connectivity', 'Email Problem', 'Printing / Scanning', 'ArcTech', 'Other'],
 };
 
 export const STATUS_ORDER: Record<string, number> = {
