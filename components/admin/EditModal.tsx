@@ -9,6 +9,7 @@ import { useIsMobile } from '@/lib/useIsMobile';
 import { loadAttachmentMap, uploadImages } from '@/lib/attachments';
 import { listGuidesForTicket, incrementUsage, type HelpGuide } from '@/lib/guides';
 import { Conversation } from '@/components/Conversation';
+import { Linkify } from '@/components/Linkify';
 import { GuideRail } from '@/components/admin/GuideRail';
 import { GuideEditor } from '@/components/admin/GuideEditor';
 import { FloatingMenu, MenuItem } from '@/components/admin/FloatingMenu';
@@ -486,7 +487,7 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
             <button className={`pill ${ticket.assigned_to ? 'b-hold' : 'p-unassigned'}`} onClick={(e) => openPill('assigned', e)}>{assigneeName(ticket.assigned_to) || 'Unassigned'}<Chev /></button>
           </div>
           <hr className="divider-line" />
-          <div className="field"><div className="field-label">Description</div><div className="desc-block">{ticket.description}</div></div>
+          <div className="field"><div className="field-label">Description</div><div className="desc-block"><Linkify text={ticket.description} /></div></div>
           {attMap['_unlinked']?.length ? (
             <div className="field"><div className="field-label">Submitted photo</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
@@ -547,7 +548,7 @@ export function EditModal({ ticket, user, users, onClose, onReload, patchTicket 
                 <hr className="divider-line" />
                 <div className="field">
                   <div className="field-label">Description</div>
-                  <div className="desc-block">{ticket.description}</div>
+                  <div className="desc-block"><Linkify text={ticket.description} /></div>
                 </div>
                 <hr className="divider-line" />
                 <div className="field">

@@ -38,6 +38,21 @@ function escEmail(s: string) {
   return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
 
+// Turn a plain-text message into safe HTML for an email body: escape first (so
+// the text can't inject markup), then wrap http(s) URLs in a clickable link that
+// opens in a new tab, then convert newlines to <br>. Trailing sentence
+// punctuation is kept out of the link so "see https://x.com." doesn't break.
+export function linkifyEmail(s: string): string {
+  return escEmail(s)
+    .replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const m = url.match(/[.,!?)\]}]+$/);
+      const trail = m ? m[0] : '';
+      const href = trail ? url.slice(0, -trail.length) : url;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:#1C64F2;text-decoration:underline;word-break:break-word;">${href}</a>${trail}`;
+    })
+    .replace(/\n/g, '<br>');
+}
+
 const ROLE_WORD: Record<string, string> = { owner: 'an Owner', admin: 'an Admin', manager: 'a Manager' };
 
 // Branded invite email (dark admin header). The link lets the recipient set their

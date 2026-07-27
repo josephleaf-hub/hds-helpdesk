@@ -464,6 +464,7 @@ tbody td:first-child { color: #0F1C2E; font-weight: 600; }
 .chat-msg { max-width: 86%; display: flex; flex-direction: column; }
 .chat-msg-meta { font-size: 11px; color: #8A97A8; margin-bottom: 4px; font-weight: 500; }
 .chat-bubble { padding: 11px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5; color: #0F1C2E; }
+.chat-bubble a, .note-text a, .desc-block a { color: #1C64F2; text-decoration: underline; word-break: break-word; overflow-wrap: anywhere; }
 .chat-requester { align-self: flex-start; }
 .chat-requester .chat-bubble { background: #F3F4F6; border-top-left-radius: 4px; }
 .chat-it { align-self: flex-end; }

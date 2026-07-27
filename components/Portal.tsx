@@ -8,6 +8,7 @@ import { fmtShort, fmtDate } from '@/lib/format';
 import { loadAttachmentMap, compressImageToBase64, uploadImages } from '@/lib/attachments';
 import { StatusBadge, PriBadge } from '@/components/Badges';
 import { Conversation } from '@/components/Conversation';
+import { Linkify } from '@/components/Linkify';
 import { useToast } from '@/components/Toast';
 import { useConfirm } from '@/components/Confirm';
 import { Thumb } from '@/components/Thumb';
@@ -436,7 +437,7 @@ export default function Portal({ initialTicketId }: { initialTicketId?: string }
                           <div className="field" style={{ marginBottom: 0 }}><div className="field-label">Priority</div><div className="field-val"><PriBadge priority={t.priority} /></div></div>
                         </div>
                         <hr className="divider-line" />
-                        <div className="field"><div className="field-label">Description</div><div className="desc-block">{t.description}</div></div>
+                        <div className="field"><div className="field-label">Description</div><div className="desc-block"><Linkify text={t.description} /></div></div>
                         {attMap['_unlinked']?.length ? (<><hr className="divider-line" /><div className="field"><div className="field-label">Attached photo</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>{attMap['_unlinked'].map((a, i) => <Thumb key={i} url={a.url} name={a.name} />)}</div></div></>) : null}
                         <hr className="divider-line" />
                         <div className="field"><div className="field-label">Department / Location</div><div className="field-val">{t.department}{t.location ? ' · ' + t.location : ''}</div></div>

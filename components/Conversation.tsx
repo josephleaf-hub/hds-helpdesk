@@ -2,6 +2,7 @@
 
 import { fmtDate } from '@/lib/format';
 import { Thumb } from '@/components/Thumb';
+import { Linkify } from '@/components/Linkify';
 import type { Note, NoteType, AttachItem, AttachMap } from '@/lib/types';
 
 const NOTE_STYLE: Record<NoteType, { color: string; bg: string; border: string }> = {
@@ -53,7 +54,7 @@ export function Conversation({ notes, reqFirst, attMap = {}, maskStaff = false, 
                 ? <div className="chat-note-tag"><svg className="chat-ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Internal note · {who} · {fmtDate(n.created_at)}</div>
                 : <div className="chat-msg-meta">{who} · {fmtDate(n.created_at)}</div>}
               <div className="chat-bubble">
-                {n.note_text ? <span style={{ whiteSpace: 'pre-wrap' }}>{n.note_text}</span> : null}
+                {n.note_text ? <span style={{ whiteSpace: 'pre-wrap' }}><Linkify text={n.note_text} /></span> : null}
                 <Thumbs list={attMap[n.id]} />
               </div>
             </div>
@@ -78,7 +79,7 @@ export function Conversation({ notes, reqFirst, attMap = {}, maskStaff = false, 
               <NoteIcon type={n.note_type} color={s.color} /> {labelFor(n.note_type)} ·{' '}
               <span style={{ color: '#6B7280', fontWeight: 500 }}>{who} · {fmtDate(n.created_at)}</span>
             </div>
-            {n.note_text && <div className="note-text" style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{n.note_text}</div>}
+            {n.note_text && <div className="note-text" style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}><Linkify text={n.note_text} /></div>}
             <Thumbs list={attMap[n.id]} />
           </div>
         );

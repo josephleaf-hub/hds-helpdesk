@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { siteUrl } from '@/lib/site';
-import { emailLogoImgs, emailLogoWhite, EMAIL_HEAD_STYLE } from '@/lib/email';
+import { emailLogoImgs, emailLogoWhite, EMAIL_HEAD_STYLE, linkifyEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -171,7 +171,7 @@ async function sendEmail(ticketId: string, ticket: Ticket, SITE_URL: string) {
             <tr>
               <td colspan="2" style="padding:14px 18px;">
                 <div style="font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Description</div>
-                <div style="font-size:13px;color:#0F1C2E;line-height:1.65;">${ticket.description.replace(/\n/g, '<br>')}</div>
+                <div style="font-size:13px;color:#0F1C2E;line-height:1.65;">${linkifyEmail(ticket.description)}</div>
               </td>
             </tr>
           </table>
